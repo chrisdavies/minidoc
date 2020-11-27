@@ -20,7 +20,12 @@
   </div>
   <script src="/dist/bundle.js"></script>
   <script>
-    minidoc.minidoc(document.querySelector('div'));
+    (function demo() {
+      const editor = minidoc.minidoc(document.querySelector('div'));
+      editor.on('caretchange', () => {
+        console.log('caretchange', Array.from(editor.activeTags()));
+      });
+    })();
   </script>
 </body>
 </html>
