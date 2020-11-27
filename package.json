@@ -1,0 +1,35 @@
+{
+  "name": "minidoc-ts",
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm-run-all --parallel watch:**",
+    "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -- npm run dev:rebuild",
+    "watch:browser": "browser-sync public/ --server --cwd public/ -w",
+    "watch:css": "postcss css/index.css -o public/dist/bundle.css",
+    "dev:rebuild": "esbuild --global-name=minidoc --bundle src/index.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit"
+  },
+  "author": "Chris Davies <dev@christophilus.com>",
+  "license": "ISC",
+  "description": "A lightweight contenteditable.",
+  "devDependencies": {
+    "autoprefixer": "^10.0.3",
+    "browser-sync": "^2.26.13",
+    "cssnano": "^4.1.10",
+    "esbuild": "^0.8.16",
+    "npm-run-all": "^4.1.5",
+    "onchange": "^7.1.0",
+    "postcss": "^8.1.10",
+    "postcss-cli": "^8.3.0",
+    "postcss-import": "^13.0.0",
+    "typescript": "^4.1.2"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 100
+  }
+}
