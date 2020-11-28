@@ -35,6 +35,12 @@ export function setCurrentSelection(range: Range): Range {
   return range;
 }
 
+function closestBlock(node: Node): Element {
+  const blockSelector = 'div,p,li,ul,ol,section,footer,header,nav,table';
+  const el = node instanceof Element ? node : node.parentElement!;
+  return el.closest(blockSelector)!;
+}
+
 /**
  * Delete the specified range and merge the node contents.
  */
@@ -44,18 +50,17 @@ export function $deleteAndMergeContents(range: Range) {
   }
   const startNode = toNode(range);
   const endNode = toEndNode(range);
-  const container = range.commonAncestorContainer as Element;
-  const children = Array.from(container.children);
-  const startEl = children.find((el) => el.contains(startNode));
-  const endEl = children.find((el) => el.contains(endNode));
+  const startEl = closestBlock(startNode);
+  const endEl = closestBlock(endNode);
   const clone = range.cloneRange();
   range.collapse(true);
+  clone.deleteContents();
   const content = clone.extractContents();
-  if (endEl instanceof Text) {
-    startEl?.appendChild(endEl);
-  } else if (startEl instanceof Element && endEl instanceof Element) {
-    endEl.childNodes.forEach((n) => startEl.appendChild(n));
+  if (startEl !== endEl) {
+    Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
+    endEl.remove();
   }
+  startEl.normalize();
   return content;
 }
 

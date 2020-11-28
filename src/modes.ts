@@ -10,6 +10,16 @@ import * as Dom from './dom';
 
 export interface Mode {
   onEnter?(): void;
+  onBackspace?(): void;
+  onDelete?(): void;
+}
+
+function defaultDelete() {
+  const range = Rng.currentRange();
+  if (!range) {
+    return;
+  }
+  Rng.$deleteAndMergeContents(range);
 }
 
 export const modes: { default: Mode; [withinTag: string]: Mode } = {
@@ -60,5 +70,7 @@ export const modes: { default: Mode; [withinTag: string]: Mode } = {
       Dom.$makeEditable(b);
       Rng.setCaretAtStart(b);
     },
+    onBackspace: defaultDelete,
+    onDelete: defaultDelete,
   },
 };

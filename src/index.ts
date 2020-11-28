@@ -59,6 +59,12 @@ export function minidoc(el: HTMLDivElement) {
     if (e.key === 'Enter') {
       e.preventDefault();
       (mode.onEnter ?? modes.default.onEnter)?.();
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      (mode.onBackspace ?? modes.default.onBackspace)?.();
+    } else if (e.key === 'Delete') {
+      e.preventDefault();
+      (mode.onDelete ?? modes.default.onDelete)?.();
     }
   });
 
