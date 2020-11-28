@@ -1,3 +1,5 @@
+import * as Dom from '../dom';
+
 export function toNode(range: Range): Node {
   return range.startContainer.childNodes[range.startOffset] || range.startContainer;
 }
@@ -35,12 +37,6 @@ export function setCurrentSelection(range: Range): Range {
   return range;
 }
 
-function closestBlock(node: Node): Element {
-  const blockSelector = 'div,p,li,ul,ol,section,footer,header,nav,table';
-  const el = node instanceof Element ? node : node.parentElement!;
-  return el.closest(blockSelector)!;
-}
-
 /**
  * Delete the specified range and merge the node contents.
  */
@@ -50,17 +46,21 @@ export function $deleteAndMergeContents(range: Range) {
   }
   const startNode = toNode(range);
   const endNode = toEndNode(range);
-  const startEl = closestBlock(startNode);
-  const endEl = closestBlock(endNode);
+  const startEl = Dom.closestBlock(startNode)!;
+  const endEl = Dom.closestBlock(endNode)!;
+  const endLeaf = Dom.findLeaf(endEl)!;
   const clone = range.cloneRange();
   range.collapse(true);
   clone.deleteContents();
   const content = clone.extractContents();
   if (startEl !== endEl) {
     Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
-    endEl.remove();
+    Dom.remove(endEl);
   }
   startEl.normalize();
+  if (Dom.isEmpty(endLeaf)) {
+    Dom.remove(endLeaf);
+  }
   return content;
 }
 
