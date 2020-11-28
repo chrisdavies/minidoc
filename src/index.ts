@@ -44,6 +44,10 @@ export function minidoc(el: HTMLDivElement) {
 
   el.contentEditable = 'true';
   el.classList.add('minidoc');
+  // Sanitize the editor root. Vanilla text nodes are not allowed as leafs.
+  Array.from(el.childNodes).forEach((n) => Dom.isText(n) && n.remove());
+  // Ensure the editor root has at least one editable element in it.
+  Dom.$makeEditable(el);
 
   // When the selection changes within the element,
   // we'll fire off a selection change event.
@@ -62,9 +66,11 @@ export function minidoc(el: HTMLDivElement) {
     } else if (e.key === 'Backspace') {
       e.preventDefault();
       (mode.onBackspace ?? modes.default.onBackspace)?.();
+      Dom.$makeEditable(el);
     } else if (e.key === 'Delete') {
       e.preventDefault();
       (mode.onDelete ?? modes.default.onDelete)?.();
+      Dom.$makeEditable(el);
     }
   });
 

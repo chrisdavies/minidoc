@@ -51,13 +51,10 @@ export function isList(el: any): el is Element {
  * Determine if the node is empty.
  */
 export function isEmpty(node: Node): boolean {
-  if (!node) {
+  if (!node || (isText(node) && node.length === 0)) {
     return true;
   }
 
-  if (isText(node)) {
-    return node.length === 0;
-  }
   const treeWalker = document.createTreeWalker(
     node,
     NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -69,7 +66,10 @@ export function isEmpty(node: Node): boolean {
     if (currentNode instanceof Text && currentNode.length) {
       return false;
     }
-    if ((currentNode as Element).tagName === 'MINI-CARD') {
+    if (
+      (currentNode as Element).tagName === 'MINI-CARD' ||
+      (currentNode as Element).tagName === 'BR'
+    ) {
       return false;
     }
     currentNode = treeWalker.nextNode();
@@ -213,31 +213,19 @@ export function newLeaf() {
   return h('p', h('br'));
 }
 
-function hasTrailingBr(el?: Element) {
-  return el?.lastElementChild?.tagName === 'BR';
-}
-
 /**
  * Ensure the specified node is editable. This is mutative.
  */
 export function $makeEditable(node: Node): Node {
-  if (isText(node) && node.length) {
+  if (!isEmpty(node)) {
     return node;
   }
-  const el = isText(node) ? node.parentElement! : (node as Element);
-  if (isRoot(el)) {
-    if (!el.lastElementChild) {
-      appendChild(newLeaf(), el);
-      el.appendChild(newLeaf());
-    } else if (!hasTrailingBr(el?.lastElementChild || undefined)) {
-      appendChild(h('br'), el.lastElementChild!);
-    }
-  } else if (isEmpty(el)) {
-    if (isList(el)) {
-      appendChildren(h('li', h('br')), el);
-    } else {
-      appendChildren(h('br'), el);
-    }
+  if (isList(node)) {
+    appendChildren(h('li', h('br')), node);
+  } else if (isRoot(node)) {
+    appendChild(newLeaf(), node);
+  } else if (isElement(node)) {
+    appendChild(h('br'), node);
   }
   return node;
 }
