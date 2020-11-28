@@ -250,3 +250,12 @@ export function closestBlock(node: Node): Element | undefined {
   const el = node instanceof Element ? node : node.parentElement!;
   return el?.closest(blockSelector) || undefined;
 }
+
+/**
+ * Merge the children of fromList into the children of toList, inserting them before
+ * beforeEl, if it's specified. This removes fromList from the DOM.
+ */
+export function mergeLists(fromList: Element, toList: Element, beforeEl?: Element) {
+  fromList.remove();
+  Array.from(fromList.children).forEach((li) => toList?.insertBefore(li, beforeEl || null));
+}

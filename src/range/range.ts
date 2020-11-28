@@ -60,15 +60,26 @@ export function $deleteAndMergeContents(range: Range) {
   const endLeaf = Dom.findLeaf(endEl)!;
   const clone = range.cloneRange();
   range.collapse(true);
-  clone.deleteContents();
   const content = clone.extractContents();
+  // If the start block and end block are the same, then we're deleting
+  // inline nodes, and the browser seems to handle this just fine. So,
+  // we only need to special-case the deletion across block elements.
   if (startEl !== endEl) {
+    // If we're moving an li out of a list, and it has a sublist, we need to
+    // unnest the sublist.
+    if (endEl.tagName === 'LI' && startEl.tagName !== 'LI') {
+      const nestedList = endEl.querySelector('ol,ul');
+      nestedList && Dom.mergeLists(nestedList, endEl.parentElement!, endEl);
+    }
     Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
     Dom.remove(endEl);
   }
   startEl.normalize();
   if (Dom.isEmpty(endLeaf)) {
     Dom.remove(endLeaf);
+  } else if (endLeaf.matches('ol,ul') && endLeaf.previousElementSibling?.matches('ol,ul')) {
+    // The deletion resulted in two sibling lists, so we need to merge them.
+    Dom.mergeLists(endLeaf, endLeaf.previousElementSibling!);
   }
   return content;
 }

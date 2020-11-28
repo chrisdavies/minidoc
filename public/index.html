@@ -25,7 +25,7 @@
     (function demo() {
       const editor = minidoc.minidoc(document.querySelector('div'));
       editor.on('caretchange', () => {
-        console.log('caretchange', Array.from(editor.activeTags()));
+        document.title = Array.from(editor.activeTags()).join(',');
       });
     })();
   </script>
