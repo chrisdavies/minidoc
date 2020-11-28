@@ -14,12 +14,12 @@ export interface Mode {
   onDelete?(): void;
 }
 
-function defaultDelete() {
+function defaultDelete(direction: 'left' | 'right') {
   const range = Rng.currentRange();
   if (!range) {
     return;
   }
-  Rng.$deleteAndMergeContents(range);
+  Rng.$deleteAndMergeContents((range.collapsed && Rng.extendSelection(direction)) || range);
 }
 
 export const modes: { default: Mode; [withinTag: string]: Mode } = {
@@ -70,7 +70,7 @@ export const modes: { default: Mode; [withinTag: string]: Mode } = {
       Dom.$makeEditable(b);
       Rng.setCaretAtStart(b);
     },
-    onBackspace: defaultDelete,
-    onDelete: defaultDelete,
+    onBackspace: () => defaultDelete('left'),
+    onDelete: () => defaultDelete('right'),
   },
 };

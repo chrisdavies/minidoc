@@ -23,6 +23,15 @@ export function currentRange(): Range | undefined {
 }
 
 /**
+ * Extend the current selection left or right one character.
+ */
+export function extendSelection(direction: 'left' | 'right'): Range | undefined {
+  const sel = document.getSelection();
+  (sel as any).modify('extend', direction, 'character');
+  return sel?.getRangeAt(0);
+}
+
+/**
  * Create an empty range.
  */
 export const createRange = () => document.createRange();
