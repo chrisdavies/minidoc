@@ -23,6 +23,16 @@ export function currentRange(): Range | undefined {
 }
 
 /**
+ * Get the currently selected node.
+ */
+export function currentNode(): Node | undefined {
+  const range = currentRange();
+  if (range) {
+    return toNode(range);
+  }
+}
+
+/**
  * Extend the current selection left or right one character.
  */
 export function extendSelection(direction: 'left' | 'right'): Range | undefined {
@@ -72,6 +82,13 @@ export function $deleteAndMergeContents(range: Range) {
       nestedList && Dom.mergeLists(nestedList, endEl.parentElement!, endEl);
     }
     Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
+    // If there is a nested list in the start el, it needs to be
+    // moved to the end.
+    if (startEl.tagName === 'LI') {
+      const nestedList = startEl.querySelector('ol,ul');
+      nestedList?.remove();
+      nestedList && startEl.appendChild(nestedList);
+    }
     Dom.remove(endEl);
   }
   startEl.normalize();
@@ -91,6 +108,27 @@ export function setEndAfter(node: Node, range: Range): Range {
   const result = range.cloneRange();
   result.setEndAfter(node);
   return result;
+}
+
+/**
+ * Determine whether or not the specified range is at the very start
+ * of the specified node.
+ */
+export function isAtStartOf(node: Node, range: Range): boolean {
+  const { startContainer, startOffset } = range;
+  if (startOffset) {
+    return false;
+  }
+  let curr: Node | null = startContainer;
+  while (true) {
+    if (curr === node) {
+      return true;
+    }
+    if (!curr || curr.previousSibling) {
+      return false;
+    }
+    curr = curr.parentNode;
+  }
 }
 
 /**

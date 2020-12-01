@@ -1,7 +1,10 @@
 import * as Dom from './dom';
 import * as Rng from './range';
 import { createEmitter } from './emitter';
-import { modes, Mode } from './modes';
+import { defaultPlugin } from './default-plugin';
+import { listPlugin } from './list';
+
+const plugins = [listPlugin, defaultPlugin];
 
 type MinidocEvent = 'caretchange';
 
@@ -40,7 +43,6 @@ export function minidoc(el: HTMLDivElement) {
   const events = createEmitter<MinidocEvent>();
   // The tag names within which the caret is located
   const activeTags: Set<string> = new Set<string>();
-  let mode: Mode = modes.default;
 
   el.contentEditable = 'true';
   el.classList.add('minidoc');
@@ -52,29 +54,13 @@ export function minidoc(el: HTMLDivElement) {
   // When the selection changes within the element,
   // we'll fire off a selection change event.
   trackSelectionChange(el, () => {
-    mode = modes.default;
-    computeActiveTags(activeTags, el, Rng.toNode(Rng.currentRange()!)).forEach((tag) => {
-      mode = modes[tag] || mode;
-    });
+    computeActiveTags(activeTags, el, Rng.toNode(Rng.currentRange()!));
     events.emit('caretchange');
   });
 
-  Dom.on(el, 'keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      (mode.onEnter ?? modes.default.onEnter)?.();
-    } else if (e.key === 'Backspace') {
-      e.preventDefault();
-      (mode.onBackspace ?? modes.default.onBackspace)?.();
-      Dom.$makeEditable(el);
-    } else if (e.key === 'Delete') {
-      e.preventDefault();
-      (mode.onDelete ?? modes.default.onDelete)?.();
-      Dom.$makeEditable(el);
-    }
-  });
+  const editor = {
+    root: el,
 
-  return {
     isWithin(tag: string) {
       return activeTags.has(tag);
     },
@@ -87,4 +73,15 @@ export function minidoc(el: HTMLDivElement) {
       return events.on(evt, handler);
     },
   };
+
+  Dom.on(el, 'keydown', (e) => {
+    for (let p of plugins) {
+      p.onKeydown?.(e, editor);
+      if (e.defaultPrevented) {
+        return;
+      }
+    }
+  });
+
+  return editor;
 }

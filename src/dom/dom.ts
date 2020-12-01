@@ -50,7 +50,7 @@ export function isList(el: any): el is Element {
 /**
  * Determine if the node is empty.
  */
-export function isEmpty(node: Node): boolean {
+export function isEmpty(node: Node, ignoreBrs?: boolean): boolean {
   if (!node || (isText(node) && node.length === 0)) {
     return true;
   }
@@ -68,7 +68,7 @@ export function isEmpty(node: Node): boolean {
     }
     if (
       (currentNode as Element).tagName === 'MINI-CARD' ||
-      (currentNode as Element).tagName === 'BR'
+      (!ignoreBrs && (currentNode as Element).tagName === 'BR')
     ) {
       return false;
     }
