@@ -141,8 +141,9 @@ export function $splitContainer(
   const container = findContainer(toNode(range))!;
   const tailRange = setEndAfter(container, range);
   const tailEl = tailRange.cloneContents().children[0];
-  container.parentElement?.insertBefore(tailEl, container.nextElementSibling);
+  container.parentElement?.insertBefore(tailEl, container.nextSibling);
   tailRange.deleteContents();
+  range.setStartBefore(tailEl);
   return [container, tailEl];
 }
 

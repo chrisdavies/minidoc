@@ -230,11 +230,16 @@ export function $makeEditable(node: Node): Node {
   return node;
 }
 
+const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,section,footer,header,nav,table';
+
+export function isBlock(node: Node) {
+  return isElement(node) && node.matches(blockSelector);
+}
+
 /**
  * Find the closest block element that contains the specified node.
  */
 export function closestBlock(node: Node): Element | undefined {
-  const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,section,footer,header,nav,table';
   const el = node instanceof Element ? node : node.parentElement!;
   return el?.closest(blockSelector) || undefined;
 }

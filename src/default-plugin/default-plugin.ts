@@ -3,10 +3,11 @@
  * Other plugins take precedence over this one.
  */
 
-import * as Rng from './range';
-import * as Dom from './dom';
-import { h } from './dom';
-import './types';
+import * as Rng from '../range';
+import * as Dom from '../dom';
+import { h } from '../dom';
+import { toggleInline } from './toggle-inline';
+import '../types';
 
 function defaultDelete(direction: 'left' | 'right') {
   const range = Rng.currentRange();
@@ -14,6 +15,19 @@ function defaultDelete(direction: 'left' | 'right') {
     return;
   }
   Rng.$deleteAndMergeContents((range.collapsed && Rng.extendSelection(direction)) || range);
+}
+
+function ctrlToggle(tagName: string, e: KeyboardEvent) {
+  const isCtrl = e.ctrlKey || e.metaKey;
+  if (!isCtrl) {
+    return;
+  }
+  const range = Rng.currentRange()!;
+  if (range.collapsed) {
+    return;
+  }
+  e.preventDefault();
+  toggleInline(tagName, range);
 }
 
 const handlers: { [key: string]: MinidocKeyboardHandler } = {
@@ -51,6 +65,12 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     e.preventDefault();
     defaultDelete('left');
     Dom.$makeEditable(ctx.root);
+  },
+  KeyB(e) {
+    ctrlToggle('strong', e);
+  },
+  KeyI(e) {
+    ctrlToggle('em', e);
   },
 };
 
