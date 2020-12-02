@@ -1,3 +1,13 @@
 .minidoc:focus {
   outline: none;
 }
+
+.minidoc-toolbar-btn {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: top;
+}
+
+.minidoc-toolbar-btn-active {
+  box-shadow: 0 0 0 2px #a5b4fc;
+}

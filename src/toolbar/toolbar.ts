@@ -40,14 +40,14 @@ const actions: MinidocToolbarAction[] = [
     label: 'Bold',
     html: '<b>b</b>',
     run: (t) => t.toggleInline('strong'),
-    isActive: (t) => t.isWithin('strong') || t.isWithin('b'),
+    isActive: (t) => t.isWithin('strong') || t.isWithin('b') || document.queryCommandState('bold'),
   },
   {
     id: 'italic',
     label: 'Italic',
     html: '<i>i</i>',
     run: (t) => t.toggleInline('em'),
-    isActive: (t) => t.isWithin('em') || t.isWithin('i'),
+    isActive: (t) => t.isWithin('em') || t.isWithin('i') || document.queryCommandState('italic'),
   },
   {
     id: 'link',
@@ -92,8 +92,7 @@ function ToolbarButton(
 ) {
   const btn = h('button.minidoc-toolbar-btn', {
     refreshState:
-      isActive &&
-      ((editor: MinidocEditor) => btn.classList.toggle('minidoc-toolbar-btn-on', isActive(editor))),
+      isActive && (() => btn.classList.toggle('minidoc-toolbar-btn-active', isActive(editor))),
     onclick: () => run(editor),
     'aria-label': label,
     innerHTML: html,
@@ -101,12 +100,25 @@ function ToolbarButton(
   return btn;
 }
 
+function debounce(fn: (...args: any) => any, ms: number = 100) {
+  let timeout: any;
+  return (...args: any) => {
+    if (timeout) {
+      return;
+    }
+    timeout = setTimeout(() => {
+      timeout = undefined;
+      fn(...args);
+    }, ms);
+  };
+}
+
 export function toolbar(editor: MinidocEditor) {
-  return h(
-    'header.minidoc-toolbar',
-    h(
-      '.minidoc-default-menu',
-      actions.map((b) => ToolbarButton(editor, b)),
-    ),
-  );
+  const btns = actions.map((b) => ToolbarButton(editor, b));
+  const refreshButtons = debounce(() => {
+    btns.forEach((b: any) => b.refreshState?.());
+  });
+  document.addEventListener('selectionchange', refreshButtons);
+  editor.root.addEventListener('keydown', refreshButtons);
+  return h('header.minidoc-toolbar', h('.minidoc-default-menu', btns));
 }
