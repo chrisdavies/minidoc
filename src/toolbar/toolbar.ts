@@ -1,4 +1,6 @@
+import * as Dom from '../dom';
 import * as Rng from '../range';
+import { initialize as initDisposable, onMount } from '../disposable';
 import { h } from '../dom';
 
 const icoLink = `
@@ -120,7 +122,19 @@ export function toolbar(editor: MinidocEditor) {
     const node = Rng.currentNode();
     node && editor.root.contains(node) && btns.forEach((b: any) => b.refreshState?.());
   });
-  document.addEventListener('selectionchange', refreshButtons);
-  editor.root.addEventListener('keydown', refreshButtons);
-  return h('header.minidoc-toolbar', h('.minidoc-default-menu', btns));
+  const root = initDisposable(h('header.minidoc-toolbar'));
+  const el = h('.minidoc-default-menu', btns);
+
+  onMount(el, () => [
+    Dom.on(document, 'selectionchange', refreshButtons),
+    Dom.on(editor.root, 'keydown', refreshButtons),
+  ]);
+
+  // We append here so that the onMount fires.
+  root.appendChild(el);
+
+  return {
+    root,
+    dispose: root.dispose,
+  };
 }

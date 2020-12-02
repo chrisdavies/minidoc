@@ -31,7 +31,7 @@
       editor.on('caretchange', () => {
         document.title = Array.from(editor.activeTags()).join(',');
       });
-      document.body.prepend(minidoc.toolbar(editor));
+      document.body.prepend(minidoc.toolbar(editor).root);
     })();
   </script>
 </body>
