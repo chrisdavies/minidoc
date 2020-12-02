@@ -1,3 +1,4 @@
+import * as Rng from '../range';
 import { h } from '../dom';
 
 const icoLink = `
@@ -116,7 +117,8 @@ function debounce(fn: (...args: any) => any, ms: number = 100) {
 export function toolbar(editor: MinidocEditor) {
   const btns = actions.map((b) => ToolbarButton(editor, b));
   const refreshButtons = debounce(() => {
-    btns.forEach((b: any) => b.refreshState?.());
+    const node = Rng.currentNode();
+    node && editor.root.contains(node) && btns.forEach((b: any) => b.refreshState?.());
   });
   document.addEventListener('selectionchange', refreshButtons);
   editor.root.addEventListener('keydown', refreshButtons);
