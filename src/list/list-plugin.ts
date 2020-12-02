@@ -108,7 +108,11 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     const node = Rng.toNode(range)!;
     const li = Dom.closest('li', node)!;
     // If we're in a leaf li, and it's the very first li, convert it to a p
-    if (!Dom.closest('li', li.parentElement!) && !li.previousElementSibling) {
+    if (
+      !Dom.closest('li', li.parentElement!) &&
+      Rng.isAtStartOf(li, range) &&
+      !li.previousElementSibling
+    ) {
       e.preventDefault();
       convertListItemToLeaf(li, range);
     }
