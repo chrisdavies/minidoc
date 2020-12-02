@@ -1,8 +1,9 @@
 import * as Dom from './dom';
 import * as Rng from './range';
 import { createEmitter } from './emitter';
-import { defaultPlugin, toggleBlock } from './default-plugin';
+import { defaultPlugin, toggleBlock, toggleInline } from './default-plugin';
 import { listPlugin } from './list';
+export * from './toolbar';
 
 const plugins = [listPlugin, defaultPlugin];
 
@@ -62,7 +63,7 @@ export function minidoc(el: HTMLDivElement) {
     root: el,
 
     isWithin(tag: string) {
-      return activeTags.has(tag);
+      return activeTags.has(tag.toUpperCase());
     },
 
     activeTags(): Iterable<string> {
@@ -76,6 +77,11 @@ export function minidoc(el: HTMLDivElement) {
     toggleBlock(tagName: string) {
       const range = Rng.currentRange();
       range && el.contains(Rng.toNode(range)) && toggleBlock(tagName, range);
+    },
+
+    toggleInline(tagName: string) {
+      const range = Rng.currentRange();
+      range && el.contains(Rng.toNode(range)) && toggleInline(tagName, range);
     },
   };
 

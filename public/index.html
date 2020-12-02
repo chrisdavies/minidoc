@@ -8,10 +8,6 @@
   <link rel="stylesheet" href="dist/bundle.css">
 </head>
 <body>
-  <header>
-    <button class="toggle-h1">H1</button>
-    <button class="toggle-h2">H2</button>
-  </header>
   <div>
     <h1>This is editable.</h1>
     <p>If you type here, you'll see.</p>
@@ -30,8 +26,7 @@
       editor.on('caretchange', () => {
         document.title = Array.from(editor.activeTags()).join(',');
       });
-      document.querySelector('.toggle-h1').addEventListener('click', () => editor.toggleBlock('h1'));
-      document.querySelector('.toggle-h2').addEventListener('click', () => editor.toggleBlock('h2'));
+      document.body.prepend(minidoc.toolbar(editor));
     })();
   </script>
 </body>

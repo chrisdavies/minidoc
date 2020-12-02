@@ -204,7 +204,7 @@ export function h(tag: string, ...args: any): Element {
   if (classes.length) {
     el.className = classes.join(' ');
   }
-  assignAttrs(el, attrs);
+  assignAttrs(attrs, el);
   appendChildren(attrs ? args.slice(1) : args, el);
   return el;
 }
