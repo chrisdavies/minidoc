@@ -1,7 +1,7 @@
 import * as Dom from './dom';
 import * as Rng from './range';
 import { createEmitter } from './emitter';
-import { defaultPlugin } from './default-plugin';
+import { defaultPlugin, toggleBlock } from './default-plugin';
 import { listPlugin } from './list';
 
 const plugins = [listPlugin, defaultPlugin];
@@ -71,6 +71,11 @@ export function minidoc(el: HTMLDivElement) {
 
     on(evt: MinidocEvent, handler: () => any) {
       return events.on(evt, handler);
+    },
+
+    toggleBlock(tagName: string) {
+      const range = Rng.currentRange();
+      range && el.contains(Rng.toNode(range)) && toggleBlock(tagName, range);
     },
   };
 
