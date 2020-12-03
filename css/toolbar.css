@@ -1,0 +1,24 @@
+.minidoc-toolbar-btn {
+  width: 2rem;
+  height: 2rem;
+  vertical-align: top;
+}
+
+.minidoc-toolbar-btn-active {
+  box-shadow: 0 0 0 2px #a5b4fc;
+}
+
+.minidoc-toolbar-stuck .minidoc-toolbar-content {
+  padding: 0.1rem;
+}
+
+.minidoc-toolbar-stuck .minidoc-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: 100%;
+  border-radius: 0;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
+}

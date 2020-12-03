@@ -1,0 +1,16 @@
+.minidoc-href-preview {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background: #f7fafc;
+  border-top-right-radius: 0.25rem;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  box-shadow: 2px -2px 8px -3px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
