@@ -38,14 +38,14 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     label: 'Bold',
     html: '<b>b</b>',
     run: (t) => t.toggleInline('strong'),
-    isActive: (t) => t.isWithin('strong') || t.isWithin('b') || document.queryCommandState('bold'),
+    isActive: () => document.queryCommandState('bold'),
   },
   {
     id: 'italic',
     label: 'Italic',
     html: '<i>i</i>',
     run: (t) => t.toggleInline('em'),
-    isActive: (t) => t.isWithin('em') || t.isWithin('i') || document.queryCommandState('italic'),
+    isActive: () => document.queryCommandState('italic'),
   },
   {
     id: 'link',
