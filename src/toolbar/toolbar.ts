@@ -1,5 +1,5 @@
 import * as Rng from '../range';
-import { initialize as initDisposable, onMount } from '../disposable';
+import { onMount } from '../disposable';
 import { h } from '../dom';
 
 const icoLink = `
@@ -115,22 +115,17 @@ function debounce(fn: (...args: any) => any, ms: number = 100) {
   };
 }
 
-export function toolbar(editor: MinidocEditor) {
+export function createToolbar(editor: MinidocEditor) {
   const btns = actions.map((b) => ToolbarButton(editor, b));
   const refreshButtons = debounce(() => {
     const node = Rng.currentNode();
     node && editor.root.contains(node) && btns.forEach((b: any) => b.refreshState?.());
   });
-  const root = initDisposable(h('header.minidoc-toolbar'));
-  const el = h('.minidoc-default-menu', btns);
+  const root = h('header.minidoc-toolbar', h('.minidoc-default-menu', btns));
 
-  onMount(el, () => editor.on('caretchange', refreshButtons));
-
-  // We append here so that the onMount fires.
-  root.appendChild(el);
+  onMount(root, () => editor.on('caretchange', refreshButtons));
 
   return {
     root,
-    dispose: root.dispose,
   };
 }

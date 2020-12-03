@@ -7,6 +7,7 @@ interface MinidocEditor {
   toggleInline(tag: string): void;
   on(event: MinidocEvent, handler: () => any): () => any;
   emit(event: MinidocEvent): void;
+  dispose(): void;
 }
 
 type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocEditor) => void;

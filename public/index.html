@@ -13,7 +13,8 @@
   <link rel="stylesheet" href="dist/bundle.css">
 </head>
 <body>
-  <div>
+  <main></main>
+  <div class="example-doc" style="display: none">
     <h1>This is editable.</h1>
     <p>If you type here, you'll see.</p>
     <p>No, <em>really</em>. <a href="foo.com">Give it a shot</a>.</p>
@@ -23,12 +24,13 @@
     <ul><li>Dots are cewl<ul><li>And can be nested!!!</li><li>That's trickies</li></ul></li><li>We'll see how it goes</li></ul>
     <p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Chrome: yes.</p>
   </div>
-  <footer>This is <b>ALSO</b> not editable...</footer>
   <script src="/dist/bundle.js"></script>
   <script>
     (function demo() {
-      const editor = minidoc.minidoc(document.querySelector('div'));
-      document.body.prepend(minidoc.toolbar(editor).root);
+      const el = document.querySelector('.example-doc');
+      el.remove();
+      const editor = minidoc.minidoc(el.innerHTML);
+      document.querySelector('main').appendChild(editor.root);
     })();
   </script>
 </body>
