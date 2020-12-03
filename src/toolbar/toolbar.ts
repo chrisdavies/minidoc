@@ -1,6 +1,8 @@
 import * as Rng from '../range';
 import { onMount } from '../disposable';
 import { h } from '../dom';
+import { debounce } from '../util';
+import { Sticky } from './sticky';
 
 const icoLink = `
   <svg height="0.9rem" fill="currentColor" viewBox="0 0 24 24">
@@ -98,26 +100,14 @@ function ToolbarButton(
   return btn;
 }
 
-function debounce(fn: (...args: any) => any, ms: number = 100) {
-  let timeout: any;
-  return (...args: any) => {
-    if (timeout) {
-      return;
-    }
-    timeout = setTimeout(() => {
-      timeout = undefined;
-      fn(...args);
-    }, ms);
-  };
-}
-
 export function createToolbar(editor: MinidocEditor) {
   const btns = actions.map((b) => ToolbarButton(editor, b));
   const refreshButtons = debounce(() => {
     const node = Rng.currentNode();
     node && editor.root.contains(node) && btns.forEach((b: any) => b.refreshState?.());
   });
-  const root = h('header.minidoc-toolbar', h('.minidoc-default-menu', btns));
+  const container = h('header.minidoc-toolbar', h('.minidoc-default-menu', btns));
+  const root = Sticky(container);
 
   onMount(root, () => editor.on('caretchange', refreshButtons));
 
