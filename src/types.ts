@@ -5,6 +5,7 @@ interface MinidocEditor {
   isWithin(tag: string): boolean;
   toggleBlock(tag: string): void;
   toggleInline(tag: string): void;
+  toggleList(tag: 'ol' | 'ul'): void;
   on(event: MinidocEvent, handler: () => any): () => any;
   emit(event: MinidocEvent): void;
   dispose(): void;

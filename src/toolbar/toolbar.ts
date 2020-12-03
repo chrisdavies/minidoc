@@ -72,18 +72,14 @@ const actions: MinidocToolbarAction[] = [
     id: 'ol',
     label: 'Ordered list',
     html: icoOl,
-    run: () => {
-      console.log('TODO: toggle list');
-    },
+    run: (t) => t.toggleList('ol'),
     isActive: (t) => t.isWithin('ol'),
   },
   {
     id: 'ul',
     label: 'Bullet list',
     html: icoUl,
-    run: () => {
-      console.log('TODO: toggle list');
-    },
+    run: (t) => t.toggleList('ul'),
     isActive: (t) => t.isWithin('ul'),
   },
 ];

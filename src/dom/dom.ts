@@ -43,7 +43,7 @@ function isIterable<T = any>(x: any): x is Eachable & Iterable<T> {
 /**
  * Determine if the node is the root of an html list (ul / ol).
  */
-export function isList(el: any): el is Element {
+export function isList(el: any): el is HTMLOListElement | HTMLUListElement {
   return el?.matches('ul,ol');
 }
 
@@ -124,6 +124,21 @@ export function findLeaf(node: Node): Element | undefined {
     }
     node = parent;
   }
+}
+
+/**
+ * Find the leaf nodes between the two nodes, inclusive.
+ */
+export function findLeafs(startNode: Node, endNode: Node): Element[] {
+  const startLeaf = findLeaf(startNode);
+  const endLeaf = findLeaf(endNode);
+  const leafs: Element[] = startLeaf ? [startLeaf] : [];
+  let node: Element | undefined = startLeaf;
+  while (node && node !== endLeaf) {
+    node = node.nextElementSibling || undefined;
+    node && leafs.push(node);
+  }
+  return leafs;
 }
 
 /**

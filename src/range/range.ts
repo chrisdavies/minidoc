@@ -57,6 +57,13 @@ export function setCurrentSelection(range: Range): Range {
 }
 
 /**
+ * Find the leafs that the range touches.
+ */
+export function findLeafs(range: Range) {
+  return Dom.findLeafs(toNode(range), toEndNode(range));
+}
+
+/**
  * Delete the specified range and merge the node contents.
  */
 export function $deleteAndMergeContents(range: Range) {

@@ -8,7 +8,7 @@ import * as Rng from '../range';
 import { h } from '../dom';
 import { createEmitter } from '../emitter';
 import { defaultPlugin, toggleBlock, toggleInline } from '../default-plugin';
-import { listPlugin } from '../list';
+import { listPlugin, toggleList } from '../list';
 
 const plugins = [listPlugin, defaultPlugin];
 
@@ -89,6 +89,11 @@ export function createCoreEditor(doc: string): MinidocEditor {
     toggleInline(tagName: string) {
       const range = Rng.currentRange();
       range && el.contains(Rng.toNode(range)) && toggleInline(tagName, range);
+    },
+
+    toggleList(tagName: 'ol' | 'ul') {
+      const range = Rng.currentRange();
+      range && el.contains(Rng.toNode(range)) && toggleList(tagName, range);
     },
 
     dispose() {},
