@@ -115,7 +115,14 @@ export function replaceSelfWithChildren(node?: Node) {
   }
   const r = document.createRange();
   r.selectNodeContents(node);
-  node.replaceWith(r.extractContents());
+  const children = r.extractContents();
+  const childArr = Array.from(children.childNodes);
+  node.replaceWith(children);
+  if (childArr.length) {
+    r.selectNode(childArr[childArr.length - 1]);
+    r.setStart(childArr[0], 0);
+  }
+  return r;
 }
 
 /**

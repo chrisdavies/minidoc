@@ -165,3 +165,98 @@ export function setCaretAtStart(node: Node): Range {
   range.setStart(node, 0);
   return setCurrentSelection(range);
 }
+
+/**
+ * Wraps the DOM TreeWalker, returning a walker that starts at startNode
+ * and ends at endNode.
+ */
+function rangeWalker(container: Node, startNode: Node, endNode: Node) {
+  let ended = false;
+  const treeWalker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
+  let currentNode: Node | undefined = treeWalker.currentNode;
+  const walker = {
+    get currentNode() {
+      return currentNode;
+    },
+    nextNode() {
+      if (ended) {
+        currentNode = undefined;
+        return;
+      }
+      currentNode = treeWalker.nextNode() || undefined;
+      ended = ended || currentNode === endNode || !currentNode;
+      return currentNode;
+    },
+  };
+
+  // Advance to the range's start node. There's a weird edgecase where the
+  // startNode may show up *after* the end node. This happens when the startNode
+  // is a child of the end node. The caret is after the start node, but at the end
+  // or outside of the end node which is startNode's parent.
+  while (walker.currentNode && walker.currentNode !== startNode) {
+    walker.nextNode();
+  }
+
+  if (ended) {
+    currentNode = startNode;
+  }
+
+  return walker;
+}
+
+/**
+ * Creates an array of ranges from the specified range. Each range in the result
+ * is capable of being wrapped in an inline tag.
+ */
+export function inlinableRanges(range: Range): Range[] {
+  if (range.collapsed) {
+    return [];
+  }
+
+  const startNode = toNode(range);
+  const endNode = toEndNode(range);
+  const result: Range[] = [];
+  const walker = rangeWalker(range.commonAncestorContainer, startNode, endNode);
+
+  // Move to the next inlinable node
+  function findStart() {
+    while (walker.currentNode && Dom.isBlock(walker.currentNode)) {
+      walker.nextNode();
+    }
+    return walker.currentNode;
+  }
+
+  function findEnd() {
+    let node = walker.currentNode;
+    while (walker.currentNode && !Dom.isBlock(walker.currentNode)) {
+      node = walker.currentNode;
+      walker.nextNode();
+    }
+    return node;
+  }
+
+  while (walker.currentNode) {
+    const start = findStart();
+    const end = findEnd();
+    if (!end || !start) {
+      break;
+    }
+    const inlineRange = createRange();
+    if (start === startNode) {
+      inlineRange.setStart(range.startContainer, range.startOffset);
+    } else {
+      inlineRange.setStartBefore(start);
+    }
+    if (end === endNode) {
+      inlineRange.setEnd(range.endContainer, range.endOffset);
+    } else {
+      inlineRange.setEndAfter(end);
+    }
+    result.push(inlineRange);
+  }
+
+  return result;
+}

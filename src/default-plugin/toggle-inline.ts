@@ -31,97 +31,6 @@ function normalizeSelector(tagName: string) {
 }
 
 /**
- * Wraps the DOM TreeWalker, returning a walker that starts at startNode
- * and ends at endNode.
- */
-function rangeWalker(container: Node, startNode: Node, endNode: Node) {
-  let ended = false;
-  const treeWalker = document.createTreeWalker(
-    container,
-    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-  );
-  let currentNode: Node | undefined = treeWalker.currentNode;
-  const walker = {
-    get currentNode() {
-      return currentNode;
-    },
-    nextNode() {
-      if (ended) {
-        currentNode = undefined;
-        return;
-      }
-      currentNode = treeWalker.nextNode() || undefined;
-      ended = ended || currentNode === endNode || !currentNode;
-      return currentNode;
-    },
-  };
-
-  // Advance to the range's start node. There's a weird edgecase where the
-  // startNode may show up *after* the end node. This happens when the startNode
-  // is a child of the end node. The caret is after the start node, but at the end
-  // or outside of the end node which is startNode's parent.
-  while (walker.currentNode && walker.currentNode !== startNode) {
-    walker.nextNode();
-  }
-
-  if (ended) {
-    currentNode = startNode;
-  }
-
-  return walker;
-}
-
-/**
- * Creates an array of ranges from the specified range. Each range in the result
- * is capable of being wrapped in an inline tag.
- */
-function inlinableRanges(range: Range): Range[] {
-  const startNode = Rng.toNode(range);
-  const endNode = Rng.toEndNode(range);
-  const result: Range[] = [];
-  const walker = rangeWalker(range.commonAncestorContainer, startNode, endNode);
-
-  // Move to the next inlinable node
-  function findStart() {
-    while (walker.currentNode && Dom.isBlock(walker.currentNode)) {
-      walker.nextNode();
-    }
-    return walker.currentNode;
-  }
-
-  function findEnd() {
-    let node = walker.currentNode;
-    while (walker.currentNode && !Dom.isBlock(walker.currentNode)) {
-      node = walker.currentNode;
-      walker.nextNode();
-    }
-    return node;
-  }
-
-  while (walker.currentNode) {
-    const start = findStart();
-    const end = findEnd();
-    if (!end || !start) {
-      break;
-    }
-    const inlineRange = Rng.createRange();
-    if (start === startNode) {
-      inlineRange.setStart(range.startContainer, range.startOffset);
-    } else {
-      inlineRange.setStartBefore(start);
-    }
-    if (end === endNode) {
-      inlineRange.setEnd(range.endContainer, range.endOffset);
-    } else {
-      inlineRange.setEndAfter(end);
-    }
-    result.push(inlineRange);
-  }
-
-  return result;
-}
-
-/**
  * Append b's content into a (and remove b) if both a and b match the selector.
  */
 function mergeMatchingNodes(selector: string, a: Node | null, b: Node | null) {
@@ -226,7 +135,7 @@ function shouldEnable(selector: string, ranges: Range[]) {
 
 export function toggleInline(tagName: string, range: Range) {
   const selector = normalizeSelector(tagName);
-  const ranges = inlinableRanges(range);
+  const ranges = Rng.inlinableRanges(range);
   if (!ranges.length) {
     return;
   }

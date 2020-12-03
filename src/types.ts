@@ -32,7 +32,7 @@ interface Toolbarable {
   toolbar: MinidocToolbar;
 }
 
-type MinidocEditor = MinidocCoreEditor & Disposable;
+type MinidocEditor = MinidocCoreEditor & Disposable & { container: Element };
 
 type MinidocToolbarEditor = MinidocCoreEditor & Toolbarable;
 

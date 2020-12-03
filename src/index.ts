@@ -94,7 +94,7 @@ export function minidoc(doc: string): MinidocEditor {
 
   return {
     ...editor,
-    root: wrapper,
+    container: wrapper,
     dispose: wrapper.dispose,
   };
 }

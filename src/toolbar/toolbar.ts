@@ -22,7 +22,7 @@ export function createToolbar(editor: MinidocCoreEditor, actions: MinidocToolbar
   const btns = actions.map((b) => ToolbarButton(toolbarEditor, b));
   const refreshButtons = debounce(() => {
     const node = Rng.currentNode();
-    node && editor.root.contains(node) && btns.forEach((b: any) => b.refreshState?.(toolbarEditor));
+    node && btns.forEach((b: any) => b.refreshState?.(toolbarEditor));
   });
   const defaultMenu = h('.minidoc-default-menu', btns);
 

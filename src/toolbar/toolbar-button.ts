@@ -8,7 +8,7 @@ export function ToolbarButton(
     refreshState:
       isActive &&
       ((editor: MinidocToolbarEditor) =>
-        btn.classList.toggle('minidoc-toolbar-btn-on', isActive(editor))),
+        btn.classList.toggle('minidoc-toolbar-btn-active', isActive(editor))),
     onclick: () => run(editor),
     'aria-label': label,
     innerHTML: html,
