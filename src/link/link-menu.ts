@@ -33,8 +33,13 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
   const highlighter = highlight(range);
   let href = Dom.attr('href', a) || '';
   const hide = () => {
-    editor.toolbar.setMenu(undefined);
-    Dom.replaceSelfWithChildren(highlighter);
+    try {
+      const setFocus = !editor.root.contains(document.activeElement);
+      const newRange = Dom.replaceSelfWithChildren(highlighter);
+      setFocus && (newRange || range) && Rng.setCurrentSelection(newRange || range);
+    } finally {
+      editor.toolbar.setMenu(undefined);
+    }
   };
   const unlink = () => {
     restoreSelection(Dom.replaceSelfWithChildren(a));
@@ -69,9 +74,7 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
 
   onMount(txt, () => {
     txt.select();
-    return Dom.on(editor.root, 'focus', () => {
-      hide();
-    });
+    return [hide, Dom.on(editor.root, 'focus', hide)];
   });
 
   return Submenu({
