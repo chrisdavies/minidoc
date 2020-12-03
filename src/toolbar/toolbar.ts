@@ -1,4 +1,3 @@
-import * as Dom from '../dom';
 import * as Rng from '../range';
 import { initialize as initDisposable, onMount } from '../disposable';
 import { h } from '../dom';
@@ -125,10 +124,7 @@ export function toolbar(editor: MinidocEditor) {
   const root = initDisposable(h('header.minidoc-toolbar'));
   const el = h('.minidoc-default-menu', btns);
 
-  onMount(el, () => [
-    Dom.on(document, 'selectionchange', refreshButtons),
-    Dom.on(editor.root, 'keydown', refreshButtons),
-  ]);
+  onMount(el, () => editor.on('caretchange', refreshButtons));
 
   // We append here so that the onMount fires.
   root.appendChild(el);

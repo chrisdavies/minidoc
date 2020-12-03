@@ -7,8 +7,6 @@ export * from './toolbar';
 
 const plugins = [listPlugin, defaultPlugin];
 
-type MinidocEvent = 'caretchange';
-
 function trackSelectionChange(el: HTMLDivElement, handler: () => void) {
   // Disable selection change tracking.
   let off: (() => void) | undefined;
@@ -73,6 +71,8 @@ export function minidoc(el: HTMLDivElement) {
     on(evt: MinidocEvent, handler: () => any) {
       return events.on(evt, handler);
     },
+
+    emit: events.emit,
 
     toggleBlock(tagName: string) {
       const range = Rng.currentRange();

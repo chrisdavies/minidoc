@@ -17,13 +17,14 @@ function defaultDelete(direction: 'left' | 'right') {
   Rng.$deleteAndMergeContents((range.collapsed && Rng.extendSelection(direction)) || range);
 }
 
-function ctrlToggle(tagName: string, e: KeyboardEvent) {
+function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocEditor) {
   const isCtrl = e.ctrlKey || e.metaKey;
   if (!isCtrl) {
     return;
   }
   const range = Rng.currentRange()!;
   if (range.collapsed) {
+    editor.emit('caretchange');
     return;
   }
   e.preventDefault();
@@ -66,11 +67,11 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     defaultDelete('left');
     Dom.$makeEditable(ctx.root);
   },
-  KeyB(e) {
-    ctrlToggle('strong', e);
+  KeyB(e, ctx) {
+    ctrlToggle('strong', e, ctx);
   },
-  KeyI(e) {
-    ctrlToggle('em', e);
+  KeyI(e, ctx) {
+    ctrlToggle('em', e, ctx);
   },
 };
 

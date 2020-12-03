@@ -28,9 +28,6 @@
   <script>
     (function demo() {
       const editor = minidoc.minidoc(document.querySelector('div'));
-      editor.on('caretchange', () => {
-        document.title = Array.from(editor.activeTags()).join(',');
-      });
       document.body.prepend(minidoc.toolbar(editor).root);
     })();
   </script>
