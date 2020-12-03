@@ -1,11 +1,53 @@
+@keyframes minidoc-fade-in-delayed {
+  0% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes minidoc-slide-in {
+  0% {
+    left: 5rem;
+  }
+  100% {
+    left: 0;
+  }
+}
+
+@keyframes minidoc-overflow-in {
+  0% {
+    overflow: hidden;
+  }
+  100% {
+    overflow: visible;
+  }
+}
+
+.minidoc-toolbar {
+  display: flex;
+  background: #f8fafc;
+  padding: 0.25rem;
+  justify-content: center;
+}
+
 .minidoc-toolbar-btn {
+  background: transparent;
+  border: none;
   min-width: 2rem;
   height: 2rem;
   vertical-align: top;
+  border-radius: 0.25rem;
+  margin: 0.25rem;
 }
 
 .minidoc-toolbar-btn-active {
-  box-shadow: 0 0 0 2px #a5b4fc;
+  background: #eef2ff;
+  box-shadow: inset 0 0 0 1px #a5b4fc;
 }
 
 .minidoc-toolbar-stuck .minidoc-toolbar-content {
@@ -21,4 +63,31 @@
   width: 100%;
   border-radius: 0;
   box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
+}
+
+.minidoc-toolbar-txt {
+  color: inherit;
+  background: #fff;
+  border: 0;
+  box-shadow: inset 0 0 0 1px #a5b4fc;
+  padding: 0.5rem;
+  outline: none;
+  border-radius: 0.25rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.minidoc-submenu {
+  animation: minidoc-overflow-in 0.2s forwards;
+}
+
+.minidoc-submenu-content {
+  animation: minidoc-slide-in 0.25s forwards, minidoc-fade-in 0.25s forwards;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.minidoc-btn-fadein {
+  animation: minidoc-fade-in-delayed 0.4s forwards;
 }

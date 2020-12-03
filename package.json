@@ -7,7 +7,7 @@
     "start": "npm-run-all --parallel watch:**",
     "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -- npm run dev:rebuild",
     "watch:browser": "browser-sync public/ --server --cwd public/ -w",
-    "watch:css": "postcss css/index.css -o public/dist/bundle.css",
+    "watch:css": "postcss css/index.css -o public/dist/bundle.css -w",
     "dev:rebuild": "esbuild --global-name=minidoc --bundle src/index.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit"
   },
   "author": "Chris Davies <dev@christophilus.com>",
