@@ -45,8 +45,12 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     Rng.setCaretAtStart(b);
   },
   Backspace(e, ctx) {
-    e.preventDefault();
     const range = Rng.currentRange()!;
+    // In this scenario, the browser does the right thing, so let it go.
+    if (range.collapsed && range.startOffset > 0 && Dom.isText(range.startContainer)) {
+      return;
+    }
+    e.preventDefault();
     if (range.collapsed) {
       const currentLeaf = Dom.findLeaf(Rng.toNode(range)!);
       // If we're in a non-paragraph, and we're backspacing at the start of it,
@@ -63,8 +67,17 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     Dom.$makeEditable(ctx.root);
   },
   Delete(e, ctx) {
+    const range = Rng.currentRange()!;
+    // In this scenario, the browser does the right thing, so let it go.
+    if (
+      range.collapsed &&
+      Dom.isText(range.startContainer) &&
+      range.startOffset < range.startContainer.length
+    ) {
+      return;
+    }
     e.preventDefault();
-    defaultDelete('left');
+    defaultDelete('right');
     Dom.$makeEditable(ctx.root);
   },
   KeyB(e, ctx) {
