@@ -168,15 +168,6 @@ function toRange(ranges: Range[]) {
 }
 
 /**
- * Replaces n with its children.
- */
-function replaceSelfWithChildren(n: Element) {
-  const r = Rng.createRange();
-  r.selectNodeContents(n);
-  n.replaceWith(r.extractContents());
-}
-
-/**
  * Get a set of tags between node and its ancestor that matches the selector.
  */
 function getInlineTags(until: string, node: Node | undefined) {
@@ -213,7 +204,7 @@ function unapply(tagName: string, r: Range) {
   }
 
   // Remove all children that match the inline selector.
-  Array.from(content.querySelectorAll(selector)).forEach((n) => replaceSelfWithChildren(n));
+  Array.from(content.querySelectorAll(selector)).forEach((n) => Dom.replaceSelfWithChildren(n));
   r.collapse(true);
 
   // Restore our tag names, if any

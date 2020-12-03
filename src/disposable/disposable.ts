@@ -7,7 +7,7 @@
  */
 
 type DisposeFn = () => void;
-type DisposableInit = () => DisposeFn | DisposeFn[];
+type DisposableInit = () => void | DisposeFn | DisposeFn[];
 
 interface Disposable {
   inits: Array<DisposableInit>;

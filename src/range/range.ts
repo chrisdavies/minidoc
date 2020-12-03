@@ -19,7 +19,10 @@ export function toEndNode(range: Range) {
  * Get the currently selected range.
  */
 export function currentRange(): Range | undefined {
-  return document.getSelection()?.getRangeAt(0);
+  const range = document.getSelection()?.getRangeAt(0);
+  if (Dom.isInEditor(range?.startContainer)) {
+    return range;
+  }
 }
 
 /**

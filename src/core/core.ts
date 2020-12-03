@@ -7,10 +7,13 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { h } from '../dom';
 import { createEmitter } from '../emitter';
-import { defaultPlugin, toggleBlock, toggleInline } from '../default-plugin';
-import { listPlugin, toggleList } from '../list';
+import { toggleBlock, toggleInline } from '../default-plugin';
+import { toggleList } from '../list';
 
-const plugins = [listPlugin, defaultPlugin];
+interface CoreOptions {
+  doc: string;
+  plugins: MinidocPlugin[];
+}
 
 function trackSelectionChange(el: Element, handler: () => void) {
   // Disable selection change tracking.
@@ -43,7 +46,7 @@ function computeActiveTags(activeTags: Set<string>, root: Element, child: Node) 
   return activeTags;
 }
 
-export function createCoreEditor(doc: string): MinidocEditor {
+export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEditor {
   const events = createEmitter<MinidocEvent>();
   // The tag names within which the caret is located
   const activeTags: Set<string> = new Set<string>();

@@ -17,7 +17,7 @@ function defaultDelete(direction: 'left' | 'right') {
   Rng.$deleteAndMergeContents((range.collapsed && Rng.extendSelection(direction)) || range);
 }
 
-function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocEditor) {
+function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor) {
   const isCtrl = e.ctrlKey || e.metaKey;
   if (!isCtrl) {
     return;

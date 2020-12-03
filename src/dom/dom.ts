@@ -27,6 +27,15 @@ export function isElement(node: any): node is Element {
 }
 
 /**
+ * Determine if the specified node is in the editable content of a
+ * minidoc editor.
+ */
+export function isInEditor(node?: Node): boolean {
+  const el = isElement(node) ? node : node?.parentElement;
+  return !!el?.closest('[contenteditable]');
+}
+
+/**
  * Determine if the node is an editor root (contenteditable).
  */
 export function isRoot(node: any): node is Element {
@@ -88,13 +97,32 @@ export function closest(selector: string): (node: Node) => Element | undefined;
  * @param selector
  * @param node
  */
-export function closest(selector: string, node: Node): Element | undefined;
+export function closest(selector: string, node?: Node): Element | undefined;
 export function closest(selector: string, node?: Node): any {
   if (arguments.length === 1) {
     return (n: Node) => closest(selector, n);
   }
   const el = isElement(node) ? node : node!.parentElement!;
   return el.closest(selector) || undefined;
+}
+
+/**
+ * Replaces node with its children.
+ */
+export function replaceSelfWithChildren(node?: Node) {
+  if (!isElement(node)) {
+    return;
+  }
+  const r = document.createRange();
+  r.selectNodeContents(node);
+  node.replaceWith(r.extractContents());
+}
+
+/**
+ * Retrieves teh specified attribute from the node.
+ */
+export function attr(name: string, node?: Node) {
+  return isElement(node) && node.getAttribute(name);
 }
 
 /**
@@ -173,7 +201,7 @@ function appendChild(child: Node | string, el: Element | Range | undefined) {
  * Append the specified child / children to the specified element.
  */
 export function appendChildren(children: ItemOrList<Node | string>, el: Element | Range) {
-  if (children instanceof Node) {
+  if (children instanceof Node || typeof children === 'string') {
     return appendChild(children, el);
   } else if (isIterable(children)) {
     Array.from(children).forEach((n) => n && appendChildren(n, el));
@@ -211,7 +239,7 @@ export function assignAttrs(attrs: { [k: string]: any }, el: Element): Element {
  * @param  {...any} args attributes object, and / or child nodes, text content, etc.
  * @returns {Element}
  */
-export function h(tag: string, ...args: any): Element {
+export function h<T extends Element>(tag: string, ...args: any): T {
   const [tagName, ...classes] = tag.split('.');
   const el = document.createElement(tagName || 'div');
   const arg0 = args[0];
@@ -221,7 +249,7 @@ export function h(tag: string, ...args: any): Element {
   }
   assignAttrs(attrs, el);
   appendChildren(attrs ? args.slice(1) : args, el);
-  return el;
+  return (el as unknown) as T;
 }
 
 export function newLeaf() {
