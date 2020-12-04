@@ -50,7 +50,7 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
   const events = createEmitter<MinidocEvent>();
   // The tag names within which the caret is located
   const activeTags: Set<string> = new Set<string>();
-  const el = h('div.minidoc', {
+  const el = h('div.minidoc-editor', {
     contentEditable: true,
     innerHTML: doc,
   });
@@ -99,7 +99,10 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
       range && el.contains(Rng.toNode(range)) && toggleList(tagName, range);
     },
 
-    dispose() {},
+    serialize() {
+      // TODO: sanitize and clean, remove temporary elements such as highlighters, etc.
+      return el.innerHTML;
+    },
   };
 
   Dom.on(el, 'keydown', (e) => {

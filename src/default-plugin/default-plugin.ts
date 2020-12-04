@@ -41,8 +41,14 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     range.deleteContents();
     const [a, b] = Rng.$splitContainer(Dom.findLeaf, range);
     Dom.$makeEditable(a);
-    Dom.$makeEditable(b);
-    Rng.setCaretAtStart(b);
+    if (Dom.isEmpty(b)) {
+      const el = h('p', b.childNodes);
+      b.replaceWith(el);
+      Dom.$makeEditable(el);
+      Rng.setCaretAtStart(el);
+    } else {
+      Rng.setCaretAtStart(b);
+    }
   },
   Backspace(e, ctx) {
     const range = Rng.currentRange()!;

@@ -102,8 +102,8 @@ export function $deleteAndMergeContents(range: Range) {
     Dom.remove(endEl);
   }
   startEl.normalize();
-  if (Dom.isEmpty(endLeaf)) {
-    Dom.remove(endLeaf);
+  if (Dom.isEmpty(startEl, true)) {
+    Dom.$makeEditable(startEl);
   } else if (endLeaf.matches('ol,ul') && endLeaf.previousElementSibling?.matches('ol,ul')) {
     // The deletion resulted in two sibling lists, so we need to merge them.
     Dom.mergeLists(endLeaf, endLeaf.previousElementSibling!);

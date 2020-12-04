@@ -84,7 +84,7 @@ const plugins = [listPlugin, defaultPlugin, linkPlugin];
 
 export function minidoc(doc: string): MinidocEditor {
   const editor = createCoreEditor({ doc, plugins });
-  const wrapper = Disposable.initialize(h('.minidoc-container'));
+  const wrapper = Disposable.initialize(h('.minidoc'));
   editor.toolbar = createToolbar(editor, defaultToolbarActions);
 
   // Attach behaviors to the editor prior to mounting it...

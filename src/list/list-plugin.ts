@@ -21,6 +21,11 @@ function convertListItemToLeaf(li: Element, range: Range) {
   // We also need to remove the first li from b, since it is
   // a clone of our empty li.
   Dom.remove(b.querySelector('li') || undefined);
+  // And if the original li had any nested lists, we need to move them back to the parent...
+  Array.from(newLeaf.querySelectorAll('ul,ol')).forEach((l) => {
+    l.remove();
+    b.prepend(...Array.from(l.children));
+  });
   Dom.isEmpty(a) && Dom.remove(a);
   Dom.isEmpty(b) && Dom.remove(b);
   Rng.setCaretAtStart(newLeaf);
@@ -105,6 +110,11 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
       return;
     }
     const range = Rng.currentRange()!;
+    // If the range has a selection, then this should be a normal delete,
+    // we can let the default handler take this.
+    if (!range.collapsed) {
+      return;
+    }
     const node = Rng.toNode(range)!;
     const li = Dom.closest('li', node)!;
     // If we're in a leaf li, and it's the very first li, convert it to a p
