@@ -866,6 +866,21 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
+      it('backspace first empty li', async () => {
+        await loadDoc(
+          `<h1>Hello</h1><ul><li><br><ul><li>1</li><li>2</li></ul></li><li>B</li><li>C</li></ul><p>Ze end!</p>`,
+        );
+        await selectRange('li', 0);
+        await press('Backspace');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><br></p><ul><li>1</li><li>2</li><li>B</li><li>C</li></ul><p>Ze end!</p>`,
+        );
+        await page.keyboard.type('stuff');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>stuff</p><ul><li>1</li><li>2</li><li>B</li><li>C</li></ul><p>Ze end!</p>`,
+        );
+      });
+
       it('backspace nested li', async () => {
         await loadDoc(`<h1>Hello</h1><ul><li>A</li><li>B</li><li>C</li></ul><p>Ze end!</p>`);
         await selectRange('li ~ li', 0);

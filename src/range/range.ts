@@ -1,4 +1,5 @@
 import * as Dom from '../dom';
+import { isEmpty } from '../dom';
 
 export function toNode(range: Range): Node {
   return range.startContainer.childNodes[range.startOffset] || range.startContainer;
@@ -144,11 +145,15 @@ export function $copy(toRange: Range, fromRange: Range) {
  * of the specified node.
  */
 export function isAtStartOf(node: Node, range: Range): boolean {
-  const { startContainer, startOffset } = range;
-  if (startOffset) {
+  const { startOffset } = range;
+  let curr: Node | null = toNode(range);
+  // This happens when we have something like <p><br></p>
+  if (isEmpty(curr, true) && curr.previousSibling && isEmpty(curr.previousSibling, true)) {
+    curr = curr.previousSibling;
+  } else if (startOffset) {
     return false;
   }
-  let curr: Node | null = startContainer;
+
   while (true) {
     if (curr === node) {
       return true;
