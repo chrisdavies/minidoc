@@ -1,5 +1,10 @@
 type MinidocEvent = 'caretchange';
 
+interface MinidocOptions {
+  doc: string;
+  plugins?: MinidocPlugin[];
+}
+
 interface MinidocCoreEditor {
   root: Element;
   toolbar?: MinidocToolbar;
@@ -9,6 +14,14 @@ interface MinidocCoreEditor {
   toggleList(tag: 'ol' | 'ul'): void;
   on(event: MinidocEvent, handler: () => any): () => any;
   emit(event: MinidocEvent): void;
+  caretChanged(): void;
+  serialize(): string;
+
+  //
+  // Extension points for plugins to override
+  //
+  beforeMount(el: Element): Element;
+  beforeSerialize(el: Element): Element;
 }
 
 interface MinidocToolbar {
@@ -32,13 +45,21 @@ interface Toolbarable {
   toolbar: MinidocToolbar;
 }
 
+interface CardRenderOptions {
+  state: any;
+  editor: MinidocCoreEditor;
+  stateChanged(state: any): void;
+}
+
+interface MinidocCardDefinition {
+  type: string;
+  render(opts: CardRenderOptions): Element;
+}
+
 type MinidocEditor = MinidocCoreEditor & Disposable & { container: Element };
 
 type MinidocToolbarEditor = MinidocCoreEditor & Toolbarable;
 
 type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocCoreEditor) => void;
 
-interface MinidocPlugin {
-  name: string;
-  onKeydown?: MinidocKeyboardHandler;
-}
+type MinidocPlugin = <T extends MinidocCoreEditor>(editor: T) => T;

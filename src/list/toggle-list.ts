@@ -33,7 +33,7 @@ function convertToList(tagName: string, leafs: Element[], range: Range) {
     Array.from(leaf.children).forEach((li) => list.appendChild(li));
   });
   range.insertNode(list);
-  range.selectNodeContents(list);
+  Rng.$copy(range, Rng.fromNodes(list.children));
   return range;
 }
 

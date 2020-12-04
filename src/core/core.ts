@@ -55,27 +55,11 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     innerHTML: doc,
   });
 
-  // Sanitize the editor root. Vanilla text nodes are not allowed as leafs.
-  Array.from(el.childNodes).forEach((n) => Dom.isText(n) && n.remove());
-  // Ensure the editor root has at least one editable element in it.
-  Dom.$makeEditable(el);
-
-  // When the selection changes within the element,
-  // we'll fire off a selection change event.
-  trackSelectionChange(el, () => {
-    computeActiveTags(activeTags, el, Rng.toNode(Rng.currentRange()!));
-    events.emit('caretchange');
-  });
-
-  const editor = {
+  let editor: MinidocCoreEditor = {
     root: el,
 
     isWithin(tag: string) {
       return activeTags.has(tag.toUpperCase());
-    },
-
-    activeTags(): Iterable<string> {
-      return activeTags;
     },
 
     on(evt: MinidocEvent, handler: () => any) {
@@ -87,6 +71,11 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     toggleBlock(tagName: string) {
       const range = Rng.currentRange();
       range && el.contains(Rng.toNode(range)) && toggleBlock(tagName, range);
+    },
+
+    caretChanged() {
+      computeActiveTags(activeTags, el, Rng.toNode(Rng.currentRange()!));
+      events.emit('caretchange');
     },
 
     toggleInline(tagName: string) {
@@ -102,19 +91,29 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     },
 
     serialize() {
+      return editor.beforeSerialize(el).innerHTML;
+    },
+
+    beforeMount(x) {
+      // Sanitize the editor root. Vanilla text nodes are not allowed as leafs.
+      Array.from(x.childNodes).forEach((n) => Dom.isText(n) && n.remove());
+      // Ensure the editor root has at least one editable element in it.
+      Dom.$makeEditable(x);
+      return x;
+    },
+
+    beforeSerialize(el: Element) {
       // TODO: sanitize and clean, remove temporary elements such as highlighters, etc.
-      return el.innerHTML;
+      return el.cloneNode(true) as Element;
     },
   };
 
-  Dom.on(el, 'keydown', (e) => {
-    for (let p of plugins) {
-      p.onKeydown?.(e, editor);
-      if (e.defaultPrevented) {
-        return;
-      }
-    }
-  });
+  // When the selection changes within the element,
+  // we'll fire off a selection change event.
+  trackSelectionChange(el, editor.caretChanged);
+
+  editor = plugins.reduce((acc, p) => p(acc), editor);
+  editor.beforeMount(el);
 
   return editor;
 }

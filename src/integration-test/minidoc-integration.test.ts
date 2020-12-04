@@ -64,7 +64,10 @@ function loadDoc(newDoc: string) {
     const main = document.querySelector('main')!;
     main.innerHTML = '';
     tests.editor?.dispose();
-    tests.editor = tests.minidoc(doc);
+    tests.editor = tests.minidoc({
+      doc,
+      plugins: [tests.cardPlugin([tests.counterCard]), ...tests.defaultPlugins],
+    });
     main.appendChild(tests.editor.container);
   }, newDoc);
 }
@@ -194,7 +197,7 @@ function pressCtrl(key: string) {
 }
 
 function runTestsForBrowser(browserType: BrowserType) {
-  describe('minidoc', () => {
+  describe(`minidoc ${browserType}`, () => {
     let server: http.Server;
 
     beforeAll(buildTestScript);
@@ -616,170 +619,178 @@ function runTestsForBrowser(browserType: BrowserType) {
       //   });
     });
 
-    // describe('cards', () => {
-    //   beforeEach(() => page.reload());
+    describe('cards', () => {
+      beforeAll(() => page.reload());
 
-    //   it('paste does not write into a card', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('p');
-    //     await selectNodeContent('p');
-    //     await clipboard.copy('[contenteditable]');
-    //     await page.click('mini-card');
-    //     await clipboard.paste('[contenteditable]');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><p><strong>I'm strong</strong><em>I'm emphasized</em></p><mini-card state="0" type="counter"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      //   it('paste does not write into a card', async () => {
+      //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+      //     await loadDoc(doc);
+      //     await page.click('p');
+      //     await selectNodeContent('p');
+      //     await clipboard.copy('[contenteditable]');
+      //     await page.click('mini-card');
+      //     await clipboard.paste('[contenteditable]');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>Hello</h1><p><strong>I'm strong</strong><em>I'm emphasized</em></p><mini-card state="0" type="counter"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+      //     );
+      //   });
 
-    //   it('cards are initialized and disposed in edit mode', async () => {
-    //     await page.evaluate(() => {
-    //       const el: any = document.querySelector('[data-test-subj="editor-container"]');
-    //       el.innerHTML = '';
-    //       el.editor.dispose();
+      //   it('cards are initialized and disposed in edit mode', async () => {
+      //     await page.evaluate(() => {
+      //       const el: any = document.querySelector('[data-test-subj="editor-container"]');
+      //       el.innerHTML = '';
+      //       el.editor.dispose();
 
-    //       const win: any = window;
+      //       const win: any = window;
 
-    //       const testCard = {
-    //         type: 'testcard',
-    //         render() {
-    //           const el = document.createElement('strong');
-    //           el.innerHTML = 'Heyo!';
-    //           win.integrationTests.onMount(el, () => {
-    //             win.editableTestCard = 'initialized';
-    //             return () => (win.editableTestCard = 'disposed');
-    //           });
-    //           return el;
-    //         },
-    //       };
-    //       el.editor = win.integrationTests.editableMinidoc({
-    //         el,
-    //         doc: `<h1>Hi</h1><mini-card type="testcard"></mini-card><p>There</p>`,
-    //         cards: [testCard],
-    //         toolbarActions: win.integrationTests.defaultToolbarActions,
-    //       });
-    //     });
+      //       const testCard = {
+      //         type: 'testcard',
+      //         render() {
+      //           const el = document.createElement('strong');
+      //           el.innerHTML = 'Heyo!';
+      //           win.integrationTests.onMount(el, () => {
+      //             win.editableTestCard = 'initialized';
+      //             return () => (win.editableTestCard = 'disposed');
+      //           });
+      //           return el;
+      //         },
+      //       };
+      //       el.editor = win.integrationTests.editableMinidoc({
+      //         el,
+      //         doc: `<h1>Hi</h1><mini-card type="testcard"></mini-card><p>There</p>`,
+      //         cards: [testCard],
+      //         toolbarActions: win.integrationTests.defaultToolbarActions,
+      //       });
+      //     });
 
-    //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('initialized');
-    //     await page.evaluate(() => document.querySelector('mini-card')!.remove());
-    //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('disposed');
-    //   });
+      //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('initialized');
+      //     await page.evaluate(() => document.querySelector('mini-card')!.remove());
+      //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('disposed');
+      //   });
 
-    //   it('cards are copiable', async () => {
-    //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('mini-card');
-    //     await clipboard.copy('[contenteditable]');
-    //     await clipboard.paste('[contenteditable]');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      //   it('cards are copiable', async () => {
+      //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+      //     await loadDoc(doc);
+      //     await page.click('mini-card');
+      //     await clipboard.copy('[contenteditable]');
+      //     await clipboard.paste('[contenteditable]');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+      //     );
+      //   });
 
-    //   it('cards are cuttable', async () => {
-    //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('mini-card');
-    //     await clipboard.cut('[contenteditable]');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await clipboard.paste('[contenteditable]');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      //   it('cards are cuttable', async () => {
+      //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+      //     await loadDoc(doc);
+      //     await page.click('mini-card');
+      //     await clipboard.cut('[contenteditable]');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+      //     );
+      //     await clipboard.paste('[contenteditable]');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+      //     );
+      //   });
 
-    //   it('pressing enter in a card', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('mini-card');
-    //     await press('Enter');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><mini-card state="0" type="counter"></mini-card><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await page.keyboard.type('Hoi!');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><mini-card state="0" type="counter"></mini-card><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      it('pressing enter in a card', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await page.click('mini-card');
+        await press('Enter');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await page.keyboard.type('Hoi!');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-    //   it('cards can be backspaced', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('mini-card');
-    //     await press('Backspace');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await page.keyboard.type('Hoi!');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>HelloHoi!</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      it('cards can be backspaced', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await page.click('mini-card');
+        await press('Backspace');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await page.keyboard.type('Hoi!');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-    //   it('cards can be deleted', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await page.click('mini-card');
-    //     await press('Delete');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await page.keyboard.type('Hoi!');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>Hoi!There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      it('cards can be deleted', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await page.click('mini-card');
+        await press('Delete');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await page.keyboard.type('Hoi!');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-    //   it('deleting into a block', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await selectRange('h1', 5, 'h1', 5);
-    //     await press('Delete');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><mini-card state="0" type="counter"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await press('Delete');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      it('deleting into a block', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await selectRange('h1', 5, 'h1', 5);
+        await press('Delete');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await press('Delete');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await press('Delete');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>There</p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-    //   it('backspacing into a block', async () => {
-    //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-    //     await loadDoc(doc);
-    //     await selectRange('h2', 0, 'h2', 0);
-    //     await press('Backspace');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><mini-card state="0" type="counter"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //     await press('Backspace');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-    //     );
-    //   });
+      it('backspacing into a block', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await selectRange('h2', 0, 'h2', 0);
+        await press('Backspace');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await press('Backspace');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await press('Backspace');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello<br></h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-    //   it('undo / redo is stable', async () => {
-    //     const state = {
-    //       name: 'pic.png',
-    //       src: '/pic.png',
-    //       type: 'image/png',
-    //     };
-    //     const cardHtml = `<mini-card type="media" state="${jsonAttr(state)}"></mini-card>`;
-    //     const toolbarDoc = `<h1>Hello</h1>${cardHtml}${cardHtml}<p>You</p>`;
-    //     await loadDoc(toolbarDoc);
-    //     await page.click('h1');
-    //     await page.keyboard.type('Some stuff...');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>HelloSome stuff...</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
-    //     );
-    //     await pressCtrl('z');
-    //     expect(await serializeDoc()).toEqual(
-    //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
-    //     );
-    //   });
-    // });
+      //   it('undo / redo is stable', async () => {
+      //     const state = {
+      //       name: 'pic.png',
+      //       src: '/pic.png',
+      //       type: 'image/png',
+      //     };
+      //     const cardHtml = `<mini-card type="media" state="${jsonAttr(state)}"></mini-card>`;
+      //     const toolbarDoc = `<h1>Hello</h1>${cardHtml}${cardHtml}<p>You</p>`;
+      //     await loadDoc(toolbarDoc);
+      //     await page.click('h1');
+      //     await page.keyboard.type('Some stuff...');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>HelloSome stuff...</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
+      //     );
+      //     await pressCtrl('z');
+      //     expect(await serializeDoc()).toEqual(
+      //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
+      //     );
+      //   });
+    });
 
     // describe('readonly mode', () => {
     //   beforeAll(() => page.reload());

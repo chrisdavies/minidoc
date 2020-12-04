@@ -31,6 +31,21 @@ function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor
   toggleInline(tagName, range);
 }
 
+function deleteSelection(range: Range, editor: MinidocCoreEditor) {
+  // In this scenario, the browser does the right thing, so let it go.
+  if (
+    range.collapsed &&
+    Dom.isText(range.startContainer) &&
+    range.startOffset < range.startContainer.length
+  ) {
+    return;
+  }
+  defaultDelete('right');
+  document.getSelection()?.collapseToStart();
+  Dom.$makeEditable(editor.root);
+  return true;
+}
+
 const handlers: { [key: string]: MinidocKeyboardHandler } = {
   Enter(e) {
     e.preventDefault();
@@ -75,18 +90,9 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
   },
   Delete(e, ctx) {
     const range = Rng.currentRange()!;
-    // In this scenario, the browser does the right thing, so let it go.
-    if (
-      range.collapsed &&
-      Dom.isText(range.startContainer) &&
-      range.startOffset < range.startContainer.length
-    ) {
-      return;
+    if (deleteSelection(range, ctx)) {
+      e.preventDefault();
     }
-    e.preventDefault();
-    defaultDelete('right');
-    document.getSelection()?.collapseToStart();
-    Dom.$makeEditable(ctx.root);
   },
   KeyB(e, ctx) {
     ctrlToggle('strong', e, ctx);
@@ -96,9 +102,24 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
   },
 };
 
-export const defaultPlugin: MinidocPlugin = {
-  name: 'default',
-  onKeydown(e, ctx) {
-    handlers[e.code]?.(e, ctx);
-  },
+export const defaultPlugin: MinidocPlugin = (editor) => {
+  Dom.on(editor.root, 'keydown', (e) => {
+    if (e.defaultPrevented) {
+      return;
+    }
+    const handler = handlers[e.code];
+    if (handler) {
+      handler(e, editor);
+    } else if (!e.metaKey && !e.ctrlKey && e.key.length === 1) {
+      // If the user is typing into a selected range, we need
+      // to do a clean delete on the range, and then allow the
+      // input to continue. The e.key.length === 1 above is a hacky
+      // way of checking to see if the user is typing.
+      const range = Rng.currentRange()!;
+      if (!range.collapsed) {
+        deleteSelection(range, editor);
+      }
+    }
+  });
+  return editor;
 };

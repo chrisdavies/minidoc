@@ -16,3 +16,7 @@ export function debounce(fn: () => void, ms = 100) {
     timeout = setTimeout(tick, ms);
   };
 }
+
+export function compose<T extends (arg: any) => any>(a: T, b: T): T {
+  return (((arg: any) => b(a(arg))) as unknown) as T;
+}

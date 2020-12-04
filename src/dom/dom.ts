@@ -129,7 +129,7 @@ export function replaceSelfWithChildren(node?: Node) {
  * Retrieves teh specified attribute from the node.
  */
 export function attr(name: string, node?: Node) {
-  return isElement(node) && node.getAttribute(name);
+  return (isElement(node) && node.getAttribute(name)) || undefined;
 }
 
 /**

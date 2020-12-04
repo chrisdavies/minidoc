@@ -124,7 +124,7 @@ export function setEndAfter(node: Node, range: Range): Range {
 /**
  * Create a new range that surrounds the specified nodes.
  */
-export function fromNodes(nodes: Node[]) {
+export function fromNodes(nodes: Node[] | HTMLCollection) {
   const range = createRange();
   range.selectNodeContents(nodes[nodes.length - 1]);
   range.setStart(nodes[0], 0);
@@ -159,6 +159,31 @@ export function isAtStartOf(node: Node, range: Range): boolean {
       return true;
     }
     if (!curr || curr.previousSibling) {
+      return false;
+    }
+    curr = curr.parentNode;
+  }
+}
+
+/**
+ * Determine whether or not the specified range is at the very end
+ * of the specified node.
+ */
+export function isAtEndOf(node: Node, range: Range): boolean {
+  const { startOffset } = range;
+  let curr: Node | null = toNode(range);
+  // This happens when we have something like <p><br></p>
+  if (isEmpty(curr, true) && curr.nextSibling && isEmpty(curr.nextSibling, true)) {
+    curr = curr.nextSibling;
+  } else if (startOffset && Dom.isText(curr) && curr.length > startOffset) {
+    return false;
+  }
+
+  while (true) {
+    if (curr === node) {
+      return true;
+    }
+    if (!curr || curr.nextSibling) {
       return false;
     }
     curr = curr.parentNode;

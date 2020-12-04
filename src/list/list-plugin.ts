@@ -142,9 +142,9 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
   },
 };
 
-export const listPlugin: MinidocPlugin = {
-  name: 'list',
-  onKeydown(e, ctx) {
-    handlers[e.code]?.(e, ctx);
-  },
+export const listPlugin: MinidocPlugin = (editor) => {
+  Dom.on(editor.root, 'keydown', (e) => {
+    !e.defaultPrevented && handlers[e.code]?.(e, editor);
+  });
+  return editor;
 };
