@@ -121,6 +121,25 @@ export function setEndAfter(node: Node, range: Range): Range {
 }
 
 /**
+ * Create a new range that surrounds the specified nodes.
+ */
+export function fromNodes(nodes: Node[]) {
+  const range = createRange();
+  range.selectNodeContents(nodes[nodes.length - 1]);
+  range.setStart(nodes[0], 0);
+  return range;
+}
+
+/**
+ * Modify toRange to be a copy of fromRange.
+ */
+export function $copy(toRange: Range, fromRange: Range) {
+  toRange.setStart(fromRange.startContainer, fromRange.startOffset);
+  toRange.setEnd(fromRange.endContainer, fromRange.endOffset);
+  return toRange;
+}
+
+/**
  * Determine whether or not the specified range is at the very start
  * of the specified node.
  */

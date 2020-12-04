@@ -70,6 +70,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
       }
     }
     defaultDelete('left');
+    document.getSelection()?.collapseToStart();
     Dom.$makeEditable(ctx.root);
   },
   Delete(e, ctx) {
@@ -84,6 +85,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     }
     e.preventDefault();
     defaultDelete('right');
+    document.getSelection()?.collapseToStart();
     Dom.$makeEditable(ctx.root);
   },
   KeyB(e, ctx) {

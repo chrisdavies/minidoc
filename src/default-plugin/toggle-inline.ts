@@ -144,8 +144,7 @@ export function toggleInline(tagName: string, range: Range) {
       const el = h(tagName, r.extractContents());
       r.insertNode(el);
       const children = makeContiguous(tagName, el);
-      r.setStart(children[0], 0);
-      r.setEndAfter(children[children.length - 1]);
+      Rng.$copy(r, Rng.fromNodes(children));
     });
   } else {
     ranges.forEach((r) => unapply(tagName, r));

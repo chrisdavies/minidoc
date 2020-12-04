@@ -11,7 +11,9 @@ function convertToParagraphs(leafs: Element[], range: Range) {
       frag.appendChild(h('p', li.childNodes));
     });
   });
+  const children = Array.from(frag.childNodes);
   range.insertNode(frag);
+  return Rng.fromNodes(children);
 }
 
 function convertToList(tagName: string, leafs: Element[], range: Range) {
@@ -31,6 +33,8 @@ function convertToList(tagName: string, leafs: Element[], range: Range) {
     Array.from(leaf.children).forEach((li) => list.appendChild(li));
   });
   range.insertNode(list);
+  range.selectNodeContents(list);
+  return range;
 }
 
 export function toggleList(tagName: string, range: Range) {
@@ -39,8 +43,8 @@ export function toggleList(tagName: string, range: Range) {
   // If all leafs match the tag (e.g. ol / ul), then we are
   // removing the list. We convert all lis into ps and flatten them.
   if (allMatch) {
-    convertToParagraphs(leafs, range);
+    return convertToParagraphs(leafs, range);
   } else {
-    convertToList(tagName, leafs, range);
+    return convertToList(tagName, leafs, range);
   }
 }

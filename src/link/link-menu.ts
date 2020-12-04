@@ -15,8 +15,7 @@ function highlight(range: Range) {
     inlinable.extractContents(),
   );
   inlinable.insertNode(highlighter);
-  range.setStart(inlinable.startContainer, inlinable.startOffset);
-  range.setEnd(inlinable.endContainer, inlinable.endOffset);
+  Rng.$copy(range, inlinable);
   return highlighter;
 }
 

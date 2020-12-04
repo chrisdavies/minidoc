@@ -24,8 +24,5 @@ export function toggleBlock(tagName: string, range: Range) {
     }
   });
 
-  const newSelection = Rng.createRange();
-  newSelection.selectNodeContents(newLeafs[newLeafs.length - 1]);
-  newSelection.setStart(newLeafs[0], 0);
-  Rng.setCurrentSelection(newSelection);
+  Rng.setCurrentSelection(Rng.fromNodes(newLeafs));
 }
