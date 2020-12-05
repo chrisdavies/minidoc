@@ -7,7 +7,7 @@ interface CardPluginContext {
   definitions: { [type: string]: MinidocCardDefinition };
   activateCard(el: Element, activate: boolean): void;
   deactivateCards(): void;
-  insert(type: string, initialState: any, opts?: CardOpts): void;
+  insert(type: string, initialState: any): void;
 }
 
 type Cardable<T extends MinidocCoreEditor = MinidocCoreEditor> = T & { cards: CardPluginContext };
@@ -15,10 +15,6 @@ type Cardable<T extends MinidocCoreEditor = MinidocCoreEditor> = T & { cards: Ca
 const cardTagName = 'MINI-CARD';
 
 const stopPropagation = (e: Event) => e.stopPropagation();
-
-interface CardOpts {
-  align?: 'left' | 'full' | 'right';
-}
 
 const newId = (() => {
   // We use these ids to identifiy cards within an editor instance, only for
@@ -42,13 +38,12 @@ function mountCard<T extends MinidocCoreEditor>(el: Element, editor: Cardable<T>
   (el as any).$initialized = true;
   const cardType = Dom.attr('type', el)!;
   const state = JSON.parse(Dom.attr('state', el) || 'null');
-  const align = Dom.attr('align', el) || 'full';
   const { render } = editor.cards.definitions[cardType];
   Dom.assignAttrs(
     {
       id: newId(),
       tabindex: -1,
-      class: `minidoc-card minidoc-card-align-${align}`,
+      class: 'minidoc-card',
     },
     el,
   );
@@ -151,7 +146,6 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
           state: JSON.stringify(initialState),
           id: newId(),
           tabindex: -1,
-          className: opts.align ? `minidoc-card-align-${opts.align}` : '',
         });
         if (leaf) {
           Dom.insertAfter(card, leaf);
@@ -179,7 +173,6 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
           h(cardTagName, {
             type: Dom.attr('type', c),
             state: Dom.attr('state', c),
-            align: Dom.attr('align', c),
           }),
         );
       });
