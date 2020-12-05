@@ -151,6 +151,19 @@ function findByText(selector: string, text: string) {
     });
 }
 
+/**
+ * This hackery gets around a Chromium bug where clicks seem to return
+ * before the focus completes properly. If a test is randomly failing,
+ * use this click instead of the built in page click and see if that fixes it.
+ */
+async function click(selector: string) {
+  await page.click(selector);
+  return page.waitForFunction((s) => {
+    const el = document.getSelection()?.getRangeAt(0).startContainer;
+    return (el instanceof Element ? el : el?.parentElement)?.closest(s);
+  }, selector);
+}
+
 // function jsonAttr(obj: any) {
 //   return JSON.stringify(obj).replace(/\"/g, '&quot;');
 // }
@@ -696,7 +709,7 @@ function runTestsForBrowser(browserType: BrowserType) {
       it('pressing enter in a card', async () => {
         const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
-        await page.click('mini-card');
+        await click('mini-card');
         await press('Enter');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
@@ -710,7 +723,7 @@ function runTestsForBrowser(browserType: BrowserType) {
       it('cards can be backspaced', async () => {
         const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
-        await page.click('mini-card');
+        await click('mini-card');
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
@@ -724,7 +737,7 @@ function runTestsForBrowser(browserType: BrowserType) {
       it('cards can be deleted', async () => {
         const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
-        await page.click('mini-card');
+        await click('mini-card');
         await press('Delete');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
