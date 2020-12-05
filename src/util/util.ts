@@ -3,13 +3,16 @@
  * @param {function} fn
  * @param {number} [ms]
  */
-export function debounce(fn: () => void, ms = 100) {
+export function debounce(fn: (...args: any) => void, ms = 100) {
   let timeout: any;
+  let finalArgs: any;
   const tick = () => {
     timeout = undefined;
-    return fn();
+    fn(...finalArgs);
+    finalArgs = undefined;
   };
-  return () => {
+  return (...args: any) => {
+    finalArgs = args;
     if (timeout) {
       return;
     }

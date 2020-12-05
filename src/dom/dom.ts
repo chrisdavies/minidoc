@@ -154,7 +154,10 @@ export function remove(node?: Node) {
 export function findLeaf(node: Node): Element | undefined {
   while (true) {
     const parent = node.parentElement;
-    if (!parent || isRoot(parent)) {
+    if (!parent) {
+      return;
+    }
+    if (isRoot(parent)) {
       return isElement(node) ? node : undefined;
     }
     node = parent;

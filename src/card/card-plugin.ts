@@ -2,6 +2,7 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { compose } from '../util';
 import { h } from '../dom';
+import { enableDragDrop, makeDraggable } from './draggable';
 
 interface CardPluginContext {
   definitions: { [type: string]: MinidocCardDefinition };
@@ -48,38 +49,43 @@ function mountCard<T extends MinidocCoreEditor>(el: Element, editor: Cardable<T>
     el,
   );
 
+  const content = h(
+    '.minidoc-card-contents',
+    {
+      contenteditable: 'false',
+      // We may want to allow some events through (e.g. Ctrl + S)
+      onkeydown: stopPropagation,
+      onkeypress: stopPropagation,
+      onpaste: stopPropagation,
+      oncut: stopPropagation,
+      oncopy: stopPropagation,
+      input: stopPropagation,
+    },
+    render({
+      state,
+      editor,
+      stateChanged(state) {
+        Dom.assignAttrs({ state: JSON.stringify(state) }, el);
+      },
+    }),
+  );
+
   Dom.appendChildren(
     [
       // Captures the focus when the caret moves up into the card
       h('minidoc-focuser', { tabindex: -1, innerHTML: '&zwnj;' }),
-      h(
-        '.minidoc-card-contents',
-        {
-          contenteditable: 'false',
-          // We may want to allow some events through (e.g. Ctrl + S)
-          onkeydown: stopPropagation,
-          onkeypress: stopPropagation,
-          onpaste: stopPropagation,
-          oncut: stopPropagation,
-          oncopy: stopPropagation,
-          input: stopPropagation,
-        },
-        render({
-          state,
-          editor,
-          stateChanged(state) {
-            Dom.assignAttrs({ state: JSON.stringify(state) }, el);
-          },
-        }),
-      ),
+      content,
     ],
     el,
   );
 
   Dom.on(el, 'focus', () => {
     editor.cards.activateCard(el, true);
-    Rng.setCaretAtStart(el);
+    // The setTimeout allows drag / drop to work
+    setTimeout(() => Rng.setCaretAtStart(el));
   });
+
+  makeDraggable(content);
 }
 
 function handleDeleteIntoCard(e: KeyboardEvent) {
@@ -139,7 +145,7 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
         activeCards.clear();
       },
 
-      insert(type, initialState, opts = {}) {
+      insert(type, initialState) {
         const leaf = Dom.findLeaf(Rng.currentNode()!);
         const card = h(cardTagName, {
           type,
@@ -221,6 +227,8 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
         e.preventDefault();
       }
     });
+
+    enableDragDrop(editor.root);
 
     return editor;
   };

@@ -8,19 +8,24 @@ mini-card {
   margin: 0.5rem 0;
 }
 
-.minidoc-editable .minidoc-card-contents:hover::before {
-  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 6' stroke='%23777'%3E%3Cpath d='M1,1h0 M3,1h0 M1,3h0 M3,3h0 M1,5h0 M3,5h0' stroke-linecap='round' /%3E%3C/svg%3E");
-  width: 0.5rem;
-  padding: 0.25rem 1rem 0.5rem 0.5rem;
+.minidoc-card-contents::before {
+  content: '';
+  width: 1.5rem;
+  box-sizing: border-box;
+  padding: 0.5rem;
   position: absolute;
-  top: 0;
-  left: -1.75rem;
+  top: -0.35rem;
+  left: -1.5rem;
   z-index: 10;
   cursor: move;
 }
 
+.minidoc-card-contents:hover::before {
+  content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 6' stroke='%23777'%3E%3Cpath d='M1,1h0 M3,1h0 M1,3h0 M3,3h0 M1,5h0 M3,5h0' stroke-linecap='round' /%3E%3C/svg%3E");
+}
+
 .minidoc-card-active {
-  box-shadow: 0 0 0 3px #fff, 0 0 0 4px #a4cafe, 0 0 0 8px rgba(164, 202, 254, 0.45);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #6366f1;
   border-radius: 1px;
   z-index: 10;
 }
@@ -43,4 +48,15 @@ minidoc-focuser {
   float: right;
   width: calc(50% - 1rem);
   margin-left: 2rem;
+}
+
+/** Drag / drop **/
+.minidoc-drop-target {
+  background: #eef2ff;
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+  border: 2px solid #4338ca;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
 }
