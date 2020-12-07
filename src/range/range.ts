@@ -216,47 +216,6 @@ export function setCaretAtStart(node: Node): Range {
 }
 
 /**
- * Wraps the DOM TreeWalker, returning a walker that starts at startNode
- * and ends at endNode.
- */
-function rangeWalker(container: Node, startNode: Node, endNode: Node) {
-  let ended = false;
-  const treeWalker = document.createTreeWalker(
-    container,
-    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-  );
-  let currentNode: Node | undefined = treeWalker.currentNode;
-  const walker = {
-    get currentNode() {
-      return currentNode;
-    },
-    nextNode() {
-      if (ended) {
-        currentNode = undefined;
-        return;
-      }
-      currentNode = treeWalker.nextNode() || undefined;
-      ended = ended || currentNode === endNode || !currentNode;
-      return currentNode;
-    },
-  };
-
-  // Advance to the range's start node. There's a weird edgecase where the
-  // startNode may show up *after* the end node. This happens when the startNode
-  // is a child of the end node. The caret is after the start node, but at the end
-  // or outside of the end node which is startNode's parent.
-  while (walker.currentNode && walker.currentNode !== startNode) {
-    walker.nextNode();
-  }
-
-  if (ended) {
-    currentNode = startNode;
-  }
-
-  return walker;
-}
-
-/**
  * Creates an array of ranges from the specified range. Each range in the result
  * is capable of being wrapped in an inline tag.
  */
@@ -268,28 +227,70 @@ export function inlinableRanges(range: Range): Range[] {
   const startNode = toNode(range);
   const endNode = toEndNode(range);
   const result: Range[] = [];
-  const walker = rangeWalker(range.commonAncestorContainer, startNode, endNode);
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
 
-  // Move to the next inlinable node
-  function findStart() {
-    while (walker.currentNode && Dom.isBlock(walker.currentNode)) {
-      walker.nextNode();
+  let started = false;
+  let ended = false;
+  let currentNode: Node | undefined = walker.currentNode || undefined;
+
+  function moveNext() {
+    let node: Node | undefined = walker.currentNode;
+    while (!ended) {
+      if (node === startNode) {
+        started = true;
+      }
+      if (!node || node === endNode) {
+        ended = true;
+      }
+      if (!Dom.isImmutable(node)) {
+        walker.nextNode();
+        return node;
+      }
+      if (node && !started && node.contains(startNode)) {
+        started = true;
+      }
+      if (node && !ended && node.contains(endNode)) {
+        ended = true;
+      }
+      if (ended) {
+        return;
+      }
+      node = walker.nextSibling() || undefined;
     }
-    return walker.currentNode;
   }
 
-  function findEnd() {
-    let node = walker.currentNode;
-    while (walker.currentNode && !Dom.isBlock(walker.currentNode)) {
-      node = walker.currentNode;
-      walker.nextNode();
+  // Move to the next inlinable node
+  function findNextStart() {
+    while (currentNode && Dom.isBlock(currentNode)) {
+      currentNode = moveNext();
+    }
+    return currentNode;
+  }
+
+  function findNextEnd() {
+    let node = currentNode;
+    while (currentNode && !Dom.isBlock(currentNode)) {
+      node = currentNode;
+      currentNode = moveNext();
     }
     return node;
   }
 
-  while (walker.currentNode) {
-    const start = findStart();
-    const end = findEnd();
+  // Advance to the range's start node. There's a weird edgecase where the
+  // startNode may show up *after* the end node. This happens when the startNode
+  // is a child of the end node. The caret is after the start node, but at the end
+  // or outside of the end node which is startNode's parent.
+  while (currentNode && !started) {
+    currentNode = moveNext();
+  }
+
+  // Iterate through the nodes until we come to the end node.
+  while (currentNode) {
+    const start = findNextStart();
+    const end = findNextEnd();
     if (!end || !start) {
       break;
     }

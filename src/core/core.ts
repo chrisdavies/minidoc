@@ -70,7 +70,7 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
 
     toggleBlock(tagName: string) {
       const range = Rng.currentRange();
-      range && el.contains(Rng.toNode(range)) && toggleBlock(tagName, range);
+      range && toggleBlock(tagName, range);
     },
 
     caretChanged() {
@@ -80,14 +80,12 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
 
     toggleInline(tagName: string) {
       const range = Rng.currentRange();
-      range && el.contains(Rng.toNode(range)) && toggleInline(tagName, range);
+      range && toggleInline(tagName, range);
     },
 
     toggleList(tagName: 'ol' | 'ul') {
       const range = Rng.currentRange();
-      range &&
-        el.contains(Rng.toNode(range)) &&
-        Rng.setCurrentSelection(toggleList(tagName, range));
+      range && Rng.setCurrentSelection(toggleList(tagName, range));
     },
 
     serialize() {

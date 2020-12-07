@@ -289,6 +289,10 @@ export function isBlock(node: Node) {
   return isElement(node) && node.matches(blockSelector);
 }
 
+export function isImmutable(node?: Node) {
+  return isElement(node) && (node as ImmutableLeaf).$immutable;
+}
+
 /**
  * Find the closest block element that contains the specified node.
  */

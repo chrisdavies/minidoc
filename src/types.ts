@@ -25,6 +25,8 @@ interface MinidocCoreEditor {
   beforeSerialize(el: Element): Element;
 }
 
+type ImmutableLeaf = Element & { $immutable: true };
+
 interface MinidocToolbar {
   root: Element;
   setMenu(el?: Element): void;

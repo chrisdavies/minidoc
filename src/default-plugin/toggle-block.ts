@@ -1,4 +1,5 @@
 import * as Rng from '../range';
+import * as Dom from '../dom';
 import { h } from '../dom';
 
 export function toggleBlock(tagName: string, range: Range) {
@@ -8,6 +9,10 @@ export function toggleBlock(tagName: string, range: Range) {
   const newLeafs: Element[] = [];
 
   leafs.forEach((el) => {
+    // We don't allow toggling immutable leafs such as mindoc cards.
+    if (Dom.isImmutable(el)) {
+      return;
+    }
     if (el.matches('ul,ol')) {
       const frag = document.createDocumentFragment();
       Array.from(el.querySelectorAll('li')).forEach((li) => {

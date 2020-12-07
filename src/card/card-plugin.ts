@@ -24,10 +24,10 @@ function toggleActive(el: Element, isActive: boolean) {
 }
 
 function mountCard<T extends MinidocCoreEditor>(el: Element, editor: Cardable<T>) {
-  if (el.tagName !== cardTagName || (el as any).$initialized) {
+  if (el.tagName !== cardTagName || (el as ImmutableLeaf).$immutable) {
     return;
   }
-  (el as any).$initialized = true;
+  (el as ImmutableLeaf).$immutable = true;
   const cardType = Dom.attr('type', el)!;
   const state = JSON.parse(Dom.attr('state', el) || 'null');
   const { render } = editor.cards.definitions[cardType];

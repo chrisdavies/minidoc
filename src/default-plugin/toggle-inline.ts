@@ -149,7 +149,8 @@ export function toggleInline(tagName: string, range: Range) {
   } else {
     ranges.forEach((r) => unapply(tagName, r));
   }
-  const container = Rng.setCurrentSelection(toRange(ranges)).commonAncestorContainer as Element;
+  const container = Rng.setCurrentSelection(toRange(ranges)).commonAncestorContainer;
   container.normalize();
-  Array.from(container.querySelectorAll(selector)).forEach((n) => Dom.isEmpty(n) && n.remove());
+  Dom.isElement(container) &&
+    Array.from(container.querySelectorAll(selector)).forEach((n) => Dom.isEmpty(n) && n.remove());
 }
