@@ -298,7 +298,8 @@ export function isImmutable(node?: Node) {
  */
 export function closestBlock(node: Node): Element | undefined {
   const el = node instanceof Element ? node : node.parentElement!;
-  return el?.closest(blockSelector) || undefined;
+  const block = el?.closest(blockSelector) || undefined;
+  return isRoot(block) ? undefined : block;
 }
 
 /**

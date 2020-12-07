@@ -77,8 +77,8 @@ export function $deleteAndMergeContents(range: Range) {
   const startNode = toNode(range);
   const endNode = toEndNode(range);
   const startEl = Dom.closestBlock(startNode)!;
-  const endEl = Dom.closestBlock(endNode)!;
-  const endLeaf = Dom.findLeaf(endEl)!;
+  const endEl = Dom.closestBlock(endNode);
+  const endLeaf = Dom.findLeaf(endNode)!;
   const clone = range.cloneRange();
   range.collapse(true);
   const content = clone.extractContents();
@@ -88,11 +88,11 @@ export function $deleteAndMergeContents(range: Range) {
   if (startEl !== endEl) {
     // If we're moving an li out of a list, and it has a sublist, we need to
     // unnest the sublist.
-    if (endEl.tagName === 'LI' && startEl.tagName !== 'LI') {
+    if (endEl && endEl.tagName === 'LI' && startEl.tagName !== 'LI') {
       const nestedList = endEl.querySelector('ol,ul');
       nestedList && Dom.mergeLists(nestedList, endEl.parentElement!, endEl);
     }
-    Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
+    endEl && Array.from(endEl.childNodes).forEach((n) => startEl.appendChild(n));
     // If there is a nested list in the start el, it needs to be
     // moved to the end.
     if (startEl.tagName === 'LI') {
