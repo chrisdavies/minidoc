@@ -1,5 +1,5 @@
 import { onMount } from '../src/disposable';
-import { minidoc, cardPlugin, defaultPlugins } from '../src';
+import { minidoc, cardPlugin, defaultPlugins, defaultToolbarActions } from '../src';
 import { h } from '../src/dom';
 import '../src/types';
 
@@ -21,6 +21,13 @@ const counterCard: MinidocCardDefinition = {
   },
 };
 
+const toolbarCounter: MinidocToolbarAction = {
+  id: 'counter',
+  label: 'Counter',
+  html: '+/-',
+  run: (t) => (t as Cardable<typeof t>).cards.insert('counter', 42),
+};
+
 const el = document.querySelector('.example-doc');
 
 el.remove();
@@ -28,6 +35,7 @@ el.remove();
 const editor = minidoc({
   doc: el.innerHTML,
   plugins: [cardPlugin([counterCard]), ...defaultPlugins],
+  toolbarActions: [...defaultToolbarActions, toolbarCounter],
 });
 
 document.querySelector('main').appendChild(editor.container);

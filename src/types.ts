@@ -3,6 +3,7 @@ type MinidocEvent = 'caretchange';
 interface MinidocOptions {
   doc: string;
   plugins?: MinidocPlugin[];
+  toolbarActions?: MinidocToolbarAction[];
 }
 
 interface MinidocCoreEditor {
@@ -63,3 +64,12 @@ type MinidocToolbarEditor = MinidocCoreEditor & Toolbarable;
 type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocCoreEditor) => void;
 
 type MinidocPlugin = <T extends MinidocCoreEditor>(editor: T) => T;
+
+interface CardPluginContext {
+  definitions: { [type: string]: MinidocCardDefinition };
+  activateCard(el: Element, activate: boolean): void;
+  deactivateCards(): void;
+  insert(type: string, initialState: any): void;
+}
+
+type Cardable<T extends MinidocCoreEditor = MinidocCoreEditor> = T & { cards: CardPluginContext };

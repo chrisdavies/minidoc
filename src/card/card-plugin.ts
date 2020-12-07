@@ -4,15 +4,6 @@ import { compose } from '../util';
 import { h } from '../dom';
 import { enableDragDrop, makeDraggable } from './draggable';
 
-interface CardPluginContext {
-  definitions: { [type: string]: MinidocCardDefinition };
-  activateCard(el: Element, activate: boolean): void;
-  deactivateCards(): void;
-  insert(type: string, initialState: any): void;
-}
-
-type Cardable<T extends MinidocCoreEditor = MinidocCoreEditor> = T & { cards: CardPluginContext };
-
 const cardTagName = 'MINI-CARD';
 
 const stopPropagation = (e: Event) => e.stopPropagation();
@@ -133,10 +124,11 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
 
       activateCard(el, activate) {
         toggleActive(el, activate);
-        if (activate) {
-          activeCards.add(el);
-        } else {
+        if (!activate) {
           activeCards.delete(el);
+        } else if (!activeCards.has(el)) {
+          cardable.cards.deactivateCards();
+          activeCards.add(el);
         }
       },
 
@@ -146,18 +138,22 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
       },
 
       insert(type, initialState) {
-        const leaf = Dom.findLeaf(Rng.currentNode()!);
+        const [a, b] = Rng.$splitContainer(Dom.findLeaf, Rng.currentRange()!);
         const card = h(cardTagName, {
           type,
           state: JSON.stringify(initialState),
           id: newId(),
           tabindex: -1,
         });
-        if (leaf) {
-          Dom.insertAfter(card, leaf);
+        if (a) {
+          Dom.insertAfter(card, a);
+        } else if (b) {
+          b.parentElement?.insertBefore(card, b);
         } else {
           Dom.appendChildren(card, editor.root);
         }
+        Dom.isEmpty(a, true) && a.remove();
+        Dom.isEmpty(b, true) && b.remove();
         mountCard(card, editor as Cardable<T>);
         Rng.setCaretAtStart(card);
         return card;
