@@ -152,8 +152,8 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
         } else {
           Dom.appendChildren(card, editor.root);
         }
-        Dom.isEmpty(a, true) && a.remove();
-        Dom.isEmpty(b, true) && b.remove();
+        a && Dom.isEmpty(a, true) && a.remove();
+        b && Dom.isEmpty(b, true) && b.remove();
         mountCard(card, editor as Cardable<T>);
         Rng.setCaretAtStart(card);
         return card;

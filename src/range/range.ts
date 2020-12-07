@@ -197,6 +197,20 @@ export function $splitContainer(
   findContainer: (node: Node) => Element | undefined,
   range: Range,
 ): [Element, Element] {
+  const startLeaf = Dom.findLeaf(toNode(range));
+  const endLeaf = Dom.findLeaf(toEndNode(range));
+  if (startLeaf && Dom.isImmutable(startLeaf)) {
+    const l = Dom.newLeaf();
+    startLeaf.replaceWith(l);
+    range.setStart(l, 0);
+  }
+  if (endLeaf?.isConnected && Dom.isImmutable(endLeaf)) {
+    const l = Dom.newLeaf();
+    endLeaf.replaceWith(l);
+    range.setEnd(l, 0);
+  }
+
+  range.deleteContents();
   const container = findContainer(toNode(range))!;
   const tailRange = setEndAfter(container, range);
   const tailEl = tailRange.cloneContents().children[0];
