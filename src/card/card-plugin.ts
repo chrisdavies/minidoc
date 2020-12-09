@@ -8,17 +8,6 @@ const cardTagName = 'MINI-CARD';
 
 const stopPropagation = (e: Event) => e.stopPropagation();
 
-const newId = (() => {
-  // We use these ids to identifiy cards within an editor instance, only for
-  // the duration of the editing session. These aren't persisted, and are there
-  // to prevent us from passing the wrong state into an updated card.
-  // We'll start off with a random long, which is good enough for our purposes.
-  // We also use them to identify files.
-  let id = Math.random() * 10000000000000000;
-  id = id & id;
-  return () => `card-${(++id).toString(36)}`;
-})();
-
 function toggleActive(el: Element, isActive: boolean) {
   el.classList.toggle('minidoc-card-active', isActive);
 }
@@ -33,7 +22,6 @@ function mountCard<T extends MinidocCoreEditor>(el: Element, editor: Cardable<T>
   const { render } = editor.cards.definitions[cardType];
   Dom.assignAttrs(
     {
-      id: newId(),
       tabindex: -1,
       class: 'minidoc-card',
     },
@@ -138,22 +126,12 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
       },
 
       insert(type, initialState) {
-        const [a, b] = Rng.$splitContainer(Dom.findLeaf, Rng.currentRange()!);
         const card = h(cardTagName, {
           type,
           state: JSON.stringify(initialState),
-          id: newId(),
           tabindex: -1,
         });
-        if (a) {
-          Dom.insertAfter(card, a);
-        } else if (b) {
-          b.parentElement?.insertBefore(card, b);
-        } else {
-          Dom.appendChildren(card, editor.root);
-        }
-        a && Dom.isEmpty(a, true) && a.remove();
-        b && Dom.isEmpty(b, true) && b.remove();
+        Rng.$splitAndInsert(Dom.findLeaf, Rng.currentRange()!, Dom.toFragment(card));
         mountCard(card, editor as Cardable<T>);
         Rng.setCaretAtStart(card);
         return card;
@@ -162,9 +140,9 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
 
     // When the editor loads a doc, we need to mount all the cards
     // before history and other plugins kick in.
-    editor.beforeMount = compose(editor.beforeMount, (el) => {
-      el.querySelectorAll(cardTagName).forEach((n) => mountCard(n, cardable));
-      return el;
+    editor.beforeMount = compose(editor.beforeMount, (frag) => {
+      frag.querySelectorAll(cardTagName).forEach((n) => mountCard(n, cardable));
+      return frag;
     });
 
     // When we serialize, we need to clear out the card contents, since only
@@ -218,7 +196,7 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
           activeCards.forEach((el) => el.remove());
         }
         activeCards.clear();
-      } else if (!e.code.includes('Arrow')) {
+      } else if (!e.code.includes('Arrow') && !e.metaKey && !e.ctrlKey) {
         // We only allow arrow, delete, backspace within a card.
         e.preventDefault();
       }

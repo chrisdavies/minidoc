@@ -1,3 +1,5 @@
+import { last } from '../util';
+
 type Eachable = { forEach: (...args: any) => void };
 type ItemOrList<T> = T | Eachable;
 
@@ -43,6 +45,13 @@ export function isRoot(node: any): node is Element {
 }
 
 /**
+ * Determine if the specified item is a minidoc card.
+ */
+export function isCard(n: any) {
+  return isElement(n) && n.tagName === 'MINI-CARD';
+}
+
+/**
  * Determine if the node is iterable.
  */
 function isIterable<T = any>(x: any): x is Eachable & Iterable<T> {
@@ -53,7 +62,7 @@ function isIterable<T = any>(x: any): x is Eachable & Iterable<T> {
  * Determine if the node is the root of an html list (ul / ol).
  */
 export function isList(el: any): el is HTMLOListElement | HTMLUListElement {
-  return el?.matches('ul,ol');
+  return el?.matches?.('ul,ol');
 }
 
 /**
@@ -119,7 +128,7 @@ export function replaceSelfWithChildren(node?: Node) {
   const childArr = Array.from(children.childNodes);
   node.replaceWith(children);
   if (childArr.length) {
-    r.selectNode(childArr[childArr.length - 1]);
+    r.selectNode(last(childArr)!);
     r.setStart(childArr[0], 0);
   }
   return r;
@@ -136,7 +145,7 @@ export function attr(name: string, node?: Node) {
  * Insert newNode after the specified node.
  */
 export function insertAfter(newNode: Node, node: Node): Node {
-  node.parentElement!.insertBefore(newNode, node.nextSibling);
+  node.parentNode!.insertBefore(newNode, node.nextSibling);
   return newNode;
 }
 
@@ -193,7 +202,7 @@ const isAttr = (x: any) =>
 /**
  * Append a child to el.
  */
-function appendChild(child: Node | string, el: Element | Range | undefined) {
+function appendChild<T extends Node | Range | undefined>(child: Node | string, el: T): T {
   if (!child) {
     return el;
   }
@@ -207,14 +216,36 @@ function appendChild(child: Node | string, el: Element | Range | undefined) {
   return el;
 }
 
+export function toFragment(
+  children: ItemOrList<Node | string>,
+  frag?: DocumentFragment,
+): DocumentFragment {
+  frag ||= document.createDocumentFragment();
+  if (children instanceof Node || typeof children === 'string') {
+    return appendChild(children, frag);
+  } else if (isIterable(children)) {
+    Array.from(children).forEach((n) => n && toFragment(n, frag));
+  }
+  return frag;
+}
+
+export function toHTML(n: Node) {
+  if (isElement(n)) {
+    return n.outerHTML;
+  } else if (n instanceof DocumentFragment) {
+    return h('div', n).innerHTML;
+  }
+  throw new Error(`Node ${n.nodeType} cannot be converted to HTML.`);
+}
+
 /**
  * Append the specified child / children to the specified element.
  */
 export function appendChildren(children: ItemOrList<Node | string>, el: Element | Range) {
-  if (children instanceof Node || typeof children === 'string') {
-    return appendChild(children, el);
-  } else if (isIterable(children)) {
-    Array.from(children).forEach((n) => n && appendChildren(n, el));
+  if (isElement(el)) {
+    el.appendChild(toFragment(children));
+  } else {
+    el.insertNode(toFragment(children));
   }
   return el;
 }
@@ -283,7 +314,7 @@ export function $makeEditable(node: Node): Node {
   return node;
 }
 
-const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,section,footer,header,nav,table';
+const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,section,footer,header,nav,table,mini-card';
 
 export function isBlock(node: Node) {
   return isElement(node) && node.matches(blockSelector);

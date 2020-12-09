@@ -5,6 +5,7 @@ import * as Disposable from './disposable';
 import { h } from './dom';
 import { listPlugin } from './list';
 import { defaultPlugin } from './default-plugin';
+import { clipboardPlugin } from './clipboard';
 export * from './card';
 
 const icoLink = `
@@ -81,7 +82,12 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   },
 ];
 
-export const defaultPlugins: MinidocPlugin[] = [listPlugin, defaultPlugin, linkPlugin];
+export const defaultPlugins: MinidocPlugin[] = [
+  listPlugin,
+  defaultPlugin,
+  linkPlugin,
+  clipboardPlugin,
+];
 
 export function minidoc(opts: MinidocOptions): MinidocEditor {
   const editor = createCoreEditor({ ...opts, plugins: opts.plugins || defaultPlugins });

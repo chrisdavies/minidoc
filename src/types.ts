@@ -21,7 +21,7 @@ interface MinidocCoreEditor {
   //
   // Extension points for plugins to override
   //
-  beforeMount(el: Element): Element;
+  beforeMount<T extends ParentNode & Node>(el: T): T;
   beforeSerialize(el: Element): Element;
 }
 

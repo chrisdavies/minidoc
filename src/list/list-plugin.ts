@@ -15,19 +15,19 @@ function convertListItemToLeaf(li: Element, range: Range) {
   // We're in an empty li, and the user is attempting to break out of it
   const newLeaf = h('p', li.childNodes);
   const [a, b] = Rng.$splitContainer(Dom.findLeaf, range);
-  Dom.insertAfter(newLeaf, a);
+  a && Dom.insertAfter(newLeaf, a);
   // Since the li is empty we need to remove it
   Dom.remove(li);
   // We also need to remove the first li from b, since it is
   // a clone of our empty li.
-  Dom.remove(b.querySelector('li') || undefined);
+  b && Dom.remove(b.querySelector('li') || undefined);
   // And if the original li had any nested lists, we need to move them back to the parent...
   Array.from(newLeaf.querySelectorAll('ul,ol')).forEach((l) => {
     l.remove();
-    b.prepend(...Array.from(l.children));
+    b && b.prepend(...Array.from(l.children));
   });
-  Dom.isEmpty(a) && Dom.remove(a);
-  Dom.isEmpty(b) && Dom.remove(b);
+  a && Dom.isEmpty(a) && Dom.remove(a);
+  b && Dom.isEmpty(b) && Dom.remove(b);
   Rng.setCaretAtStart(newLeaf);
 }
 
@@ -97,9 +97,9 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     if (!Dom.isEmpty(li, true)) {
       // We're in a non-empty li. In this scenario, we split it at the caret.
       const [a, b] = Rng.$splitContainer(Dom.closest('li'), range);
-      Dom.$makeEditable(a);
-      Dom.$makeEditable(b);
-      Rng.setCaretAtStart(b);
+      a && Dom.$makeEditable(a);
+      b && Dom.$makeEditable(b);
+      b && Rng.setCaretAtStart(b);
       return;
     }
     // We're in an empty li, and the user is attempting to break out of it

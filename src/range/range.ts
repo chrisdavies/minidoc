@@ -1,5 +1,5 @@
 import * as Dom from '../dom';
-import { isEmpty } from '../dom';
+import { last } from '../util';
 
 export function toNode(range: Range): Node {
   return range.startContainer.childNodes[range.startOffset] || range.startContainer;
@@ -126,7 +126,7 @@ export function setEndAfter(node: Node, range: Range): Range {
  */
 export function fromNodes(nodes: Node[] | HTMLCollection) {
   const range = createRange();
-  range.selectNodeContents(nodes[nodes.length - 1]);
+  range.selectNodeContents(last(nodes)!);
   range.setStart(nodes[0], 0);
   return range;
 }
@@ -148,7 +148,7 @@ export function isAtStartOf(node: Node, range: Range): boolean {
   const { startOffset } = range;
   let curr: Node | null = toNode(range);
   // This happens when we have something like <p><br></p>
-  if (isEmpty(curr, true) && curr.previousSibling && isEmpty(curr.previousSibling, true)) {
+  if (Dom.isEmpty(curr, true) && curr.previousSibling && Dom.isEmpty(curr.previousSibling, true)) {
     curr = curr.previousSibling;
   } else if (startOffset) {
     return false;
@@ -173,7 +173,7 @@ export function isAtEndOf(node: Node, range: Range): boolean {
   const { startOffset } = range;
   let curr: Node | null = toNode(range);
   // This happens when we have something like <p><br></p>
-  if (isEmpty(curr, true) && curr.nextSibling && isEmpty(curr.nextSibling, true)) {
+  if (Dom.isEmpty(curr, true) && curr.nextSibling && Dom.isEmpty(curr.nextSibling, true)) {
     curr = curr.nextSibling;
   } else if (startOffset && Dom.isText(curr) && curr.length > startOffset) {
     return false;
@@ -196,7 +196,7 @@ export function isAtEndOf(node: Node, range: Range): boolean {
 export function $splitContainer(
   findContainer: (node: Node) => Element | undefined,
   range: Range,
-): [Element, Element] {
+): [Element | undefined, Element | undefined] {
   const startLeaf = Dom.findLeaf(toNode(range));
   const endLeaf = Dom.findLeaf(toEndNode(range));
   if (startLeaf && Dom.isImmutable(startLeaf)) {
@@ -217,7 +217,63 @@ export function $splitContainer(
   container.parentElement?.insertBefore(tailEl, container.nextSibling);
   tailRange.deleteContents();
   range.setStartBefore(tailEl);
-  return [container, tailEl];
+  return [container.isConnected ? container : undefined, tailEl];
+}
+
+/**
+ * Split the container into two at the range, and insert the
+ * specified content between the two halves, merging the content
+ * intelligently.
+ */
+export function $splitAndInsert(
+  findContainer: (node: Node) => Element | undefined,
+  range: Range,
+  content: DocumentFragment,
+): Range {
+  const firstNode = content.firstChild;
+  const lastNode = content.lastChild;
+
+  if (!lastNode) {
+    return range;
+  }
+
+  const [a, b] = $splitContainer(findContainer, range);
+
+  if (a) {
+    Dom.insertAfter(content, a);
+  } else if (b) {
+    b.parentNode!.insertBefore(content, b);
+  } else {
+    range.insertNode(content);
+  }
+
+  const result = fromNodes([lastNode]);
+
+  a && Dom.isEmpty(a, true) && a.remove();
+  b && Dom.isEmpty(b, true) && b.remove();
+
+  // Possibly merge the first element into the first slice of the sandwich
+  const mergeA =
+    a?.isConnected && !Dom.isCard(firstNode) && !Dom.isList(firstNode) && !Dom.isList(a);
+  if (mergeA && Dom.isElement(firstNode)) {
+    firstNode.remove();
+    a!.append(Dom.toFragment(firstNode.childNodes));
+  }
+
+  // Possibly merge the last element into the last slice of the sandwich
+  if (
+    b?.isConnected &&
+    Dom.isElement(lastNode) &&
+    (lastNode !== firstNode || !mergeA) &&
+    !Dom.isCard(lastNode) &&
+    !Dom.isList(lastNode) &&
+    !Dom.isList(b)
+  ) {
+    b.remove();
+    lastNode.append(Dom.toFragment(b.childNodes));
+  }
+
+  return result;
 }
 
 /**

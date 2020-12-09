@@ -23,3 +23,7 @@ export function debounce(fn: (...args: any) => void, ms = 100) {
 export function compose<T extends (arg: any) => any>(a: T, b: T): T {
   return (((arg: any) => b(a(arg))) as unknown) as T;
 }
+
+export function last<T>(list: { [i: number]: T; length: number }): T | undefined {
+  return list[list.length - 1];
+}

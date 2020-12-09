@@ -16,6 +16,7 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
+import { last } from '../util';
 
 function normalizeSelector(tagName: string) {
   switch (tagName) {
@@ -71,8 +72,8 @@ function makeContiguous(tagName: string, el: Element) {
  */
 function toRange(ranges: Range[]) {
   const range = ranges[0].cloneRange();
-  const tail = ranges[ranges.length - 1];
-  range.setEnd(tail.endContainer, tail.endOffset);
+  const tail = last(ranges);
+  tail && range.setEnd(tail.endContainer, tail.endOffset);
   return range;
 }
 

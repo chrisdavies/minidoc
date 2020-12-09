@@ -168,34 +168,33 @@ async function click(selector: string) {
 //   return JSON.stringify(obj).replace(/\"/g, '&quot;');
 // }
 
-// function execClipboardEvent(selector: string, name: string) {
-//   return page.evaluate(
-//     (selector, name) => {
-//       const el = document.querySelector(selector);
-//       const e = new CustomEvent(name);
-//       const win = window as any;
-//       win.puppeteerClipboard = win.puppeteerClipboard || new Map();
-//       (e as any).clipboardData = {
-//         files: [],
-//         getData(k: string) {
-//           return win.puppeteerClipboard.get(k);
-//         },
-//         setData(k: string, v: any) {
-//           win.puppeteerClipboard.set(k, v);
-//         },
-//       };
-//       el.dispatchEvent(e);
-//     },
-//     selector,
-//     name,
-//   );
-// }
+function execClipboardEvent(selector: string, name: string) {
+  return page.evaluate(
+    ({ selector, name }: { selector: string; name: string }) => {
+      const el = document.querySelector(selector);
+      const e = new CustomEvent(name);
+      const win = window as any;
+      win.puppeteerClipboard = win.puppeteerClipboard || new Map();
+      (e as any).clipboardData = {
+        files: [],
+        getData(k: string) {
+          return win.puppeteerClipboard.get(k);
+        },
+        setData(k: string, v: any) {
+          win.puppeteerClipboard.set(k, v);
+        },
+      };
+      el?.dispatchEvent(e);
+    },
+    { selector, name },
+  );
+}
 
-// const clipboard = {
-//   copy: (selector: string) => execClipboardEvent(selector, 'copy'),
-//   cut: (selector: string) => execClipboardEvent(selector, 'cut'),
-//   paste: (selector: string) => execClipboardEvent(selector, 'paste'),
-// };
+const clipboard = {
+  copy: (selector: string) => execClipboardEvent(selector, 'copy'),
+  cut: (selector: string) => execClipboardEvent(selector, 'cut'),
+  paste: (selector: string) => execClipboardEvent(selector, 'paste'),
+};
 
 async function press(...keys: string[]) {
   for (const k of keys) {
@@ -607,46 +606,58 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
-      //   it('inline copy and paste', async () => {
-      //     const doc = `<h1>Hoi</h1><p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></p>`;
-      //     await loadDoc(doc);
-      //     await selectRange('p', 0, 'em', 2);
-      //     await clipboard.copy('[contenteditable]');
-      //     await page.click('h1');
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>HoiThis is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></h1><p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></p>`,
-      //     );
-      //   });
+      it('inline copy and paste', async () => {
+        const doc = `<h1>Hoi</h1><p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></p>`;
+        await loadDoc(doc);
+        await selectRange('p', 0, 'em', 2);
+        await clipboard.copy('[contenteditable]');
+        await page.click('h1');
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>HoiThis is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></h1><p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></p>`,
+        );
+      });
 
-      //   it('multiline copy and paste', async () => {
-      //     const doc = `<h1>Hoi</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p>Eh?</p>`;
-      //     await loadDoc(doc);
-      //     await selectRange('p', 0, 'p ~ p', 3);
-      //     await clipboard.copy('[contenteditable]');
-      //     await selectRange('p:last-child', 0);
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hoi</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p>This <strong>MUST</strong> work.</p><p>But</p><p>Eh?</p>`,
-      //     );
-      //   });
+      it('multiline copy and paste', async () => {
+        const doc = `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p>Eh?</p>`;
+        await loadDoc(doc);
+        await selectRange('h1', 6, 'p', 4);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('p:last-child', 0);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><h1>world</h1><p>ThisEh?</p>`,
+        );
+      });
+
+      it('multiline copy and paste normalizes the first element', async () => {
+        const doc = `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p>Eh?</p>`;
+        await loadDoc(doc);
+        await selectRange('h1', 6, 'p', 4);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('p:last-child', 3);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p>Eh?world</p><p>This</p>`,
+        );
+      });
     });
 
     describe('cards', () => {
       beforeAll(() => page.reload());
 
-      //   it('paste does not write into a card', async () => {
-      //     const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-      //     await loadDoc(doc);
-      //     await page.click('p');
-      //     await selectNodeContent('p');
-      //     await clipboard.copy('[contenteditable]');
-      //     await page.click('mini-card');
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><p><strong>I'm strong</strong><em>I'm emphasized</em></p><mini-card state="0" type="counter"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-      //     );
-      //   });
+      it('paste does not write into a card', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await click('p');
+        await selectNodeContent('p');
+        await clipboard.copy('[contenteditable]');
+        await click('mini-card');
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
       //   it('cards are initialized and disposed in edit mode', async () => {
       //     await page.evaluate(() => {
@@ -681,30 +692,42 @@ function runTestsForBrowser(browserType: BrowserType) {
       //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('disposed');
       //   });
 
-      //   it('cards are copiable', async () => {
-      //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-      //     await loadDoc(doc);
-      //     await page.click('mini-card');
-      //     await clipboard.copy('[contenteditable]');
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-      //     );
-      //   });
+      it('cards are copiable', async () => {
+        const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await click('mini-card');
+        await clipboard.copy('[contenteditable]');
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
-      //   it('cards are cuttable', async () => {
-      //     const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
-      //     await loadDoc(doc);
-      //     await page.click('mini-card');
-      //     await clipboard.cut('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-      //     );
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><h2>There</h2><mini-card state="0" type="counter"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
-      //     );
-      //   });
+      it('cards are pastable in other elements', async () => {
+        const doc = `<h1>Hello</h1><p>There</p><mini-card type="counter" state="0"></mini-card><p>End</p>`;
+        await loadDoc(doc);
+        await click('mini-card');
+        await clipboard.copy('[contenteditable]');
+        await selectRange('p', 1);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>T</p><mini-card type="counter" state="0"></mini-card><p>here</p><mini-card type="counter" state="0"></mini-card><p>End</p>`,
+        );
+      });
+
+      it('cards are cuttable', async () => {
+        const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc);
+        await click('mini-card');
+        await clipboard.cut('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+        );
+      });
 
       it('pressing enter in a card', async () => {
         const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
@@ -985,41 +1008,80 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
-      // it('cut ol lis and paste into p', async () => {
-      //   const doc = `<h1>Hoi</h1><p><br></p><p>cough</p><ol><li>abc</li><li>123</li></ol>`;
-      //   await loadDoc(doc);
-      //   await selectRange('li', 1, 'li ~ li', 2);
-      //   await clipboard.cut('[contenteditable]');
-      //   await selectRange('p', 0, 'p', 0);
-      //   await clipboard.paste('[contenteditable]');
-      //   expect(await serializeDoc()).toEqual(
-      //     `<h1>Hoi</h1><ol><li>bc</li><li>12</li></ol><p>cough</p><ol><li>a3</li></ol>`,
-      //   );
-      // });
+      it('cut ol lis and paste into an empty p', async () => {
+        const doc = `<h1>Hoi</h1><p><br></p><p>cough</p><ol><li>abc</li><li>123</li></ol>`;
+        await loadDoc(doc);
+        await selectRange('li', 1, 'li ~ li', 2);
+        await clipboard.cut('[contenteditable]');
+        await selectRange('p', 0, 'p', 0);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><ol><li>bc</li><li>12</li></ol><p>cough</p><ol><li>a3</li></ol>`,
+        );
+      });
 
-      //   it('copy list', async () => {
-      //     const doc = `<h1>Hoi</h1><p>This</p><ul><li>is</li><li>a</li></ul><p><strong>test</strong> of lis</p>`;
-      //     await loadDoc(doc);
-      //     await selectRange('p', 0, 'strong', 2);
-      //     await clipboard.copy('[contenteditable]');
-      //     await selectRange('p', 0);
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hoi</h1><p>This</p><ul><li>is</li><li>a</li></ul><p><strong>te</strong></p><p>This</p><ul><li>is</li><li>a</li></ul><p><strong>test</strong> of lis</p>`,
-      //     );
-      //   });
+      it('cut ol lis and paste into a non-empty empty p', async () => {
+        const doc = `<h1>Hoi</h1><p>Hello</p><ol><li>abc</li><li>123</li></ol>`;
+        await loadDoc(doc);
+        await selectRange('li', 1, 'li ~ li', 2);
+        await clipboard.cut('[contenteditable]');
+        await selectRange('p', 1, 'p', 1);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><p>H</p><ol><li>bc</li><li>12</li></ol><p>ello</p><ol><li>a3</li></ol>`,
+        );
+      });
 
-      //   it('cut lis', async () => {
-      //     const doc = `<h1>Hoi</h1><p>This</p><ul><li>abc</li><li>123</li></ul><p><strong>test</strong> of lis</p>`;
-      //     await loadDoc(doc);
-      //     await selectRange('li', 1, 'li ~ li', 2);
-      //     await clipboard.cut('[contenteditable]');
-      //     await selectRange('li', 1);
-      //     await clipboard.paste('[contenteditable]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hoi</h1><p>This</p><ul><li>a</li><li>bc</li><li>12</li><li>3</li></ul><p><strong>test</strong> of lis</p>`,
-      //     );
-      //   });
+      it('copy a p and paste into a ul', async () => {
+        const doc = `<h1>Hoi</h1><p>Hello</p><ol><li>abc</li><li>123</li></ol>`;
+        await loadDoc(doc);
+        await selectRange('p', 0, 'p', 5);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('li', 0);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><p>Hello</p><ol><li>Helloabc</li><li>123</li></ol>`,
+        );
+      });
+
+      it('copy list', async () => {
+        const doc = `<h1>Hoi</h1><p>This</p><ul><li>is</li><li>a</li></ul><p><strong>test</strong> of lis</p>`;
+        await loadDoc(doc);
+        await selectRange('p', 0, 'strong', 2);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('p', 0);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><p>This</p><ul><li>is</li><li>a</li></ul><p><strong>te</strong>This</p><ul><li>is</li><li>a</li></ul><p><strong>test</strong> of lis</p>`,
+        );
+      });
+
+      it('copy sublist', async () => {
+        const doc = `<h1>Hoi</h1><ul><li>a<ul><li>1</li><li>2</li></ul></li><li>b</li></ul><p>This is a p</p>`;
+        await loadDoc(doc);
+        await selectRange('li', 0, 'p', 3);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('> ul > li:last-child', 1);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><ul><li>a<ul><li>1</li><li>2</li></ul></li><li>ba<ul><li>1</li><li>2</li></ul></li><li>b</li></ul><p>Thi</p><p>This is a p</p>`,
+        );
+      });
+
+      it('cut lis', async () => {
+        const doc = `<h1>Hoi</h1><p>This</p><ul><li>abc</li><li>123</li></ul><p><strong>test</strong> of lis</p>`;
+        await loadDoc(doc);
+        await selectRange('li', 1, 'li ~ li', 2);
+        await clipboard.cut('[contenteditable]');
+        await selectRange('li', 1);
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><p>This</p><ul><li>a3</li></ul><p><strong>test</strong> of lis</p>`,
+        );
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hoi</h1><p>This</p><ul><li>abc</li><li>123</li></ul><p><strong>test</strong> of lis</p>`,
+        );
+      });
     });
   });
 }
