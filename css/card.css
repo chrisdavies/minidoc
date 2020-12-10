@@ -52,11 +52,18 @@ minidoc-focuser {
 
 /** Drag / drop **/
 .minidoc-drop-target {
-  background: #eef2ff;
-  position: absolute;
-  width: 100%;
+  position: relative;
+  display: block;
   z-index: 1000;
-  border: 2px solid #4338ca;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
+}
+
+.minidoc-drop-target::before {
+  content: '';
+  position: absolute;
+  background: #4338ca77;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 4px;
 }
