@@ -6,7 +6,7 @@
     "test": "jasmine",
     "test:watch": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
     "start": "npm-run-all --parallel watch:**",
-    "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -- npm run dev:rebuild",
+    "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -k \"public/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run dev:rebuild",
     "watch:browser": "browser-sync public/ --server --cwd public/ -w",
     "watch:css": "postcss css/index.css -o public/dist/bundle.css -w",
     "dev:rebuild": "esbuild --global-name=minidoc --bundle public/demo.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit"
@@ -15,8 +15,10 @@
   "license": "ISC",
   "description": "A lightweight contenteditable.",
   "devDependencies": {
+    "@sinonjs/fake-timers": "6.0.1",
     "@types/jasmine": "3.6.2",
     "@types/puppeteer": "5.4.0",
+    "@types/sinonjs__fake-timers": "6.0.2",
     "autoprefixer": "10.0.3",
     "browser-sync": "2.26.13",
     "cssnano": "4.1.10",

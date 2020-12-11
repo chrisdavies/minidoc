@@ -47,7 +47,7 @@ export function isRoot(node: any): node is Element {
 /**
  * Determine if the specified item is a minidoc card.
  */
-export function isCard(n: any) {
+export function isCard(n: any): n is HTMLDivElement {
   return isElement(n) && n.tagName === 'MINI-CARD';
 }
 

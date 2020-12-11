@@ -202,7 +202,7 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
       }
     });
 
-    enableDragDrop(editor.root);
+    enableDragDrop(editor.root, () => editor.undoHistory.onChange());
 
     return editor;
   };

@@ -8,7 +8,9 @@ import { h } from '../dom';
 
 function convertNodeToList(tagName: string, node: Node) {
   const leaf = Dom.findLeaf(node);
-  leaf?.replaceWith(h(tagName, h('li', h('br'))));
+  const li = h('li', h('br'));
+  leaf?.replaceWith(h(tagName, li));
+  Rng.setCaretAtStart(li);
 }
 
 function convertListItemToLeaf(li: Element, range: Range) {

@@ -11,6 +11,12 @@
     .minidoc,
     .minidoc-editor {
       padding: 1.5rem;
+      max-width: 50rem;
+      margin: auto;
+    }
+    .minidoc-editor img,
+    .minidoc-editor video {
+      width: 100%;
     }
   </style>
   <link rel="stylesheet" href="demo.css">
@@ -20,7 +26,11 @@
   <main></main>
   <div class="example-doc" style="display: none">
     <h1>This is editable.</h1>
+    <p>The video below should <strong>not</strong> flicker when you undo / redo after typing.</p>
+    <mini-card type="media" state="{&quot;src&quot;:&quot;/img/vid.mp4&quot;,&quot;type&quot;:&quot;vid&quot;}"></mini-card>
     <p>If you type here, you'll see.</p>
+    <mini-card type="media" state="{&quot;src&quot;:&quot;/img/monkey.jpg&quot;,&quot;alt&quot;:&quot;monkey&quot;,&quot;type&quot;:&quot;img&quot;}"></mini-card>
+    <p>This is another paragraph...</p>
     <mini-card type="counter" state="0"></mini-card>
     <p>No, <em>really</em>. <a href="foo.com">Give it a shot</a>.</p>
     <p>Still <strong>LOTS</strong> todo...</p>

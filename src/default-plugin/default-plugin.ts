@@ -6,7 +6,6 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { toggleInline } from './toggle-inline';
 import '../types';
 
 function defaultDelete(direction: 'left' | 'right') {
@@ -28,7 +27,7 @@ function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor
     return;
   }
   e.preventDefault();
-  toggleInline(tagName, range);
+  editor.toggleInline(tagName);
 }
 
 function deleteSelection(range: Range, editor: MinidocCoreEditor) {
@@ -100,6 +99,18 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
   KeyI(e, ctx) {
     ctrlToggle('em', e, ctx);
   },
+  KeyZ(e, ctx) {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      e.shiftKey ? ctx.redo() : ctx.undo();
+    }
+  },
+  KeyY(e, ctx) {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      ctx.redo();
+    }
+  },
 };
 
 export const defaultPlugin: MinidocPlugin = (editor) => {
@@ -121,5 +132,7 @@ export const defaultPlugin: MinidocPlugin = (editor) => {
       }
     }
   });
+
+  Dom.on(editor.root, 'keyup', () => editor.undoHistory.onChange());
   return editor;
 };

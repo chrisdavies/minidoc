@@ -105,7 +105,10 @@ function moveToClipboard(e: ClipboardEvent, isCut: boolean) {
   }
 
   const content = extractCopyContent(range, isCut);
-  content && dataTransfer.setData('text/html', Dom.toHTML(content));
+  if (content) {
+    content.normalize();
+    dataTransfer.setData('text/html', Dom.toHTML(content));
+  }
 }
 
 function insertBelow(content: DocumentFragment, ref: Node) {
@@ -236,19 +239,21 @@ export const clipboardPlugin: MinidocPlugin = (editor) => {
       return;
     }
 
+    editor.undoHistory.commit();
     const result = insertLeafs(content, range, editor);
     result.collapse();
     Rng.setCurrentSelection(result);
+    editor.undoHistory.commit();
   });
 
   Dom.on(editor.root, 'copy', (e) => {
-    editor.root.normalize();
     moveToClipboard(e, false);
   });
 
   Dom.on(editor.root, 'cut', (e) => {
-    editor.root.normalize();
+    editor.undoHistory.commit();
     moveToClipboard(e, true);
+    editor.undoHistory.commit();
   });
 
   return editor;

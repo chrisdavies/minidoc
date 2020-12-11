@@ -437,45 +437,6 @@ function runTestsForBrowser(browserType: BrowserType) {
           `<h1>Hello</h1><h2>There</h2><ul><li>Fella</li></ul><p>You</p><p>Guys</p>`,
         );
       });
-
-      //   it('media alignment loads card meta', async () => {
-      //     const state = {
-      //       name: 'pic.png',
-      //       src: '/pic.png',
-      //       type: 'image/png',
-      //     };
-      //     const toolbarDoc = `<h1>Hello</h1><mini-card type="media" meta="${jsonAttr({
-      //       align: 'left',
-      //     })}" state="${jsonAttr(state)}"></mini-card><p>You</p>`;
-      //     await loadDoc(toolbarDoc);
-      //     expect(await page.$('.minidoc-card-align-left')).toBeTruthy();
-      //   });
-
-      //   it('media alignment', async () => {
-      //     const state = {
-      //       name: 'pic.png',
-      //       src: '/pic.png',
-      //       type: 'image/png',
-      //     };
-      //     const toolbarDoc = `<h1>Hello</h1><mini-card type="media" state="${jsonAttr(
-      //       state,
-      //     )}"></mini-card><p>You</p>`;
-      //     await loadDoc(toolbarDoc);
-      //     await page.click('mini-card');
-      //     await page.waitForSelector('[aria-label="Align left"]');
-      //     await page.click('[aria-label="Align left"]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media" meta="{&quot;align&quot;:&quot;left&quot;}"></mini-card><p>You</p>`,
-      //     );
-      //     await page.click('[aria-label="Align right"]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media" meta="{&quot;align&quot;:&quot;right&quot;}"></mini-card><p>You</p>`,
-      //     );
-      //     await page.click('[aria-label="Full width"]');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media" meta="{&quot;align&quot;:&quot;full&quot;}"></mini-card><p>You</p>`,
-      //     );
-      //   });
     });
 
     describe('selection', () => {
@@ -627,6 +588,30 @@ function runTestsForBrowser(browserType: BrowserType) {
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><h1>world</h1><p>ThisEh?</p>`,
+        );
+      });
+
+      it('multiline copy and paste with undo / redo', async () => {
+        const doc = `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p><br></p>`;
+        await loadDoc(doc);
+        await selectRange('h1', 6, 'p', 4);
+        await clipboard.copy('[contenteditable]');
+        await selectRange('p:last-child', 0);
+        await clipboard.paste('[contenteditable]');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><h1>world</h1><p>This</p>`,
+        );
+        await pressCtrl('z');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><p><br></p>`,
+        );
+        await pressCtrl('y');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><h1>world</h1><p>This</p>`,
+        );
+        await page.type('[contenteditable]', '???');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello world</h1><p>This <strong>MUST</strong> work.</p><p>But does it?</p><h1>world</h1><p>This???</p>`,
         );
       });
 
@@ -807,25 +792,18 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
-      //   it('undo / redo is stable', async () => {
-      //     const state = {
-      //       name: 'pic.png',
-      //       src: '/pic.png',
-      //       type: 'image/png',
-      //     };
-      //     const cardHtml = `<mini-card type="media" state="${jsonAttr(state)}"></mini-card>`;
-      //     const toolbarDoc = `<h1>Hello</h1>${cardHtml}${cardHtml}<p>You</p>`;
-      //     await loadDoc(toolbarDoc);
-      //     await page.click('h1');
-      //     await page.keyboard.type('Some stuff...');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>HelloSome stuff...</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
-      //     );
-      //     await pressCtrl('z');
-      //     expect(await serializeDoc()).toEqual(
-      //       `<h1>Hello</h1><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><mini-card state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" type="media"></mini-card><p>You</p>`,
-      //     );
-      //   });
+      it('undo / redo is adds and removes cards', async () => {
+        await loadDoc(`<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`);
+        await selectRange('h1', 0, 'p', 0);
+        await page.keyboard.type('Hi ');
+        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+        await pressCtrl('z');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`,
+        );
+        await pressCtrl('y');
+        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+      });
     });
 
     // describe('readonly mode', () => {

@@ -138,7 +138,7 @@ export function toggleInline(tagName: string, range: Range) {
   const selector = normalizeSelector(tagName);
   const ranges = Rng.inlinableRanges(range);
   if (!ranges.length) {
-    return;
+    return range;
   }
   if (shouldEnable(selector, ranges)) {
     ranges.forEach((r) => {
@@ -150,8 +150,9 @@ export function toggleInline(tagName: string, range: Range) {
   } else {
     ranges.forEach((r) => unapply(tagName, r));
   }
-  const container = Rng.setCurrentSelection(toRange(ranges)).commonAncestorContainer;
-  container.normalize();
+  const result = toRange(ranges);
+  const container = result.commonAncestorContainer;
   Dom.isElement(container) &&
     Array.from(container.querySelectorAll(selector)).forEach((n) => Dom.isEmpty(n) && n.remove());
+  return result;
 }

@@ -29,5 +29,5 @@ export function toggleBlock(tagName: string, range: Range) {
     }
   });
 
-  Rng.setCurrentSelection(Rng.fromNodes(newLeafs));
+  return Rng.fromNodes(newLeafs);
 }

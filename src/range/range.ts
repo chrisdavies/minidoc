@@ -20,7 +20,8 @@ export function toEndNode(range: Range) {
  * Get the currently selected range.
  */
 export function currentRange(): Range | undefined {
-  const range = document.getSelection()?.getRangeAt(0);
+  const sel = document.getSelection();
+  const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : undefined;
   if (Dom.isInEditor(range?.startContainer)) {
     return range;
   }
@@ -102,7 +103,6 @@ export function $deleteAndMergeContents(range: Range) {
     }
     Dom.remove(endEl);
   }
-  startEl.normalize();
   if (Dom.isEmpty(startEl, true)) {
     Dom.$makeEditable(startEl);
   } else if (endLeaf.matches('ol,ul') && endLeaf.previousElementSibling?.matches('ol,ul')) {

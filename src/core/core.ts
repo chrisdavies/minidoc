@@ -9,6 +9,8 @@ import { h } from '../dom';
 import { createEmitter } from '../emitter';
 import { toggleBlock, toggleInline } from '../default-plugin';
 import { toggleList } from '../list';
+import { undoRedo } from '../undo-redo';
+import { patchDoc } from './patch-doc';
 
 interface CoreOptions {
   doc: string;
@@ -46,6 +48,19 @@ function computeActiveTags(activeTags: Set<string>, root: Element, child: Node) 
   return activeTags;
 }
 
+function applyToggler(
+  s: string,
+  editor: MinidocCoreEditor,
+  toggler: (s: string, r: Range) => Range,
+) {
+  const range = Rng.currentRange();
+  if (range) {
+    editor.undoHistory.commit();
+    Rng.setCurrentSelection(toggler(s, range));
+    editor.undoHistory.commit();
+  }
+}
+
 export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEditor {
   const events = createEmitter<MinidocEvent>();
   // The tag names within which the caret is located
@@ -68,9 +83,22 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
 
     emit: events.emit,
 
-    toggleBlock(tagName: string) {
+    undoHistory: undoRedo({ doc, ctx: Rng.emptyDetachedRange() }, () => {
+      // Serialize should be an immutable operation, but there was a strange case
+      // in Safari where it screwed up the range, probably due to calling normalize.
+      // So, we have to serialize *prior* to getting the range. :/
+      const doc = editor.serialize();
       const range = Rng.currentRange();
-      range && toggleBlock(tagName, range);
+      const ctx = (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange();
+      return { doc, ctx };
+    }),
+
+    undo() {
+      patchDoc(editor.undoHistory.undo(), editor);
+    },
+
+    redo() {
+      patchDoc(editor.undoHistory.redo(), editor);
     },
 
     caretChanged() {
@@ -78,14 +106,16 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
       events.emit('caretchange');
     },
 
+    toggleBlock(tagName: string) {
+      applyToggler(tagName, editor, toggleBlock);
+    },
+
     toggleInline(tagName: string) {
-      const range = Rng.currentRange();
-      range && toggleInline(tagName, range);
+      applyToggler(tagName, editor, toggleInline);
     },
 
     toggleList(tagName: 'ol' | 'ul') {
-      const range = Rng.currentRange();
-      range && Rng.setCurrentSelection(toggleList(tagName, range));
+      applyToggler(tagName, editor, toggleList);
     },
 
     serialize() {

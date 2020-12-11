@@ -21,6 +21,19 @@ const counterCard: MinidocCardDefinition = {
   },
 };
 
+const mediaCard: MinidocCardDefinition = {
+  type: 'media',
+  render(opts) {
+    const { src, alt, type } = opts.state || { type: 'img', src: '/img/monkey.jpg', alt: 'monkey' };
+
+    if (type === 'img') {
+      return h('img', { src, alt });
+    } else {
+      return h('video', { src, controls: true, preload: 'metadata' });
+    }
+  },
+};
+
 const toolbarCounter: MinidocToolbarAction = {
   id: 'counter',
   label: 'Counter',
@@ -34,7 +47,7 @@ el.remove();
 
 const editor = minidoc({
   doc: el.innerHTML,
-  plugins: [cardPlugin([counterCard]), ...defaultPlugins],
+  plugins: [cardPlugin([counterCard, mediaCard]), ...defaultPlugins],
   toolbarActions: [...defaultToolbarActions, toolbarCounter],
 });
 

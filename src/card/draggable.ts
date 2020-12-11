@@ -19,7 +19,7 @@ export function makeDraggable(el: Element) {
 /**
  * Enable drag / drop reordering for direct, draggable children of the specified element.
  */
-export function enableDragDrop(el: Element) {
+export function enableDragDrop(el: Element, onChange: () => void) {
   // The element being dragged
   let draggingEl: Element | undefined;
 
@@ -80,6 +80,7 @@ export function enableDragDrop(el: Element) {
       dropTarget.isConnected && dropTarget.replaceWith(draggingEl);
       (draggingEl as HTMLElement).style.opacity = '1';
       draggingEl = undefined;
+      onChange();
     }
     dropTarget.remove();
   }
