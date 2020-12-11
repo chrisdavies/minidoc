@@ -115,6 +115,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
 
 export const defaultPlugin: MinidocPlugin = (editor) => {
   Dom.on(editor.root, 'keydown', (e) => {
+    e.stopPropagation();
     if (e.defaultPrevented) {
       return;
     }
