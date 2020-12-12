@@ -20,7 +20,7 @@ function cardsEqual(a?: Element, b?: Element) {
  * and type. If any cards are moved / modified / added, etc, the flicker will occur for that
  * particular undo frame, but not for the typical typing and undoing of typing.
  */
-export function patchDoc({ doc, ctx }: UndoHistoryState<DetachedRange>, editor: MinidocCoreEditor) {
+export function patchDoc({ doc, ctx }: UndoHistoryState<DetachedRange>, editor: MinidocEditor) {
   const existingCards: Element[] = [];
   const range = Rng.createRange();
   range.setStart(editor.root, 0);

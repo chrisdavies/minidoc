@@ -12,7 +12,7 @@ function toggleActive(el: Element, isActive: boolean) {
   el.classList.toggle('minidoc-card-active', isActive);
 }
 
-function mountCard<T extends MinidocCoreEditor>(el: Element, editor: Cardable<T>) {
+function mountCard<T extends MinidocEditor>(el: Element, editor: Cardable<T>) {
   if (el.tagName !== cardTagName || (el as ImmutableLeaf).$immutable) {
     return;
   }
@@ -100,7 +100,7 @@ function handleDeleteIntoCard(e: KeyboardEvent) {
  * Add support for cards to minidoc.
  */
 export function cardPlugin(defs: MinidocCardDefinition[]) {
-  return <T extends MinidocCoreEditor>(editor: T): T => {
+  return <T extends MinidocEditor>(editor: T): T => {
     const cardable = editor as Cardable<T>;
     const activeCards = new Set<Element>();
 

@@ -1,34 +1,40 @@
 import * as Rng from '../range';
-import { onMount } from '../disposable';
 import { h } from '../dom';
 import { debounce } from '../util';
-import { Sticky } from './sticky';
 import { ToolbarButton } from './toolbar-button';
+import * as Disposable from '../disposable';
 
-export function createToolbar(editor: MinidocCoreEditor, actions: MinidocToolbarAction[]) {
-  const container = h('header.minidoc-toolbar');
-  const root = Sticky(container);
-  const toolbar: MinidocToolbar = {
+export function createToolbar({
+  editor,
+  actions,
+}: {
+  editor: MinidocEditor;
+  actions: MinidocToolbarAction[];
+}) {
+  const toolbarEditor = editor as MinidocToolbarEditor;
+  const root = h('header.minidoc-toolbar');
+  toolbarEditor.toolbar = {
     root,
     setMenu(el?: Element) {
-      container.firstElementChild?.replaceWith(el || defaultMenu);
+      root.firstElementChild?.replaceWith(el || defaultMenu);
     },
+    dispose() {},
   };
-
-  const toolbarEditor = {
-    ...editor,
-    toolbar,
-  };
-  const btns = actions.map((b) => ToolbarButton(toolbarEditor, b));
+  const btns = actions.map((b) => {
+    b.init && b.init(toolbarEditor);
+    return ToolbarButton(toolbarEditor, b);
+  });
   const refreshButtons = debounce(() => {
     const node = Rng.currentNode();
     node && btns.forEach((b: any) => b.refreshState?.(toolbarEditor));
   });
   const defaultMenu = h('.minidoc-default-menu', btns);
 
-  container.append(defaultMenu);
+  root.append(defaultMenu);
 
-  onMount(root, () => editor.on('caretchange', refreshButtons));
+  Disposable.onMount(root, () => editor.on('caretchange', refreshButtons));
 
-  return toolbar;
+  toolbarEditor.toolbar.dispose = Disposable.initialize(toolbarEditor.toolbar.root).dispose;
+
+  return toolbarEditor.toolbar;
 }

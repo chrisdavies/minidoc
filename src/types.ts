@@ -46,7 +46,6 @@ interface DetachedRange {
 interface MinidocOptions {
   doc: string;
   plugins?: MinidocPlugin[];
-  toolbarActions?: MinidocToolbarAction[];
 }
 
 /**
@@ -65,7 +64,11 @@ interface UndoHistory<T> {
   redo(): UndoHistoryState<T>;
 }
 
-interface MinidocCoreEditor extends Eventable<MinidocEvent>, Rootable {
+interface Disposable {
+  dispose(): void;
+}
+
+interface MinidocEditor extends Eventable<MinidocEvent>, Rootable, Disposable {
   toolbar?: MinidocToolbar;
   isActive(tag: string): boolean;
   toggleBlock(tag: string): void;
@@ -90,9 +93,6 @@ type ImmutableLeaf = Element & { $immutable: true };
 interface MinidocToolbar {
   root: Element;
   setMenu(el?: Element): void;
-}
-
-interface Disposable {
   dispose(): void;
 }
 
@@ -102,6 +102,7 @@ interface MinidocToolbarAction {
   html: string;
   run(editor: MinidocToolbarEditor): any;
   isActive?(editor: MinidocToolbarEditor): boolean;
+  init?(editor: MinidocToolbarEditor): void;
 }
 
 interface Toolbarable {
@@ -110,7 +111,7 @@ interface Toolbarable {
 
 interface CardRenderOptions {
   state: any;
-  editor: MinidocCoreEditor;
+  editor: MinidocEditor;
   stateChanged(state: any): void;
 }
 
@@ -119,13 +120,11 @@ interface MinidocCardDefinition {
   render(opts: CardRenderOptions): Element;
 }
 
-type MinidocEditor = MinidocCoreEditor & Disposable & { container: Element };
+type MinidocToolbarEditor = MinidocEditor & Toolbarable;
 
-type MinidocToolbarEditor = MinidocCoreEditor & Toolbarable;
+type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocEditor) => void;
 
-type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocCoreEditor) => void;
-
-type MinidocPlugin = <T extends MinidocCoreEditor>(editor: T) => T;
+type MinidocPlugin = <T extends MinidocEditor>(editor: T) => T;
 
 interface CardPluginContext {
   definitions: { [type: string]: MinidocCardDefinition };
@@ -134,4 +133,4 @@ interface CardPluginContext {
   insert(type: string, initialState: any): void;
 }
 
-type Cardable<T extends MinidocCoreEditor = MinidocCoreEditor> = T & { cards: CardPluginContext };
+type Cardable<T extends MinidocEditor = MinidocEditor> = T & { cards: CardPluginContext };

@@ -16,7 +16,7 @@ function defaultDelete(direction: 'left' | 'right') {
   Rng.$deleteAndMergeContents((range.collapsed && Rng.extendSelection(direction)) || range);
 }
 
-function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor) {
+function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocEditor) {
   const isCtrl = e.ctrlKey || e.metaKey;
   if (!isCtrl) {
     return;
@@ -25,7 +25,7 @@ function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor
   editor.toggleInline(tagName);
 }
 
-function deleteSelection(range: Range, editor: MinidocCoreEditor) {
+function deleteSelection(range: Range, editor: MinidocEditor) {
   // In this scenario, the browser does the right thing, so let it go.
   if (
     range.collapsed &&

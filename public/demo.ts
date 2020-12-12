@@ -1,7 +1,31 @@
 import { onMount } from '../src/disposable';
-import { minidoc, cardPlugin, defaultPlugins, defaultToolbarActions } from '../src';
+import { minidoc, createToolbar, cardPlugin, defaultPlugins, defaultToolbarActions } from '../src';
+import * as Dom from '../src/dom';
 import { h } from '../src/dom';
+import { debounce } from '../src/util';
 import '../src/types';
+
+function Sticky(child: Node) {
+  const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
+  const el = h('div', placeholder, child);
+  let isStuck = false;
+
+  Dom.on(
+    el.closest('.minidoc-scroll-container') || window,
+    'scroll',
+    debounce(() => {
+      const bounds = el.getBoundingClientRect();
+      const shouldBeStuck = bounds.y < 0;
+      if (shouldBeStuck !== isStuck) {
+        isStuck = shouldBeStuck;
+        el.classList.toggle('minidoc-toolbar-stuck', isStuck);
+        Dom.assignAttrs({ style: `height: ${isStuck ? bounds.height : 0}px` }, placeholder);
+      }
+    }),
+  );
+
+  return el;
+}
 
 const counterCard: MinidocCardDefinition = {
   type: 'counter',
@@ -48,7 +72,11 @@ el.remove();
 const editor = minidoc({
   doc: el.innerHTML,
   plugins: [cardPlugin([counterCard, mediaCard]), ...defaultPlugins],
-  toolbarActions: [...defaultToolbarActions, toolbarCounter],
 });
 
-document.querySelector('main').appendChild(editor.container);
+const toolbar = createToolbar({
+  editor,
+  actions: [...defaultToolbarActions, toolbarCounter],
+});
+
+Dom.appendChildren([Sticky(toolbar.root), editor.root], document.querySelector('main'));

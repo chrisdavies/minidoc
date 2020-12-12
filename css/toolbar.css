@@ -55,21 +55,6 @@
   box-shadow: inset 0 0 0 1px #a5b4fc;
 }
 
-.minidoc-toolbar-stuck .minidoc-toolbar-content {
-  padding: 0.1rem;
-}
-
-.minidoc-toolbar-stuck .minidoc-toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  width: 100%;
-  border-radius: 0;
-  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
-}
-
 .minidoc-toolbar-txt {
   color: inherit;
   background: #fff;

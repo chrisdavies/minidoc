@@ -15,24 +15,26 @@ interface Disposable {
   dispose?(): void;
 }
 
+function addDisposer(disposable: Disposable, f: DisposableInit) {
+  const result = f();
+  if (!result) {
+    return;
+  }
+  const dispose = typeof result === 'function' ? result : () => result.forEach((f) => f());
+  const prevDispose = disposable.dispose;
+  disposable.dispose = () => {
+    prevDispose && prevDispose();
+    dispose();
+  };
+}
+
 function initDisposable(el: Element) {
   const disposable: Disposable | undefined = (el as any)?.disposable;
   if (!disposable || disposable.isInitialized) {
     return;
   }
   disposable.isInitialized = true;
-  disposable.inits.forEach((f) => {
-    const result = f();
-    if (!result) {
-      return;
-    }
-    const dispose = typeof result === 'function' ? result : () => result.forEach((f) => f());
-    const prevDispose = disposable.dispose;
-    disposable.dispose = () => {
-      prevDispose && prevDispose();
-      dispose();
-    };
-  });
+  disposable.inits.forEach((f) => addDisposer(disposable, f));
 }
 
 function dispose(el: Element) {
@@ -77,6 +79,10 @@ export function onMount(el: Element, fn: DisposableInit) {
     x.disposable = { inits: [] };
   }
   x.disposable.inits.push(fn);
+  // If the element is already mounted, we need to immediately call onMount
+  if (x.disposable.isInitialized) {
+    addDisposer(x.disposable, fn);
+  }
   return el;
 }
 
@@ -106,5 +112,6 @@ export function initialize(el: Element): Element & { dispose(): void } {
     elementUnmounted(el);
     observer.disconnect();
   };
+  elementMounted(onMount(el, () => {}));
   return result;
 }

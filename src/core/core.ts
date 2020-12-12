@@ -36,11 +36,7 @@ function trackSelectionChange(el: Element, handler: () => void) {
   });
 }
 
-function applyToggler(
-  s: string,
-  editor: MinidocCoreEditor,
-  toggler: (s: string, r: Range) => Range,
-) {
+function applyToggler(s: string, editor: MinidocEditor, toggler: (s: string, r: Range) => Range) {
   const range = Rng.currentRange();
   if (range) {
     editor.undoHistory.commit();
@@ -49,7 +45,7 @@ function applyToggler(
   }
 }
 
-export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEditor {
+export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
   const events = createEmitter<MinidocEvent>();
 
   const el = h('div.minidoc-editor', {
@@ -62,7 +58,7 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     root: el,
   });
 
-  let editor: MinidocCoreEditor = {
+  let editor: MinidocEditor = {
     root: el,
 
     isActive: activeTags.isActive,
@@ -131,6 +127,8 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
       // TODO: sanitize and clean, remove temporary elements such as highlighters, etc.
       return el.cloneNode(true) as Element;
     },
+
+    dispose() {},
   };
 
   // When the selection changes within the element,

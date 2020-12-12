@@ -68,7 +68,12 @@ function loadDoc(newDoc: string) {
       doc,
       plugins: [tests.cardPlugin([tests.counterCard]), ...tests.defaultPlugins],
     });
-    main.appendChild(tests.editor.container);
+    const toolbar = tests.createToolbar({
+      editor: tests.editor,
+      actions: tests.defaultToolbarActions,
+    });
+
+    main.append(toolbar.root, tests.editor.root);
   }, newDoc);
 }
 

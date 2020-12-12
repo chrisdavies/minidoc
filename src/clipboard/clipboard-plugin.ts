@@ -203,7 +203,7 @@ function mergeLists(list: Element, range: Range, frag: DocumentFragment) {
  * | list         | list        | merge lists
  * | non-list     | non-list    | split and insert, with intelligent merge of start / end content
  */
-function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocCoreEditor) {
+function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocEditor) {
   const newLeafs = editor.beforeMount(content);
   const targetLeaf = Dom.findLeaf(Rng.currentNode()!);
   const firstNode = newLeafs.children[0];
