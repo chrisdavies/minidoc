@@ -11,6 +11,7 @@ import { toggleBlock, toggleInline } from '../default-plugin';
 import { toggleList } from '../list';
 import { undoRedo } from '../undo-redo';
 import { patchDoc } from './patch-doc';
+import { activeTagTracker } from './active-tags';
 
 interface CoreOptions {
   doc: string;
@@ -35,19 +36,6 @@ function trackSelectionChange(el: Element, handler: () => void) {
   });
 }
 
-function computeActiveTags(activeTags: Set<string>, root: Element, child: Node) {
-  activeTags.clear();
-  while (true) {
-    const parent = child.parentElement;
-    if (!parent || parent === root) {
-      break;
-    }
-    activeTags.add(parent.tagName);
-    child = parent;
-  }
-  return activeTags;
-}
-
 function applyToggler(
   s: string,
   editor: MinidocCoreEditor,
@@ -63,19 +51,21 @@ function applyToggler(
 
 export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEditor {
   const events = createEmitter<MinidocEvent>();
-  // The tag names within which the caret is located
-  const activeTags: Set<string> = new Set<string>();
+
   const el = h('div.minidoc-editor', {
     contentEditable: true,
     innerHTML: doc,
   });
 
+  const activeTags = activeTagTracker({
+    ...events,
+    root: el,
+  });
+
   let editor: MinidocCoreEditor = {
     root: el,
 
-    isWithin(tag: string) {
-      return activeTags.has(tag.toUpperCase());
-    },
+    isActive: activeTags.isActive,
 
     on(evt: MinidocEvent, handler: () => any) {
       return events.on(evt, handler);
@@ -102,7 +92,6 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     },
 
     caretChanged() {
-      computeActiveTags(activeTags, el, Rng.toNode(Rng.currentRange()!));
       events.emit('caretchange');
     },
 
@@ -111,7 +100,15 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocCoreEdit
     },
 
     toggleInline(tagName: string) {
-      applyToggler(tagName, editor, toggleInline);
+      const range = Rng.currentRange();
+      if (!range) {
+        return;
+      }
+      if (range.collapsed) {
+        activeTags.toggleInlineFuture(tagName, () => Rng.setCurrentSelection(range));
+      } else {
+        applyToggler(tagName, editor, toggleInline);
+      }
     },
 
     toggleList(tagName: 'ol' | 'ul') {

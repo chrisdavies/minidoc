@@ -1,6 +1,6 @@
 type BasicHandler = () => any;
 
-export function createEmitter<T extends string>() {
+export function createEmitter<T extends string>(): Eventable<T> {
   const fns = new Map<string, Set<BasicHandler>>();
 
   return {

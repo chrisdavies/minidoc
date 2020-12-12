@@ -21,11 +21,6 @@ function ctrlToggle(tagName: string, e: KeyboardEvent, editor: MinidocCoreEditor
   if (!isCtrl) {
     return;
   }
-  const range = Rng.currentRange()!;
-  if (range.collapsed) {
-    editor.emit('caretchange');
-    return;
-  }
   e.preventDefault();
   editor.toggleInline(tagName);
 }

@@ -26,28 +26,28 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     label: 'Heading 1',
     html: '<b>h1</b>',
     run: (t) => t.toggleBlock('h1'),
-    isActive: (t) => t.isWithin('h1'),
+    isActive: (t) => t.isActive('h1'),
   },
   {
     id: 'h2',
     label: 'Heading 2',
     html: '<b>h2</b>',
     run: (t) => t.toggleBlock('h2'),
-    isActive: (t) => t.isWithin('h2'),
+    isActive: (t) => t.isActive('h2'),
   },
   {
     id: 'bold',
     label: 'Bold',
     html: '<b>b</b>',
-    run: (t) => t.toggleInline('strong'),
-    isActive: () => document.queryCommandState('bold'),
+    run: (t) => t.toggleInline('STRONG'),
+    isActive: (t) => t.isActive('STRONG'),
   },
   {
     id: 'italic',
     label: 'Italic',
     html: '<i>i</i>',
-    run: (t) => t.toggleInline('em'),
-    isActive: () => document.queryCommandState('italic'),
+    run: (t) => t.toggleInline('EM'),
+    isActive: (t) => t.isActive('EM'),
   },
   {
     id: 'link',
@@ -56,7 +56,7 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     run: (t) => {
       t.toolbar.setMenu(LinkMenu(t));
     },
-    isActive: (t) => t.isWithin('a'),
+    isActive: (t) => t.isActive('a'),
   },
   {
     id: 'addFile',
@@ -71,14 +71,14 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     label: 'Ordered list',
     html: icoOl,
     run: (t) => t.toggleList('ol'),
-    isActive: (t) => t.isWithin('ol'),
+    isActive: (t) => t.isActive('ol'),
   },
   {
     id: 'ul',
     label: 'Bullet list',
     html: icoUl,
     run: (t) => t.toggleList('ul'),
-    isActive: (t) => t.isWithin('ul'),
+    isActive: (t) => t.isActive('ul'),
   },
 ];
 

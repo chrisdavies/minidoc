@@ -40,7 +40,7 @@ export function isInEditor(node?: Node): boolean {
 /**
  * Determine if the node is an editor root (contenteditable).
  */
-export function isRoot(node: any): node is Element {
+export function isRoot(node: any): boolean {
   return isElement(node) && (node as HTMLDivElement).contentEditable === 'true';
 }
 

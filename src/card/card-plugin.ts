@@ -173,7 +173,7 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
       // Deleting from an element into a card
       handleDeleteIntoCard(e);
 
-      if (e.defaultPrevented || !editor.isWithin(cardTagName)) {
+      if (e.defaultPrevented || !editor.isActive(cardTagName)) {
         return;
       }
 

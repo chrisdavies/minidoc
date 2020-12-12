@@ -3,6 +3,20 @@
  */
 type MinidocEvent = 'caretchange';
 
+interface Emitter<T> {
+  emit(event: T): void;
+}
+
+interface Subscribable<T> {
+  on(event: T, handler: () => any): () => any;
+}
+
+type Eventable<T> = Emitter<T> & Subscribable<T>;
+
+interface Rootable {
+  root: Element;
+}
+
 /**
  * This data structure is used to track a caret position when dealing with undo / redo.
  */
@@ -51,15 +65,12 @@ interface UndoHistory<T> {
   redo(): UndoHistoryState<T>;
 }
 
-interface MinidocCoreEditor {
-  root: Element;
+interface MinidocCoreEditor extends Eventable<MinidocEvent>, Rootable {
   toolbar?: MinidocToolbar;
-  isWithin(tag: string): boolean;
+  isActive(tag: string): boolean;
   toggleBlock(tag: string): void;
   toggleInline(tag: string): void;
   toggleList(tag: 'ol' | 'ul'): void;
-  on(event: MinidocEvent, handler: () => any): () => any;
-  emit(event: MinidocEvent): void;
   caretChanged(): void;
   serialize(): string;
 

@@ -65,7 +65,7 @@ function outdent(li: Element) {
 
 const handlers: { [key: string]: MinidocKeyboardHandler } = {
   Space(e, ctx) {
-    if (ctx.isWithin('LI')) {
+    if (ctx.isActive('LI')) {
       return;
     }
     const node = Rng.currentNode();
@@ -80,7 +80,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     }
   },
   Enter(e, ctx) {
-    if (!ctx.isWithin('LI')) {
+    if (!ctx.isActive('LI')) {
       return;
     }
     e.preventDefault();
@@ -108,7 +108,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     convertListItemToLeaf(li, range);
   },
   Backspace(e, ctx) {
-    if (!ctx.isWithin('LI')) {
+    if (!ctx.isActive('LI')) {
       return;
     }
     const range = Rng.currentRange()!;
@@ -130,7 +130,7 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
     }
   },
   Tab(e, ctx) {
-    if (!ctx.isWithin('LI')) {
+    if (!ctx.isActive('LI')) {
       return;
     }
     e.preventDefault();

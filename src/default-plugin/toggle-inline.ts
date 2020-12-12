@@ -19,12 +19,12 @@ import { h } from '../dom';
 import { last } from '../util';
 
 function normalizeSelector(tagName: string) {
-  switch (tagName) {
-    case 'b':
-    case 'strong':
+  switch (tagName.toUpperCase()) {
+    case 'B':
+    case 'STRONG':
       return 'b,strong';
-    case 'i':
-    case 'em':
+    case 'I':
+    case 'EM':
       return 'i,em';
     default:
       return tagName;
@@ -135,6 +135,10 @@ function shouldEnable(selector: string, ranges: Range[]) {
 }
 
 export function toggleInline(tagName: string, range: Range) {
+  if (range.collapsed) {
+    return range;
+  }
+
   const selector = normalizeSelector(tagName);
   const ranges = Rng.inlinableRanges(range);
   if (!ranges.length) {
