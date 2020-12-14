@@ -29,13 +29,24 @@ function applyToggler(s: string, editor: MinidocEditor, toggler: (s: string, r: 
   }
 }
 
+function trimTextNodes(el: Element) {
+  Array.from(el.childNodes).forEach((n) => {
+    if (!Dom.isElement(n)) {
+      n.remove();
+    }
+  });
+  return el;
+}
+
 export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
   const events = createEmitter<MinidocEvent>();
 
-  const el = h('div.minidoc-editor', {
-    contentEditable: true,
-    innerHTML: doc,
-  });
+  const el = trimTextNodes(
+    h('div.minidoc-editor', {
+      contentEditable: true,
+      innerHTML: doc,
+    }),
+  );
 
   const activeTags = activeTagTracker({
     ...events,
@@ -54,7 +65,7 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
     emit: events.emit,
 
     undoHistory: undoRedo(
-      { doc, ctx: Rng.emptyDetachedRange() },
+      { doc: el.innerHTML, ctx: Rng.emptyDetachedRange() },
       () => {
         // Serialize should be an immutable operation, but there was a strange case
         // in Safari where it screwed up the range, probably due to calling normalize.
