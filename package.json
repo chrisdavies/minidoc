@@ -1,5 +1,5 @@
 {
-  "name": "minidoc",
+  "name": "minidoc-editor",
   "version": "0.0.1",
   "main": "./dist/minidoc.min.js",
   "types": "./dist/minidoc.d.ts",
