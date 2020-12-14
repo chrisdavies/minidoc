@@ -3,6 +3,7 @@ import { h } from '../dom';
 import { debounce } from '../util';
 import { ToolbarButton } from './toolbar-button';
 import * as Disposable from '../disposable';
+import { MinidocEditor, MinidocToolbarAction, MinidocToolbarEditor } from '../types';
 
 export function createToolbar({
   editor,

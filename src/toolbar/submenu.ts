@@ -1,4 +1,5 @@
 import { h } from '../dom';
+import { MinidocToolbarEditor } from '../types';
 import { ToolbarButton } from './toolbar-button';
 
 const IcoClose = `<svg fill="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,5 @@
 import { diff, undo as undoStr, redo as redoStr, StrDelta } from './strdiff';
+import { UndoHistoryState, UndoHistory } from '../types';
 
 type DocProvider<T> = () => UndoHistoryState<T>;
 

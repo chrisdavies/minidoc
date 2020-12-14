@@ -14,6 +14,7 @@ import { patchDoc } from './patch-doc';
 import { activeTagTracker } from './active-tags';
 import { caretTracker, trackSelectionChange } from './caret-tracker';
 import * as Disposable from '../disposable';
+import { MinidocPlugin, MinidocEditor, MinidocEvent } from '../types';
 
 interface CoreOptions {
   doc: string;

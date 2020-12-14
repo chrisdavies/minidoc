@@ -5,6 +5,7 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
+import { MinidocKeyboardHandler, MinidocPlugin } from '../types';
 
 function convertNodeToList(tagName: string, node: Node) {
   const leaf = Dom.findLeaf(node);

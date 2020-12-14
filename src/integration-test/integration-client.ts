@@ -1,6 +1,7 @@
 import * as integrationTests from '../index';
 import { onMount } from '../disposable';
 import { h } from '../dom';
+import { MinidocCardDefinition } from '../types';
 
 const counterCard: MinidocCardDefinition = {
   type: 'counter',

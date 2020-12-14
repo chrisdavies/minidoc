@@ -6,7 +6,7 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
-import '../types';
+import { MinidocEditor, MinidocKeyboardHandler, MinidocPlugin } from '../types';
 
 function defaultDelete(direction: 'left' | 'right') {
   const range = Rng.currentRange();

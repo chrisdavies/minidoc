@@ -18,9 +18,11 @@ tmp/
 
 # Dist
 *.gz
+*.tgz
 dist/
 dev/
 public/build/
+package/
 
 # Possibly sensitive data
 *.csv

@@ -1,6 +1,7 @@
 import * as Dom from '../dom';
 import * as Rng from '../range';
 import { h } from '../dom';
+import { UndoHistoryState, DetachedRange, MinidocEditor } from '../types';
 
 function cardsEqual(a?: Element, b?: Element) {
   return (

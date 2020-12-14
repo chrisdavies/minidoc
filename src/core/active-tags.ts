@@ -6,6 +6,7 @@
 import * as Dom from '../dom';
 import * as Rng from '../range';
 import { toggleInline } from '../default-plugin';
+import { Eventable, MinidocEvent, Rootable } from '../types';
 
 function normalizeTagName(tagName: string) {
   tagName = tagName.toUpperCase();

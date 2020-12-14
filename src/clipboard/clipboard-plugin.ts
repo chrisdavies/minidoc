@@ -11,6 +11,7 @@ import * as Rng from '../range';
 import { h } from '../dom';
 import { last } from '../util';
 import { scrubHtml } from './scrub-html';
+import { MinidocEditor, MinidocPlugin } from '../types';
 
 function stripBrs(el: Element) {
   Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());

@@ -10,6 +10,7 @@
  */
 import * as Rng from '../range';
 import * as Dom from '../dom';
+import { MinidocEditor } from '../types';
 
 export function caretTracker(editor: MinidocEditor) {
   let isTracking = true;

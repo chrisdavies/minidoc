@@ -1,26 +1,26 @@
 /**
  * The first-class events emitted by the editor.
  */
-type MinidocEvent = 'caretchange' | 'edit' | 'undocapture';
+export type MinidocEvent = 'caretchange' | 'edit' | 'undocapture';
 
-interface Emitter<T> {
+export interface Emitter<T> {
   emit(event: T): void;
 }
 
-interface Subscribable<T> {
+export interface Subscribable<T> {
   on(event: T, handler: () => any): () => any;
 }
 
-type Eventable<T> = Emitter<T> & Subscribable<T>;
+export type Eventable<T> = Emitter<T> & Subscribable<T>;
 
-interface Rootable {
+export interface Rootable {
   root: Element;
 }
 
 /**
  * This data structure is used to track a caret position when dealing with undo / redo.
  */
-interface DetachedPosition {
+export interface DetachedPosition {
   /**
    * The range offset.
    */
@@ -35,7 +35,7 @@ interface DetachedPosition {
 /**
  * A Range which can be restored on a different DOM tree than the one from on which it was created.
  */
-interface DetachedRange {
+export interface DetachedRange {
   start: DetachedPosition;
   end?: DetachedPosition;
 }
@@ -43,7 +43,7 @@ interface DetachedRange {
 /**
  * Constructor options for the minidoc editor.
  */
-interface MinidocOptions {
+export interface MinidocOptions {
   doc: string;
   plugins?: MinidocPlugin[];
 }
@@ -52,12 +52,12 @@ interface MinidocOptions {
  * The document and related context associated with an undo / redo event.
  * The context is generally a DetachedRange, but is generic for testing purposes.
  */
-interface UndoHistoryState<T> {
+export interface UndoHistoryState<T> {
   doc: string;
   ctx: T;
 }
 
-interface UndoHistory<T> {
+export interface UndoHistory<T> {
   setContext(ctx: T): void;
   onChange(): void;
   commit(): void;
@@ -65,11 +65,11 @@ interface UndoHistory<T> {
   redo(): UndoHistoryState<T>;
 }
 
-interface Disposable {
+export interface Disposable {
   dispose(): void;
 }
 
-interface MinidocEditor extends Eventable<MinidocEvent>, Rootable, Disposable {
+export interface MinidocEditor extends Eventable<MinidocEvent>, Rootable, Disposable {
   toolbar?: MinidocToolbar;
   isActive(tag: string): boolean;
   toggleBlock(tag: string): void;
@@ -89,15 +89,15 @@ interface MinidocEditor extends Eventable<MinidocEvent>, Rootable, Disposable {
   beforeSerialize(el: Element): Element;
 }
 
-type ImmutableLeaf = Element & { $immutable: true };
+export type ImmutableLeaf = Element & { $immutable: true };
 
-interface MinidocToolbar {
+export interface MinidocToolbar {
   root: Element;
   setMenu(el?: Element): void;
   dispose(): void;
 }
 
-interface MinidocToolbarAction {
+export interface MinidocToolbarAction {
   id: string;
   label?: string;
   html: string;
@@ -106,32 +106,32 @@ interface MinidocToolbarAction {
   init?(editor: MinidocToolbarEditor): void;
 }
 
-interface Toolbarable {
+export interface Toolbarable {
   toolbar: MinidocToolbar;
 }
 
-interface CardRenderOptions {
+export interface CardRenderOptions {
   state: any;
   editor: MinidocEditor;
   stateChanged(state: any): void;
 }
 
-interface MinidocCardDefinition {
+export interface MinidocCardDefinition {
   type: string;
   render(opts: CardRenderOptions): Element;
 }
 
-type MinidocToolbarEditor = MinidocEditor & Toolbarable;
+export type MinidocToolbarEditor = MinidocEditor & Toolbarable;
 
-type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocEditor) => void;
+export type MinidocKeyboardHandler = (e: KeyboardEvent, ctx: MinidocEditor) => void;
 
-type MinidocPlugin = <T extends MinidocEditor>(editor: T) => T;
+export type MinidocPlugin = <T extends MinidocEditor>(editor: T) => T;
 
-interface CardPluginContext {
+export interface CardPluginContext {
   definitions: { [type: string]: MinidocCardDefinition };
   activateCard(el: Element, activate: boolean): void;
   deactivateCards(): void;
   insert(type: string, initialState: any): void;
 }
 
-type Cardable<T extends MinidocEditor = MinidocEditor> = T & { cards: CardPluginContext };
+export type Cardable<T extends MinidocEditor = MinidocEditor> = T & { cards: CardPluginContext };

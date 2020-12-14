@@ -1,6 +1,7 @@
 import * as Dom from '../dom';
 import { LinkMenu } from './link-menu';
 import { linkHoverPreview } from './link-hover-preview';
+import { MinidocToolbarAction } from '../types';
 
 const icoLink = `
 <svg height="0.9rem" fill="currentColor" viewBox="0 0 24 24">

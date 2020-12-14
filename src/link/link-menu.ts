@@ -3,6 +3,7 @@ import * as Dom from '../dom';
 import { h } from '../dom';
 import { onMount } from '../disposable';
 import { ToolbarButton, Submenu } from '../toolbar';
+import { MinidocToolbarEditor } from '../types';
 
 function highlight(range: Range) {
   const [inlinable] = Rng.inlinableRanges(range);

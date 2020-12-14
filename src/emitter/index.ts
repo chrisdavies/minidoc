@@ -1,3 +1,5 @@
+import { Eventable } from '../types';
+
 type BasicHandler = () => any;
 
 export function createEmitter<T extends string>(): Eventable<T> {

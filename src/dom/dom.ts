@@ -1,3 +1,4 @@
+import { ImmutableLeaf } from '../types';
 import { last } from '../util';
 
 type Eachable = { forEach: (...args: any) => void };
@@ -217,7 +218,7 @@ function appendChild<T extends Node | Range | undefined>(child: Node | string, e
   if (el instanceof Range) {
     el.insertNode(node);
     el.collapse();
-  } else if (el) {
+  } else if (el instanceof Node) {
     el.appendChild(node);
   }
   return el;

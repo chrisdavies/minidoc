@@ -1,7 +1,9 @@
 {
-  "name": "minidoc-ts",
+  "name": "minidoc",
   "version": "0.0.0",
-  "main": "index.js",
+  "main": "./dist/minidoc.min.js",
+  "types": "./dist/minidoc.d.ts",
+  "files": ["/dist"],
   "scripts": {
     "test": "jasmine",
     "test:watch": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
@@ -9,7 +11,11 @@
     "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -k \"public/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run dev:rebuild",
     "watch:browser": "browser-sync public/ --server --cwd public/ -w",
     "watch:css": "postcss css/index.css -o public/dist/bundle.css -w",
-    "dev:rebuild": "esbuild --global-name=minidoc --bundle public/demo.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit"
+    "dev:rebuild": "esbuild --global-name=minidoc --bundle public/demo.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit",
+    "prepare": "rm -rf ./dist && npm test && npm-run-all --parallel release:**",
+    "release:types": "tsc src/index.ts --emitDeclarationOnly --declaration --outFile 'dist/minidoc.d.ts'",
+    "release:css": "NODE_ENV=production postcss css/index.css -o dist/minidoc.min.css",
+    "release:js": "NODE_ENV=production esbuild --minify --sourcemap=external --bundle src/index.ts --outfile=dist/minidoc.min.js"
   },
   "author": "Chris Davies <dev@christophilus.com>",
   "license": "ISC",
@@ -22,7 +28,7 @@
     "autoprefixer": "10.0.3",
     "browser-sync": "2.26.13",
     "cssnano": "4.1.10",
-    "esbuild": "0.8.16",
+    "esbuild": "0.8.22",
     "jasmine": "3.6.3",
     "npm-run-all": "4.1.5",
     "onchange": "7.1.0",

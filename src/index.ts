@@ -3,6 +3,7 @@ import { listPlugin, orderedListToolbarAction, unorderedListToolbarAction } from
 import { linkToolbarAction } from './link';
 import { defaultPlugin } from './default-plugin';
 import { clipboardPlugin } from './clipboard';
+import { MinidocToolbarAction, MinidocPlugin, MinidocOptions, MinidocEditor } from './types';
 
 export * from './toolbar';
 export * from './card';

@@ -1,3 +1,5 @@
+import { DetachedPosition, DetachedRange } from '../types';
+
 /**
  * Find the normalized previous node used for computing the
  * node's offset within its parent. If node is a text node,

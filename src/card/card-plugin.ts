@@ -3,6 +3,13 @@ import * as Rng from '../range';
 import { compose } from '../util';
 import { h } from '../dom';
 import { enableDragDrop, makeDraggable } from './draggable';
+import {
+  MinidocEditor,
+  Cardable,
+  ImmutableLeaf,
+  MinidocCardDefinition,
+  CardPluginContext,
+} from '../types';
 
 const cardTagName = 'MINI-CARD';
 
