@@ -34,7 +34,10 @@ export function createToolbar({
 
   Disposable.onMount(root, () => editor.on('caretchange', refreshButtons));
 
-  toolbarEditor.toolbar.dispose = Disposable.initialize(toolbarEditor.toolbar.root).dispose;
+  toolbarEditor.toolbar.dispose = Disposable.initialize(
+    toolbarEditor.toolbar.root,
+    () => {},
+  ).dispose;
 
   return toolbarEditor.toolbar;
 }

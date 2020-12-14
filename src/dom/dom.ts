@@ -69,6 +69,13 @@ export function isList(el: any): el is HTMLOListElement | HTMLUListElement {
  * Determine if the node is empty.
  */
 export function isEmpty(node: Node, ignoreBrs?: boolean): boolean {
+  // This is a bit of a hack, to say the least. But it turns out there are
+  // scenarios where the node appears to have content (e.g. a space or something),
+  // but it renders as empty. This attempts to capture that.
+  if (node.isConnected && node instanceof HTMLElement && !node.offsetHeight) {
+    return true;
+  }
+
   if (!node || (isText(node) && node.length === 0)) {
     return true;
   }

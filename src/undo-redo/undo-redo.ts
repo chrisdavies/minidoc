@@ -14,6 +14,7 @@ interface UndoItem<T> {
 export function undoRedo<T>(
   initialState: UndoHistoryState<T>,
   docProvider: DocProvider<T>,
+  onCommit: () => void,
   { bufferInterval } = { bufferInterval: 2500 },
 ): UndoHistory<T> {
   let index = -1;
@@ -26,39 +27,47 @@ export function undoRedo<T>(
     bufferTimeout = undefined;
   }
 
+  function setContext(ctx: T) {
+    currState.ctx = ctx;
+  }
+
   /**
    * Commit the current state to history.
    */
   function commit() {
-    clearBufferTimeout();
+    try {
+      clearBufferTimeout();
 
-    const nextState = docProvider();
+      const nextState = docProvider();
 
-    if (!nextState.doc) {
-      return;
+      if (!nextState.doc) {
+        return;
+      }
+
+      const delta = diff(currState.doc, nextState.doc);
+
+      if (!delta) {
+        return;
+      }
+
+      // When we've done several undos, then make new edits,
+      // we need to obliterate redo history, since we're now
+      // on a new branch.
+      if (index !== deltas.length - 1) {
+        deltas = deltas.slice(0, index + 1);
+      }
+
+      index = deltas.length;
+      deltas.push({
+        delta,
+        prevCtx: currState.ctx,
+        ctx: nextState.ctx,
+      });
+
+      currState = nextState;
+    } finally {
+      onCommit();
     }
-
-    const delta = diff(currState.doc, nextState.doc);
-
-    if (!delta) {
-      return;
-    }
-
-    // When we've done several undos, then make new edits,
-    // we need to obliterate redo history, since we're now
-    // on a new branch.
-    if (index !== deltas.length - 1) {
-      deltas = deltas.slice(0, index + 1);
-    }
-
-    index = deltas.length;
-    deltas.push({
-      delta,
-      prevCtx: currState.ctx,
-      ctx: nextState.ctx,
-    });
-
-    currState = nextState;
   }
 
   /**
@@ -113,6 +122,7 @@ export function undoRedo<T>(
   }
 
   return {
+    setContext,
     onChange,
     commit,
     undo,

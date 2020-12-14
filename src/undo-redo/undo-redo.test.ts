@@ -28,7 +28,11 @@ describe('undoHistory', () => {
 
   it('Undo and redo goes back and forth through history', () => {
     let doc = 'hello world';
-    const ur = undoRedo({ doc, ctx: 0 }, () => ({ doc, ctx: 0 }));
+    const ur = undoRedo(
+      { doc, ctx: 0 },
+      () => ({ doc, ctx: 0 }),
+      () => {},
+    );
 
     doc = 'hello world and folks';
     ur.commit();
@@ -48,7 +52,11 @@ describe('undoHistory', () => {
 
   it('Buffers changes', () => {
     let doc = 'a';
-    const ur = undoRedo({ doc, ctx: 0 }, () => ({ doc, ctx: 0 }));
+    const ur = undoRedo(
+      { doc, ctx: 0 },
+      () => ({ doc, ctx: 0 }),
+      () => {},
+    );
 
     ur.onChange();
     doc = 'abc';
@@ -67,7 +75,11 @@ describe('undoHistory', () => {
 
   it('Changes clear redo history', () => {
     let doc = 'a';
-    const ur = undoRedo({ doc, ctx: 0 }, () => ({ doc, ctx: 0 }));
+    const ur = undoRedo(
+      { doc, ctx: 0 },
+      () => ({ doc, ctx: 0 }),
+      () => {},
+    );
 
     doc = 'ab';
     ur.commit();
@@ -91,7 +103,11 @@ describe('undoHistory', () => {
 
   it('Undo and redo commit the buffer before running', () => {
     let doc = 'a';
-    const ur = undoRedo({ doc, ctx: 0 }, () => ({ doc, ctx: 0 }));
+    const ur = undoRedo(
+      { doc, ctx: 0 },
+      () => ({ doc, ctx: 0 }),
+      () => {},
+    );
 
     doc = 'a quazar';
     ur.commit();

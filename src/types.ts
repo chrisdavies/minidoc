@@ -1,7 +1,7 @@
 /**
  * The first-class events emitted by the editor.
  */
-type MinidocEvent = 'caretchange';
+type MinidocEvent = 'caretchange' | 'edit' | 'undocapture';
 
 interface Emitter<T> {
   emit(event: T): void;
@@ -58,6 +58,7 @@ interface UndoHistoryState<T> {
 }
 
 interface UndoHistory<T> {
+  setContext(ctx: T): void;
   onChange(): void;
   commit(): void;
   undo(): UndoHistoryState<T>;

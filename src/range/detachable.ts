@@ -102,7 +102,7 @@ export function emptyDetachedRange(): DetachedRange {
  * Detach the range from the specified element. The resulting object can then be
  * attached to a different root via the attachTo function.
  */
-export function detachFrom(range: Range, rootEl: Element): DetachedRange | undefined {
+export function detachFrom(range: Range | undefined, rootEl: Element): DetachedRange | undefined {
   // { path, offset, textOffset }, with the textOffset being the offset of the
   // end-node, if it's a text node. Otherwise, it's undefined.
   // { start: { path: [1, 2, 3], offset: 32, textOffset: 2 },

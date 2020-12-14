@@ -91,8 +91,10 @@ export function onMount(el: Element, fn: DisposableInit) {
  * If el itself is removed from the DOM, this will not handle that. The return
  * function must be called manually in that case.
  */
-export function initialize(el: Element): Element & { dispose(): void } {
+export function initialize(el: Element, onChange: () => void): Element & { dispose(): void } {
   const observer = new MutationObserver((mutationsList) => {
+    onChange();
+
     for (let mutation of mutationsList) {
       mutation.addedNodes.forEach((addedNode) => {
         if (addedNode.isConnected) {
@@ -106,7 +108,7 @@ export function initialize(el: Element): Element & { dispose(): void } {
       });
     }
   });
-  observer.observe(el, { childList: true, subtree: true });
+  observer.observe(el, { childList: true, subtree: true, characterData: true });
   const result: any = el;
   result.dispose = () => {
     elementUnmounted(el);

@@ -474,6 +474,41 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>yo</p>`);
       });
 
+      it('enter with a trailing space', async () => {
+        const toolbarDoc = `<p>Hello world</p>`;
+        await loadDoc(toolbarDoc);
+        await selectRange('p', 6);
+        await press('Enter');
+        expect(await serializeDoc()).toEqual(`<p>Hello </p><p>world</p>`);
+        await selectRange('p', 6);
+        await press('Enter');
+        // Webkit and Chromium are inconsistent with the trailing space, but it doesn't really matter,
+        // so we just eliminate it as a hacky workaround.
+        expect((await serializeDoc()).replace(' ', '')).toEqual(
+          `<p>Hello</p><p><br></p><p>world</p>`,
+        );
+        await page.type('[contenteditable]', 'stuff');
+        expect((await serializeDoc()).replace(' ', '')).toEqual(
+          `<p>Hello</p><p>stuff</p><p>world</p>`,
+        );
+      });
+
+      it('enter with a leading space', async () => {
+        const toolbarDoc = `<p>Hello world</p>`;
+        await loadDoc(toolbarDoc);
+        await selectRange('p', 5);
+        await press('Enter');
+        expect(await serializeDoc()).toEqual(`<p>Hello</p><p> world</p>`);
+        await selectRange('p', 0);
+        await selectRange('p + p', 0);
+        await press('Enter');
+        // Webkit and Chromium are inconsistent with the trailing space, but it doesn't really matter,
+        // so we just eliminate it as a hacky workaround.
+        expect((await serializeDoc()).replace(' ', '')).toEqual(
+          `<p>Hello</p><p><br></p><p>world</p>`,
+        );
+      });
+
       it('select and type', async () => {
         const toolbarDoc = `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`;
         await loadDoc(toolbarDoc);

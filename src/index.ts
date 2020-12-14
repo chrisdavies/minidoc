@@ -3,8 +3,6 @@ import { listPlugin, orderedListToolbarAction, unorderedListToolbarAction } from
 import { linkToolbarAction } from './link';
 import { defaultPlugin } from './default-plugin';
 import { clipboardPlugin } from './clipboard';
-import * as Disposable from './disposable';
-import { compose } from './util';
 
 export * from './toolbar';
 export * from './card';
@@ -46,7 +44,5 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
 export const defaultPlugins: MinidocPlugin[] = [listPlugin, defaultPlugin, clipboardPlugin];
 
 export function minidoc(opts: MinidocOptions): MinidocEditor {
-  const editor = createCoreEditor({ ...opts, plugins: opts.plugins || defaultPlugins });
-  editor.dispose = compose(editor.dispose, Disposable.initialize(editor.root).dispose);
-  return editor;
+  return createCoreEditor({ ...opts, plugins: opts.plugins || defaultPlugins });
 }

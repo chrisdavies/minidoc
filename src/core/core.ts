@@ -12,28 +12,12 @@ import { toggleList } from '../list';
 import { undoRedo } from '../undo-redo';
 import { patchDoc } from './patch-doc';
 import { activeTagTracker } from './active-tags';
+import { caretTracker, trackSelectionChange } from './caret-tracker';
+import * as Disposable from '../disposable';
 
 interface CoreOptions {
   doc: string;
   plugins: MinidocPlugin[];
-}
-
-function trackSelectionChange(el: Element, handler: () => void) {
-  // Disable selection change tracking.
-  let off: (() => void) | undefined;
-
-  // When the selection changes within the element,
-  // we'll fire off a selection change event.
-  Dom.on(el, 'focus', () => {
-    if (!off) {
-      off = Dom.on(document, 'selectionchange', handler);
-    }
-  });
-
-  Dom.on(el, 'blur', () => {
-    off?.();
-    off = undefined;
-  });
 }
 
 function applyToggler(s: string, editor: MinidocEditor, toggler: (s: string, r: Range) => Range) {
@@ -69,15 +53,19 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
 
     emit: events.emit,
 
-    undoHistory: undoRedo({ doc, ctx: Rng.emptyDetachedRange() }, () => {
-      // Serialize should be an immutable operation, but there was a strange case
-      // in Safari where it screwed up the range, probably due to calling normalize.
-      // So, we have to serialize *prior* to getting the range. :/
-      const doc = editor.serialize();
-      const range = Rng.currentRange();
-      const ctx = (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange();
-      return { doc, ctx };
-    }),
+    undoHistory: undoRedo(
+      { doc, ctx: Rng.emptyDetachedRange() },
+      () => {
+        // Serialize should be an immutable operation, but there was a strange case
+        // in Safari where it screwed up the range, probably due to calling normalize.
+        // So, we have to serialize *prior* to getting the range. :/
+        const doc = editor.serialize();
+        const range = Rng.currentRange();
+        const ctx = (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange();
+        return { doc, ctx };
+      },
+      () => editor.emit('undocapture'),
+    ),
 
     undo() {
       patchDoc(editor.undoHistory.undo(), editor);
@@ -137,6 +125,13 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
 
   editor = plugins.reduce((acc, p) => p(acc), editor);
   editor.beforeMount(el);
+
+  // Track caret position for undo / redo history.
+  caretTracker(editor);
+
+  // Wire up the disposable system and track edit events. We ignore
+  // edits that are caused by an undo / redo
+  editor.dispose = Disposable.initialize(editor.root, () => editor.emit('edit')).dispose;
 
   return editor;
 }
