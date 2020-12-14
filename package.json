@@ -1,8 +1,8 @@
 {
   "name": "minidoc-editor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "./dist/minidoc.min.js",
-  "types": "./dist/minidoc.d.ts",
+  "types": "./dist/types",
   "files": ["/dist"],
   "scripts": {
     "test": "jasmine",
@@ -13,9 +13,9 @@
     "watch:css": "postcss css/index.css -o public/dist/bundle.css -w",
     "dev:rebuild": "esbuild --global-name=minidoc --bundle public/demo.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit",
     "prepare": "rm -rf ./dist && npm test && npm-run-all --parallel release:**",
-    "release:types": "tsc src/index.ts --emitDeclarationOnly --declaration --outFile 'dist/minidoc.d.ts'",
+    "release:types": "tsc --declaration --declarationDir dist/types --declarationMap --emitDeclarationOnly",
     "release:css": "NODE_ENV=production postcss css/index.css -o dist/minidoc.min.css",
-    "release:js": "NODE_ENV=production esbuild --minify --sourcemap=external --bundle src/index.ts --outfile=dist/minidoc.min.js"
+    "release:js": "NODE_ENV=production esbuild --minify --sourcemap=external --format=cjs --bundle src/index.ts --outfile=dist/minidoc.min.js"
   },
   "author": "Chris Davies <dev@christophilus.com>",
   "license": "ISC",
