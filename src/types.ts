@@ -45,6 +45,7 @@ export interface DetachedRange {
  */
 export interface MinidocOptions {
   doc: string;
+  placeholder?: string;
   plugins?: MinidocPlugin[];
 }
 

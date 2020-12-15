@@ -45,5 +45,9 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
 export const defaultPlugins: MinidocPlugin[] = [listPlugin, defaultPlugin, clipboardPlugin];
 
 export function minidoc(opts: MinidocOptions): MinidocEditor {
-  return createCoreEditor({ ...opts, plugins: opts.plugins || defaultPlugins });
+  return createCoreEditor({
+    ...opts,
+    placeholder: opts.placeholder || '',
+    plugins: opts.plugins || defaultPlugins,
+  });
 }

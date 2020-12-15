@@ -20,6 +20,7 @@ import { debounce } from '../util';
 interface CoreOptions {
   doc: string;
   plugins: MinidocPlugin[];
+  placeholder: string;
 }
 
 function applyToggler(s: string, editor: MinidocEditor, toggler: (s: string, r: Range) => Range) {
@@ -45,7 +46,7 @@ const scrollToCaret = debounce(() => {
   Dom.isElement(node) && node.scrollIntoView();
 });
 
-export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
+export function createCoreEditor({ doc, plugins, placeholder }: CoreOptions): MinidocEditor {
   const events = createEmitter<MinidocEvent>();
 
   const el = trimTextNodes(
@@ -54,6 +55,17 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
       innerHTML: doc,
     }),
   );
+
+  const updatePlaceholder = () => {
+    // We'll show / hide the placeholder based on input.
+    const placeholderText =
+      (el.childElementCount <= 1 && Dom.isEmpty(el, true) && placeholder) || '';
+    if (placeholderText !== el.getAttribute('placeholder')) {
+      el.setAttribute('placeholder', placeholderText);
+    }
+  };
+
+  updatePlaceholder();
 
   const activeTags = activeTagTracker({
     ...events,
@@ -150,7 +162,10 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
 
   // Wire up the disposable system and track edit events. We ignore
   // edits that are caused by an undo / redo
-  editor.dispose = Disposable.initialize(editor.root, () => editor.emit('edit')).dispose;
+  editor.dispose = Disposable.initialize(editor.root, () => {
+    updatePlaceholder();
+    editor.emit('edit');
+  }).dispose;
 
   return editor;
 }

@@ -7,6 +7,25 @@ body {
     'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
+h1,
+h2 {
+  font-weight: normal;
+}
+main {
+  max-width: 50rem;
+  margin: auto;
+}
+.minidoc-editor {
+  padding: 1.5rem;
+}
+.minidoc-editor::before {
+  padding: 2.5rem 1.5rem;
+}
+.minidoc-editor img,
+.minidoc-editor video {
+  width: 100%;
+}
+
 /*
   The demo toolbar is sticky when scrolled past the top of the screen.
 */

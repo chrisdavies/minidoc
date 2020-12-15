@@ -4,6 +4,7 @@ import * as Dom from '../src/dom';
 import { h } from '../src/dom';
 import { debounce } from '../src/util';
 import '../src/types';
+import { MinidocCardDefinition, MinidocToolbarAction, Cardable } from '../src/types';
 
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
@@ -71,6 +72,7 @@ el.remove();
 
 const editor = minidoc({
   doc: el.innerHTML,
+  placeholder: 'Type something awesome here.',
   plugins: [cardPlugin([counterCard, mediaCard]), ...defaultPlugins],
 });
 
