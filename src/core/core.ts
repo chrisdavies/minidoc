@@ -15,6 +15,7 @@ import { activeTagTracker } from './active-tags';
 import { caretTracker, trackSelectionChange } from './caret-tracker';
 import * as Disposable from '../disposable';
 import { MinidocPlugin, MinidocEditor, MinidocEvent } from '../types';
+import { debounce } from '../util';
 
 interface CoreOptions {
   doc: string;
@@ -38,6 +39,11 @@ function trimTextNodes(el: Element) {
   });
   return el;
 }
+
+const scrollToCaret = debounce(() => {
+  const node = document.getSelection()?.focusNode;
+  Dom.isElement(node) && node.scrollIntoView();
+});
 
 export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
   const events = createEmitter<MinidocEvent>();
@@ -89,6 +95,7 @@ export function createCoreEditor({ doc, plugins }: CoreOptions): MinidocEditor {
 
     caretChanged() {
       events.emit('caretchange');
+      scrollToCaret();
     },
 
     toggleBlock(tagName: string) {
