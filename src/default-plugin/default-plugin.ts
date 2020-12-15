@@ -8,6 +8,10 @@ import * as Dom from '../dom';
 import { h } from '../dom';
 import { MinidocEditor, MinidocKeyboardHandler, MinidocPlugin } from '../types';
 
+// I don't like that this is global, but... it's the best way to get
+// paragraphs when the user presses enter.
+document.execCommand('defaultParagraphSeparator', false, 'p');
+
 function defaultDelete(direction: 'left' | 'right') {
   const range = Rng.currentRange();
   if (!range) {
@@ -41,25 +45,6 @@ function deleteSelection(range: Range, editor: MinidocEditor) {
 }
 
 const handlers: { [key: string]: MinidocKeyboardHandler } = {
-  Enter(e) {
-    e.preventDefault();
-    const range = Rng.currentRange();
-    if (!range) {
-      return;
-    }
-    range.deleteContents();
-    const [a, b] = Rng.$splitContainer(Dom.findLeaf, range);
-    a?.normalize();
-    b?.normalize();
-    a && Dom.$makeEditable(a);
-    if (b && Dom.isEmpty(b)) {
-      const el = Dom.newLeaf();
-      b.replaceWith(el);
-      Rng.setCaretAtStart(el);
-    } else {
-      b && Rng.setCaretAtStart(b);
-    }
-  },
   Backspace(e, ctx) {
     const range = Rng.currentRange()!;
     // In this scenario, the browser does the right thing, so let it go.

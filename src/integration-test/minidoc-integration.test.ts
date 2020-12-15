@@ -529,11 +529,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 2, 'strong', 3);
         await press('Enter');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><p><strong> strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><h1><strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><p><strong>yostrong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><h1><strong>yo strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
         );
       });
 
