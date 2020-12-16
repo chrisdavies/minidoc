@@ -64,8 +64,7 @@ function convertToLeafs(frag: DocumentFragment | undefined) {
 
   // Sanitize and remove any empty leafs from the fragment
   Array.from(frag.children).forEach((n) => {
-    stripBrs(n);
-    Dom.isEmpty(n) && n.remove();
+    Dom.$makeEditable(stripBrs(n));
   });
 
   return frag;
