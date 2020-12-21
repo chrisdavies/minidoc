@@ -7,6 +7,7 @@ import { MinidocToolbarAction, MinidocPlugin, MinidocOptions, MinidocEditor } fr
 
 export * from './toolbar';
 export * from './card';
+export * from './media-card';
 
 export const defaultToolbarActions: MinidocToolbarAction[] = [
   {

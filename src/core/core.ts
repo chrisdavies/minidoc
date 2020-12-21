@@ -15,6 +15,7 @@ import { activeTagTracker } from './active-tags';
 import { caretTracker, trackSelectionChange } from './caret-tracker';
 import * as Disposable from '../disposable';
 import { MinidocPlugin, MinidocEditor, MinidocEvent } from '../types';
+import { enableDragDrop } from './draggable';
 
 interface CoreOptions {
   doc: string;
@@ -90,6 +91,8 @@ export function createCoreEditor({ doc, plugins, placeholder }: CoreOptions): Mi
       },
       () => editor.emit('undocapture'),
     ),
+
+    dragDrop: enableDragDrop(el, () => editor.undoHistory.onChange()),
 
     undo() {
       patchDoc(editor.undoHistory.undo(), editor);

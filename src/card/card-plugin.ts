@@ -2,7 +2,6 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { compose } from '../util';
 import { h } from '../dom';
-import { enableDragDrop, makeDraggable } from './draggable';
 import {
   MinidocEditor,
   Cardable,
@@ -71,7 +70,7 @@ function mountCard<T extends MinidocEditor>(el: Element, editor: Cardable<T>) {
     setTimeout(() => Rng.setCaretAtStart(el));
   });
 
-  makeDraggable(content);
+  content.setAttribute('draggable', 'true');
 }
 
 function handleDeleteIntoCard(e: KeyboardEvent) {
@@ -209,7 +208,22 @@ export function cardPlugin(defs: MinidocCardDefinition[]) {
       }
     });
 
-    enableDragDrop(editor.root, () => editor.undoHistory.onChange());
+    Dom.on(editor.root, 'dragstart', (e) => {
+      if (e.defaultPrevented || !e.target) {
+        return;
+      }
+      const draggingEl = Dom.findLeaf(e.target as Node) as HTMLElement | undefined;
+      if (!draggingEl) {
+        return;
+      }
+      draggingEl.style.opacity = '1';
+      editor.dragDrop.begin(e, (_, target) => {
+        target.isConnected && target.replaceWith(draggingEl);
+        draggingEl.style.opacity = '1';
+        return draggingEl;
+      });
+      draggingEl.style.opacity = '0.2';
+    });
 
     return editor;
   };

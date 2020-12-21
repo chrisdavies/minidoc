@@ -3,6 +3,11 @@
  */
 export type MinidocEvent = 'caretchange' | 'edit' | 'undocapture';
 
+export type Uploader = (opts: {
+  file: File;
+  onProgress: (progress: number) => void;
+}) => { promise: Promise<any>; cancel(): void };
+
 export interface Emitter<T> {
   emit(event: T): void;
 }
@@ -15,6 +20,10 @@ export type Eventable<T> = Emitter<T> & Subscribable<T>;
 
 export interface Rootable {
   root: Element;
+}
+
+export interface Mediable {
+  insertMedia(file: File): void;
 }
 
 /**
@@ -70,8 +79,17 @@ export interface Disposable {
   dispose(): void;
 }
 
+export type MinidocDropHandler = (e: DragEvent, target: HTMLElement) => Element | undefined | void;
+
+export interface MindocDragDrop {
+  isDragging: boolean;
+  begin(e: DragEvent, onDrop: MinidocDropHandler): void;
+}
+
 export interface MinidocEditor extends Eventable<MinidocEvent>, Rootable, Disposable {
   toolbar?: MinidocToolbar;
+  dragDrop: MindocDragDrop;
+
   isActive(tag: string): boolean;
   toggleBlock(tag: string): void;
   toggleInline(tag: string): void;

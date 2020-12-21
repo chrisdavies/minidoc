@@ -230,6 +230,9 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocEdi
  */
 export const clipboardPlugin: MinidocPlugin = (editor) => {
   Dom.on(editor.root, 'paste', (e) => {
+    if (e.defaultPrevented) {
+      return;
+    }
     e.preventDefault();
     const range = Rng.currentRange()!;
     !range.collapsed && Rng.$deleteAndMergeContents(range);
