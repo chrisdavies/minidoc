@@ -1,19 +1,8 @@
-import { onMount } from '../src/disposable';
-import {
-  minidoc,
-  createToolbar,
-  cardPlugin,
-  defaultPlugins,
-  defaultToolbarActions,
-  mediaCardPlugin,
-  mediaToolbarAction,
-} from '../src';
+import { minidoc, minidocToolbar, defaultToolbarActions, placeholderable } from '../src';
 import * as Dom from '../src/dom';
 import { h } from '../src/dom';
 import { debounce } from '../src/util';
 import '../src/types';
-import { MinidocCardDefinition, MinidocToolbarAction, Cardable } from '../src/types';
-import { mockUpload } from './mock-upload';
 
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
@@ -37,30 +26,30 @@ function Sticky(child: Node) {
   return el;
 }
 
-const counterCard: MinidocCardDefinition = {
-  type: 'counter',
-  render(opts) {
-    let count = opts.state || 0;
+// const counterCard: MinidocCardDefinition = {
+//   type: 'counter',
+//   render(opts) {
+//     let count = opts.state || 0;
 
-    const el = h(
-      'button',
-      { onclick: (e) => (e.target.textContent = `Incremented count + ${++count}`) },
-      `Empty count ${count}`,
-    );
-    onMount(el, () => {
-      console.log(`counter:init(${count})`);
-      return () => console.log(`counter:dispose(${count})`);
-    });
-    return el;
-  },
-};
+//     const el = h(
+//       'button',
+//       { onclick: (e) => (e.target.textContent = `Incremented count + ${++count}`) },
+//       `Empty count ${count}`,
+//     );
+//     onMount(el, () => {
+//       console.log(`counter:init(${count})`);
+//       return () => console.log(`counter:dispose(${count})`);
+//     });
+//     return el;
+//   },
+// };
 
-const toolbarCounter: MinidocToolbarAction = {
-  id: 'counter',
-  label: 'Counter',
-  html: '+/-',
-  run: (t) => (t as Cardable<typeof t>).cards.insert('counter', 42),
-};
+// const toolbarCounter: MinidocToolbarAction = {
+//   id: 'counter',
+//   label: 'Counter',
+//   html: '+/-',
+//   run: (t) => (t as Cardable<typeof t>).cards.insert('counter', 42),
+// };
 
 const el = document.querySelector('.example-doc');
 
@@ -68,30 +57,35 @@ el.remove();
 
 const editor = minidoc({
   doc: el.innerHTML,
-  placeholder: 'Type something awesome here.',
-  plugins: [
-    cardPlugin([counterCard]),
-    mediaCardPlugin({
-      upload: mockUpload,
-      renderMedia(state) {
-        if (state.type.startsWith('image/')) {
-          return h('img', { src: state.url, alt: state.name });
-        } else if (state.type.startsWith('video/')) {
-          return h('video', { src: state.url, controls: true });
-        } else if (state.type.startsWith('audio/')) {
-          return h('audio', { src: state.url });
-        } else {
-          return h('a.minidoc-unknown-media', { href: state.url }, state.name);
-        }
-      },
-    }),
-    ...defaultPlugins,
+  middleware: [
+    placeholderable('Type something fanci here.'),
+    minidocToolbar([...defaultToolbarActions]),
   ],
+  // plugins: [
+  //   cardPlugin([counterCard]),
+  //   mediaCardPlugin({
+  //     upload: mockUpload,
+  //     renderMedia(state) {
+  //       if (state.type.startsWith('image/')) {
+  //         return h('img', { src: state.url, alt: state.name });
+  //       } else if (state.type.startsWith('video/')) {
+  //         return h('video', { src: state.url, controls: true });
+  //       } else if (state.type.startsWith('audio/')) {
+  //         return h('audio', { src: state.url });
+  //       } else {
+  //         return h('a.minidoc-unknown-media', { href: state.url }, state.name);
+  //       }
+  //     },
+  //   }),
+  //   ...defaultPlugins,
+  // ],
 });
 
-const toolbar = createToolbar({
-  editor,
-  actions: [...defaultToolbarActions, toolbarCounter, mediaToolbarAction()],
-});
+// const toolbar = createToolbar({
+//   editor,
+//   actions: [...defaultToolbarActions, toolbarCounter, mediaToolbarAction()],
+// });
 
-Dom.appendChildren([Sticky(toolbar.root), editor.root], document.querySelector('main'));
+console.log(editor);
+
+Dom.appendChildren([Sticky(editor.toolbar.root), editor.root], document.querySelector('main'));

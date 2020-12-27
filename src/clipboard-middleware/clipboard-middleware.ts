@@ -11,7 +11,9 @@ import * as Rng from '../range';
 import { h } from '../dom';
 import { last } from '../util';
 import { scrubHtml } from './scrub-html';
-import { MinidocEditor, MinidocPlugin } from '../types';
+import { EditorMiddleware, MinidocBase } from '../minidoc-types';
+import { Changeable } from '../minidoc/undoredo';
+import { Mountable } from '../minidoc/mountable';
 
 function stripBrs(el: Element) {
   Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
@@ -203,7 +205,7 @@ function mergeLists(list: Element, range: Range, frag: DocumentFragment) {
  * | list         | list        | merge lists
  * | non-list     | non-list    | split and insert, with intelligent merge of start / end content
  */
-function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocEditor) {
+function insertLeafs(content: DocumentFragment, range: Range, editor: Mountable) {
   const newLeafs = editor.beforeMount(content);
   const targetLeaf = Dom.findLeaf(Rng.currentNode()!);
   const firstNode = newLeafs.children[0];
@@ -228,8 +230,11 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocEdi
 /**
  * Add support for clipboard to minidoc.
  */
-export const clipboardPlugin: MinidocPlugin = (editor) => {
-  Dom.on(editor.root, 'paste', (e) => {
+export const clipbordMiddleware: EditorMiddleware = (next, b: MinidocBase) => {
+  const el = b.root;
+  const editor = b as MinidocBase & Changeable & Mountable;
+
+  Dom.on(el, 'paste', (e) => {
     if (e.defaultPrevented) {
       return;
     }
@@ -242,22 +247,20 @@ export const clipboardPlugin: MinidocPlugin = (editor) => {
       return;
     }
 
-    editor.undoHistory.commit();
-    const result = insertLeafs(content, range, editor);
-    result.collapse();
-    Rng.setCurrentSelection(result);
-    editor.undoHistory.commit();
+    editor.captureChange(() => {
+      const result = insertLeafs(content, range, editor);
+      result.collapse();
+      Rng.setCurrentSelection(result);
+    });
   });
 
-  Dom.on(editor.root, 'copy', (e) => {
+  Dom.on(el, 'copy', (e) => {
     moveToClipboard(e, false);
   });
 
-  Dom.on(editor.root, 'cut', (e) => {
-    editor.undoHistory.commit();
-    moveToClipboard(e, true);
-    editor.undoHistory.commit();
+  Dom.on(el, 'cut', (e) => {
+    editor.captureChange(() => moveToClipboard(e, true));
   });
 
-  return editor;
+  return next(editor);
 };

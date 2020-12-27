@@ -1,13 +1,13 @@
-import { createCoreEditor } from './core';
-import { listPlugin, orderedListToolbarAction, unorderedListToolbarAction } from './list';
-import { linkToolbarAction } from './link';
-import { defaultPlugin } from './default-plugin';
-import { clipboardPlugin } from './clipboard';
-import { MinidocToolbarAction, MinidocPlugin, MinidocOptions, MinidocEditor } from './types';
+import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
 export * from './card';
 export * from './media-card';
+export * from './minidoc';
+
+// I don't like that this is global, but... it's the best way to get
+// paragraphs when the user presses enter.
+document.execCommand('defaultParagraphSeparator', false, 'p');
 
 export const defaultToolbarActions: MinidocToolbarAction[] = [
   {
@@ -38,17 +38,8 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     run: (t) => t.toggleInline('EM'),
     isActive: (t) => t.isActive('EM'),
   },
-  linkToolbarAction,
-  orderedListToolbarAction,
-  unorderedListToolbarAction,
+  // TODO: move these to the new middleware system
+  // linkToolbarAction,
+  // orderedListToolbarAction,
+  // unorderedListToolbarAction,
 ];
-
-export const defaultPlugins: MinidocPlugin[] = [listPlugin, defaultPlugin, clipboardPlugin];
-
-export function minidoc(opts: MinidocOptions): MinidocEditor {
-  return createCoreEditor({
-    ...opts,
-    placeholder: opts.placeholder || '',
-    plugins: opts.plugins || defaultPlugins,
-  });
-}

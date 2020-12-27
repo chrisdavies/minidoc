@@ -1,7 +1,17 @@
+/**
+ * This module extends the editor to allow for drag / drop.
+ */
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { MindocDragDrop, MinidocDropHandler } from '../types';
+import { EditorMiddlewareMixin, MinidocBase } from '../minidoc-types';
+import { MinidocDropHandler } from '../types';
+import { Changeable } from './undoredo';
 import { debounce } from '../util';
+
+export interface DragDroppable {
+  isDragging: boolean;
+  beginDragDrop(e: DragEvent, onDrop: (e: DragEvent, target: Element) => void): void;
+}
 
 // We show a dragging line in the editor, so we'll use a transparent gif to hide the drag image,
 // which I find to be more of a distraction than a help.
@@ -11,39 +21,38 @@ dragImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAA
 /**
  * Enable drag / drop reordering for direct, draggable children of the specified element.
  */
-export function enableDragDrop(el: Element, onChange: () => void): MindocDragDrop {
+export const dragDroppable: EditorMiddlewareMixin<DragDroppable> = (next, editor) => {
+  const el = editor.root;
+  const result = editor as MinidocBase & DragDroppable & Changeable;
   // The drop target preview, showing where draggingEl will be placed when drag completes
   const dropTarget = h<HTMLElement>('drop-target.minidoc-drop-target');
 
   let onDrop: undefined | MinidocDropHandler;
 
-  const dragDrop: MindocDragDrop = {
-    isDragging: false,
-    begin(e, handler) {
-      dragDrop.isDragging = true;
-      onDrop = handler;
+  result.beginDragDrop = (e, handler) => {
+    result.isDragging = true;
+    onDrop = handler;
 
-      // We attach event listeners to the document because it's pretty easy to
-      // drag the element outside of the editor, but you still want to update the
-      // drop position even so.
-      const done: Array<() => void> = [];
-      const off = () => done.forEach((f) => f());
-      done.push(
-        Dom.on(document, 'dragover', (e) => {
-          e.preventDefault();
-          repositionDropTarget(e);
-        }),
-      );
-      done.push(Dom.on(document, 'dragend', off));
-      done.push(Dom.on(document, 'mousemove', off));
+    // We attach event listeners to the document because it's pretty easy to
+    // drag the element outside of the editor, but you still want to update the
+    // drop position even so.
+    const done: Array<() => void> = [];
+    const off = () => done.forEach((f) => f());
+    done.push(
+      Dom.on(document, 'dragover', (e) => {
+        e.preventDefault();
+        repositionDropTarget(e);
+      }),
+    );
+    done.push(Dom.on(document, 'dragend', off));
+    done.push(Dom.on(document, 'mousemove', off));
 
-      e.dataTransfer!.setData('text', 'minidoc');
-      e.dataTransfer!.setDragImage(dragImg, 0, 0);
-    },
+    e.dataTransfer!.setData('text', 'minidoc');
+    e.dataTransfer!.setDragImage(dragImg, 0, 0);
   };
 
   const repositionDropTarget = debounce((e: DragEvent) => {
-    if (!dragDrop.isDragging) {
+    if (!result.isDragging) {
       return;
     }
 
@@ -67,12 +76,12 @@ export function enableDragDrop(el: Element, onChange: () => void): MindocDragDro
 
   function finishDrag(e: Event) {
     if (onDrop) {
-      const result = onDrop?.(e as DragEvent, dropTarget);
-      result && dropTarget.replaceWith(result);
-      onChange?.();
+      const dropResult = onDrop?.(e as DragEvent, dropTarget);
+      dropResult && dropTarget.replaceWith(dropResult);
+      result.onChange();
     }
     e.preventDefault();
-    dragDrop.isDragging = false;
+    result.isDragging = false;
     onDrop = undefined;
     dropTarget.remove();
   }
@@ -90,5 +99,5 @@ export function enableDragDrop(el: Element, onChange: () => void): MindocDragDro
   el.addEventListener('dragend', finishDrag);
   el.addEventListener('drop', finishDrag);
 
-  return dragDrop;
-}
+  return next(result);
+};
