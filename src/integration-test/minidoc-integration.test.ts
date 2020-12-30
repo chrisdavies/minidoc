@@ -1104,7 +1104,7 @@ function runTestsForBrowser(browserType: BrowserType) {
   });
 }
 
-// TODO: support firefox...
+// TODO: support firefox and webkit in Linux...
 // runTestsForBrowser('firefox');
+// runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');
-runTestsForBrowser('webkit');
