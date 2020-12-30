@@ -8,10 +8,6 @@ import { Serializable } from '../serializable/serializable';
 import { InlineTogglable } from '../inilne-toggle';
 import { DragDroppable } from '../drag-drop';
 
-export interface Cardable {
-  insertCard(type: string, initialState: any): void;
-}
-
 export interface CardRenderOptions {
   state: any;
   editor: MinidocBase;
@@ -21,6 +17,11 @@ export interface CardRenderOptions {
 export interface MinidocCardDefinition {
   type: string;
   render(opts: CardRenderOptions): Element;
+}
+
+export interface Cardable {
+  insertCard(type: string, initialState: any): void;
+  defineCard(def: MinidocCardDefinition): void;
 }
 
 interface CardPluginContext {
@@ -161,6 +162,8 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
 
     content.setAttribute('draggable', 'true');
   }
+
+  result.defineCard = (def) => (definitions[def.type] = def);
 
   result.insertCard = (type, initialState) => {
     const card = h(cardTagName, {

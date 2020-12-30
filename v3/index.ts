@@ -3,7 +3,7 @@ import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
 export * from './card';
-// export * from './media-card';
+export * from './media-middleware';
 export * from './placeholder';
 export * from './minidoc';
 export { onMount } from './disposable';

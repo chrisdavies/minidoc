@@ -8,11 +8,13 @@ import {
   onMount,
   MinidocToolbarAction,
   Cardable,
+  mediaToolbarAction,
+  mediaMiddleware,
 } from '../v3';
-import * as Dom from '../src/dom';
-import { h } from '../src/dom';
-import { debounce } from '../src/util';
-import '../src/types';
+import * as Dom from '../v3/dom';
+import { h } from '../v3/dom';
+import { debounce } from '../v3/util';
+import { mockUpload } from './mock-upload';
 
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
@@ -69,34 +71,23 @@ const editor = minidoc({
   doc: el.innerHTML,
   middleware: [
     placeholder('Type something fanci here.'),
-    minidocToolbar([...defaultToolbarActions, toolbarCounter]),
+    minidocToolbar([...defaultToolbarActions, mediaToolbarAction(), toolbarCounter]),
     cardMiddleware([counterCard]),
+    mediaMiddleware({
+      upload: mockUpload,
+      renderMedia(state) {
+        if (state.type.startsWith('image/')) {
+          return h('img', { src: state.url, alt: state.name });
+        } else if (state.type.startsWith('video/')) {
+          return h('video', { src: state.url, controls: true });
+        } else if (state.type.startsWith('audio/')) {
+          return h('audio', { src: state.url });
+        } else {
+          return h('a.minidoc-unknown-media', { href: state.url }, state.name);
+        }
+      },
+    }),
   ],
-  // plugins: [
-  //   cardPlugin([counterCard]),
-  //   mediaCardPlugin({
-  //     upload: mockUpload,
-  //     renderMedia(state) {
-  //       if (state.type.startsWith('image/')) {
-  //         return h('img', { src: state.url, alt: state.name });
-  //       } else if (state.type.startsWith('video/')) {
-  //         return h('video', { src: state.url, controls: true });
-  //       } else if (state.type.startsWith('audio/')) {
-  //         return h('audio', { src: state.url });
-  //       } else {
-  //         return h('a.minidoc-unknown-media', { href: state.url }, state.name);
-  //       }
-  //     },
-  //   }),
-  //   ...defaultPlugins,
-  // ],
 });
-
-// const toolbar = createToolbar({
-//   editor,
-//   actions: [...defaultToolbarActions, toolbarCounter, mediaToolbarAction()],
-// });
-
-console.log(editor);
 
 Dom.appendChildren([Sticky(editor.toolbar.root), editor.root], document.querySelector('main'));
