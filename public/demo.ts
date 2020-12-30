@@ -10,10 +10,10 @@ import {
   Cardable,
   mediaToolbarAction,
   mediaMiddleware,
-} from '../v3';
-import * as Dom from '../v3/dom';
-import { h } from '../v3/dom';
-import { debounce } from '../v3/util';
+} from '../src';
+import * as Dom from '../src/dom';
+import { h } from '../src/dom';
+import { debounce } from '../src/util';
 import { mockUpload } from './mock-upload';
 
 function Sticky(child: Node) {

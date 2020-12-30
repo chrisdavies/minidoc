@@ -1,9 +1,12 @@
+import { linkToolbarAction } from './link/link-toolbar-action';
 import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
 export * from './card';
-export * from './media-card';
+export * from './media-middleware';
+export * from './placeholder';
 export * from './minidoc';
+export { onMount } from './disposable';
 
 // I don't like that this is global, but... it's the best way to get
 // paragraphs when the user presses enter.
@@ -38,6 +41,7 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     run: (t) => t.toggleInline('EM'),
     isActive: (t) => t.isActive('EM'),
   },
+  linkToolbarAction,
   // TODO: move these to the new middleware system
   // linkToolbarAction,
   // orderedListToolbarAction,

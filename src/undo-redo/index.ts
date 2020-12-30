@@ -1,1 +1,1 @@
-export * from './undo-redo';
+export * from './undo-redo-middleware';

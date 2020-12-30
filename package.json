@@ -8,16 +8,16 @@
   ],
   "scripts": {
     "test": "jasmine",
-    "test:watch": "onchange -i -k \"v3/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
+    "test:watch": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
     "start": "npm-run-all --parallel watch:**",
-    "watch:ts": "onchange -i -k \"v3/**/*.{js,jsx,ts,tsx}\" -k \"public/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run dev:rebuild",
+    "watch:ts": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" -k \"public/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run dev:rebuild",
     "watch:browser": "browser-sync public/ --server --cwd public/ -w",
     "watch:css": "postcss css/index.css -o public/dist/bundle.css -w",
     "dev:rebuild": "esbuild --global-name=minidoc --bundle public/demo.ts --outfile=public/dist/bundle.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && tsc --noEmit",
     "prepare": "rm -rf ./dist && npm test && npm-run-all --parallel release:**",
     "release:types": "tsc --declaration --declarationDir dist/types --declarationMap --emitDeclarationOnly",
     "release:css": "NODE_ENV=production postcss css/index.css -o dist/minidoc.min.css",
-    "release:js": "NODE_ENV=production esbuild --minify --sourcemap=external --format=cjs --bundle v3/index.ts --outfile=dist/minidoc.min.js"
+    "release:js": "NODE_ENV=production esbuild --minify --sourcemap=external --format=cjs --bundle src/index.ts --outfile=dist/minidoc.min.js"
   },
   "author": "Chris Davies <dev@christophilus.com>",
   "license": "ISC",

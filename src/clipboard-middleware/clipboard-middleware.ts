@@ -11,9 +11,9 @@ import * as Rng from '../range';
 import { h } from '../dom';
 import { last } from '../util';
 import { scrubHtml } from './scrub-html';
-import { EditorMiddleware, MinidocBase } from '../minidoc-types';
-import { Changeable } from '../minidoc/undoredo';
-import { Mountable } from '../minidoc/mountable';
+import { EditorMiddleware, MinidocBase } from '../types';
+import { Changeable } from '../undo-redo';
+import { Mountable } from '../mountable';
 
 function stripBrs(el: Element) {
   Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
