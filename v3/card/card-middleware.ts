@@ -103,6 +103,10 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
     }
     (el as ImmutableLeaf).$immutable = true;
     const cardType = Dom.attr('type', el)!;
+    const def = definitions[cardType];
+    if (!def) {
+      throw new Error(`Unknown card type "${cardType}"`);
+    }
     const state = JSON.parse(Dom.attr('state', el) || 'null');
     const { render } = definitions[cardType];
     Dom.assignAttrs(

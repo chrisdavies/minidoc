@@ -2,7 +2,7 @@
  * This minidoc plugin adds a toolbar to the editor.
  */
 
-import { EditorMiddlewareMixin } from '../minidoc-types';
+import { EditorMiddlewareMixin } from '../types';
 import * as Rng from '../range';
 import { ToolbarButton } from './toolbar-button';
 import * as Dom from '../dom';

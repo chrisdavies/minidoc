@@ -18,7 +18,6 @@ export const mountable: EditorMiddlewareMixin<Mountable> = (next, editor) => {
   const el = editor.root;
 
   result.beforeMount = beforeMount;
-  beforeMount(el);
 
   return next(result);
 };

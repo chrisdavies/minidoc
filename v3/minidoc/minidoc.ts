@@ -53,7 +53,7 @@ export type MinidocCore = MinidocBase & ReturnTypesIntersection<typeof defaultMi
 export function minidoc<T extends Array<EditorMiddleware>>(
   opts: MinidocOptions<T>,
 ): MinidocCore & ReturnTypesIntersection<T> {
-  const editor: MinidocBase = {
+  const core: MinidocBase = {
     root: h('div.minidoc-editor', {
       contentEditable: true,
       innerHTML: opts.doc,
@@ -61,7 +61,9 @@ export function minidoc<T extends Array<EditorMiddleware>>(
   };
 
   const middleware = opts.middleware
-    ? [...opts.middleware, ...defaultMiddleware]
+    ? [...defaultMiddleware, ...opts.middleware]
     : defaultMiddleware;
-  return applyMiddleware(middleware, editor, 0);
+  const editor = applyMiddleware(middleware, core, 0) as MinidocCore & ReturnTypesIntersection<T>;
+  editor.beforeMount(core.root);
+  return editor;
 }
