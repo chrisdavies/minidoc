@@ -158,7 +158,7 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       h(cardTagName, {
         type: Dom.attr('type', el),
         state: Dom.attr('state', el),
-      }).innerHTML;
+      }).outerHTML;
 
     content.setAttribute('draggable', 'true');
   }

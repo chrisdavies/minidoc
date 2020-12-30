@@ -1,4 +1,5 @@
 import { linkToolbarAction } from './link/link-toolbar-action';
+import { orderedListToolbarAction, unorderedListToolbarAction } from './list';
 import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
@@ -42,8 +43,6 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     isActive: (t) => t.isActive('EM'),
   },
   linkToolbarAction,
-  // TODO: move these to the new middleware system
-  // linkToolbarAction,
-  // orderedListToolbarAction,
-  // unorderedListToolbarAction,
+  orderedListToolbarAction,
+  unorderedListToolbarAction,
 ];
