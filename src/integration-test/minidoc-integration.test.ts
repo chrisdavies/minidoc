@@ -824,17 +824,17 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
-      it('undo / redo is adds and removes cards', async () => {
+      it('undo / redo adds and removes cards', async () => {
         await loadDoc(`<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`);
         await selectRange('h1', 0, 'p', 0);
         await page.keyboard.type('Hi ');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
         await pressCtrl('z');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`,
         );
         await pressCtrl('y');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
       });
     });
 

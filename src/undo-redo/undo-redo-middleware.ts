@@ -128,6 +128,38 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
     },
   );
 
+  result.undo = () => {
+    isApplyingHistory = true;
+    patchDoc(undoHistory.undo(), editor);
+  };
+
+  result.redo = () => {
+    isApplyingHistory = true;
+    patchDoc(undoHistory.redo(), editor);
+  };
+
+  result.captureChange = (fn) => {
+    undoHistory.commit();
+    fn();
+    undoHistory.commit();
+  };
+
+  result.onChange = undoHistory.onChange;
+
+  // Override the undo / redo shortcuts, as we need to customize history.
+  Dom.on(el, 'keydown', (e) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      return;
+    }
+    if (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ')) {
+      e.preventDefault();
+      result.redo();
+    } else if (e.code === 'KeyZ') {
+      e.preventDefault();
+      result.undo();
+    }
+  });
+
   Dom.on(el, 'mini:caretchange', () => {
     if (isTrackingCaret && !isApplyingHistory) {
       const range = Rng.detachFrom(Rng.currentRange(), editor.root);
@@ -153,37 +185,7 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
     }
   });
 
-  result.undo = () => {
-    isApplyingHistory = true;
-    patchDoc(undoHistory.undo(), editor);
-  };
-
-  result.redo = () => {
-    isApplyingHistory = true;
-    patchDoc(undoHistory.redo(), editor);
-  };
-
-  result.captureChange = (fn) => {
-    undoHistory.commit();
-    fn();
-    undoHistory.commit();
-  };
-
-  result.onChange = undoHistory.onChange;
-
-  // Override the undo / redo shortcuts, as we need to customize history.
-  Dom.on(result.root, 'keydown', (e) => {
-    if (!e.ctrlKey && !e.metaKey) {
-      return;
-    }
-    if (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ')) {
-      e.preventDefault();
-      result.redo();
-    } else if (e.code === 'KeyZ') {
-      e.preventDefault();
-      result.undo();
-    }
-  });
+  Dom.on(el, 'keyup', () => undoHistory.onChange());
 
   return result;
 };

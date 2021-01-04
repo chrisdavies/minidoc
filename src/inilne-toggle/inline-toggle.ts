@@ -191,6 +191,21 @@ export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, ed
   // particular selection change. This flag is how we do that.
   let isToggling = false;
 
+  function toggleInline(tagName: string) {
+    let range = Rng.currentRange();
+    if (!range) {
+      return;
+    }
+    if (!range.collapsed) {
+      range = toggleInlineSelection(tagName, range);
+    } else {
+      isToggling = true;
+      const normalized = normalizeTagName(tagName);
+      toggledTags.has(normalized) ? toggledTags.delete(normalized) : toggledTags.add(normalized);
+    }
+    Rng.setCurrentSelection(range);
+  }
+
   // When the editor's caret / selection changes, we need to
   // recompute the active tags and reset the toggled tags.
   Dom.on(el, 'mini:caretchange', () => {
@@ -237,25 +252,25 @@ export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, ed
     toggledTags.clear();
   });
 
+  Dom.on(el, 'keydown', (e) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      return;
+    }
+    if (e.code === 'KeyB') {
+      e.preventDefault();
+      toggleInline('strong');
+    } else if (e.code === 'KeyI') {
+      e.preventDefault();
+      toggleInline('em');
+    }
+  });
+
   result.isActive = (tagName) => {
     const normalized = normalizeTagName(tagName);
     return activeTags.has(normalized) === !toggledTags.has(normalized);
   };
 
-  result.toggleInline = (tagName) => {
-    let range = Rng.currentRange();
-    if (!range) {
-      return;
-    }
-    if (!range.collapsed) {
-      range = toggleInlineSelection(tagName, range);
-    } else {
-      isToggling = true;
-      const normalized = normalizeTagName(tagName);
-      toggledTags.has(normalized) ? toggledTags.delete(normalized) : toggledTags.add(normalized);
-    }
-    Rng.setCurrentSelection(range);
-  };
+  result.toggleInline = toggleInline;
 
   return next(result);
 };
