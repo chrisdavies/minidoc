@@ -171,5 +171,19 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
 
   result.onChange = undoHistory.onChange;
 
+  // Override the undo / redo shortcuts, as we need to customize history.
+  Dom.on(result.root, 'keydown', (e) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      return;
+    }
+    if (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ')) {
+      e.preventDefault();
+      result.redo();
+    } else if (e.code === 'KeyZ') {
+      e.preventDefault();
+      result.undo();
+    }
+  });
+
   return result;
 };

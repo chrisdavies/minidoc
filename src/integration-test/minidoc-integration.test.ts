@@ -802,7 +802,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Delete');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><p>There</p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><p>There<br></p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
@@ -820,7 +820,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello<br></h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
