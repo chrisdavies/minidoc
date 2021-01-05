@@ -12,9 +12,10 @@ export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) =>
 
   // When the selection changes within the element,
   // we'll fire off a selection change event.
-  Dom.on(el, 'focus', () => {
+  Dom.on(el, 'focus', (e) => {
     if (!off) {
       off = Dom.on(document, 'selectionchange', (e) => Dom.emit(el, 'mini:caretchange', e));
+      Dom.emit(el, 'mini:caretchange', e);
     }
   });
 
