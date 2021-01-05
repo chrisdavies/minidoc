@@ -13,7 +13,7 @@ import { Cardable } from '../card';
 import { DragDroppable } from '../drag-drop';
 
 export interface Mediable {
-  insertMedia(file: File);
+  insertMedia(file: File): void;
 }
 
 interface MediaCardOpts {

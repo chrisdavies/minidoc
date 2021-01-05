@@ -1,4 +1,4 @@
-import { DetachedPosition, DetachedRange } from '../types';
+import { DetachedPosition, DetachedRange } from '../undo-redo';
 
 /**
  * Find the normalized previous node used for computing the

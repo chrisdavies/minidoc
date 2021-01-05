@@ -15,7 +15,6 @@ function beforeMount<T extends ParentNode & Node>(x: T): T {
 
 export const mountable: EditorMiddlewareMixin<Mountable> = (next, editor) => {
   const result = editor as MinidocBase & Mountable;
-  const el = editor.root;
 
   result.beforeMount = beforeMount;
 

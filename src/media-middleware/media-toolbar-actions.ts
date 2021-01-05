@@ -1,6 +1,6 @@
 import { h } from '../dom';
 import { MinidocToolbarAction, MinidocToolbarEditor } from '../toolbar';
-import { Mediable } from './media-card-plugin';
+import { Mediable } from './media-middleware';
 
 interface MediaToolbarOptions {
   onClick(t: MinidocToolbarEditor): void;
