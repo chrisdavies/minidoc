@@ -11,12 +11,30 @@
  *
  * In addition to that, we want to always make sure we normalize the final content, merging
  * any contiguous <strong> elements, for example, removing any empty text nodes, etc.
+ *
+ * This also adds the isActive check to the editor, since that needs to be aware of toggled tags.
  */
 
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { last } from '../util';
+import { EditorMiddlewareMixin, MinidocBase } from '../types';
+
+export interface InlineTogglable {
+  isActive(tagName: string): boolean;
+  toggleInline(tagName: string): void;
+}
+
+function normalizeTagName(tagName: string) {
+  tagName = tagName.toUpperCase();
+  if (tagName === 'B') {
+    return 'STRONG';
+  } else if (tagName === 'I') {
+    return 'EM';
+  }
+  return tagName;
+}
 
 function normalizeSelector(tagName: string) {
   switch (tagName.toUpperCase()) {
@@ -134,7 +152,7 @@ function shouldEnable(selector: string, ranges: Range[]) {
   return !isWithin && !contains;
 }
 
-export function toggleInline(tagName: string, range: Range) {
+function toggleInlineSelection(tagName: string, range: Range) {
   if (range.collapsed) {
     return range;
   }
@@ -160,3 +178,99 @@ export function toggleInline(tagName: string, range: Range) {
     Array.from(container.querySelectorAll(selector)).forEach((n) => Dom.isEmpty(n) && n.remove());
   return result;
 }
+
+export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, editor) => {
+  const result = editor as MinidocBase & InlineTogglable;
+  const el = editor.root;
+  // The tags within which the current selection resides
+  const activeTags = new Set<string>();
+  // The tags which are toggled (will affect the next input)
+  const toggledTags = new Set<string>();
+  // When we're toggling an inline tag, we trigger a selection change
+  // which in turn clears the toggled tags. So, we need to ignore that
+  // particular selection change. This flag is how we do that.
+  let isToggling = false;
+
+  function toggleInline(tagName: string) {
+    let range = Rng.currentRange();
+    if (!range) {
+      return;
+    }
+    if (!range.collapsed) {
+      range = toggleInlineSelection(tagName, range);
+    } else {
+      isToggling = true;
+      const normalized = normalizeTagName(tagName);
+      toggledTags.has(normalized) ? toggledTags.delete(normalized) : toggledTags.add(normalized);
+    }
+    Rng.setCurrentSelection(range);
+  }
+
+  // When the editor's caret / selection changes, we need to
+  // recompute the active tags and reset the toggled tags.
+  Dom.on(el, 'mini:caretchange', () => {
+    if (isToggling) {
+      isToggling = false;
+      return;
+    }
+    const range = Rng.currentRange();
+    if (!range) {
+      return;
+    }
+    let child = Rng.toNode(range);
+    activeTags.clear();
+    toggledTags.clear();
+    while (true) {
+      const parent = child.parentElement;
+      if (!parent || Dom.isRoot(parent)) {
+        break;
+      }
+      activeTags.add(normalizeTagName(parent.tagName));
+      child = parent;
+    }
+  });
+
+  // If the user enters anything and we have some toggled tags,
+  // we need to apply the toggled tags.
+  Dom.on(el, 'keypress', (e) => {
+    if (!toggledTags.size) {
+      return;
+    }
+    let range = Rng.currentRange()!;
+    if (!range) {
+      return;
+    }
+    e.preventDefault();
+    const node = document.createTextNode(e.key);
+    range.deleteContents();
+    range.insertNode(node);
+    toggledTags.forEach((k) => {
+      range = toggleInlineSelection(k, range);
+    });
+    range.collapse();
+    Rng.setCurrentSelection(range);
+    toggledTags.clear();
+  });
+
+  Dom.on(el, 'keydown', (e) => {
+    if (!e.ctrlKey && !e.metaKey) {
+      return;
+    }
+    if (e.code === 'KeyB') {
+      e.preventDefault();
+      toggleInline('strong');
+    } else if (e.code === 'KeyI') {
+      e.preventDefault();
+      toggleInline('em');
+    }
+  });
+
+  result.isActive = (tagName) => {
+    const normalized = normalizeTagName(tagName);
+    return activeTags.has(normalized) === !toggledTags.has(normalized);
+  };
+
+  result.toggleInline = toggleInline;
+
+  return next(result);
+};

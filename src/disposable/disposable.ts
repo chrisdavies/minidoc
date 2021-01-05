@@ -6,16 +6,20 @@
  * and we can use the DOM as our tree.
  */
 
+export interface Disposable {
+  dispose(): void;
+}
+
 type DisposeFn = () => void;
 type DisposableInit = () => void | DisposeFn | DisposeFn[];
 
-interface Disposable {
+interface DisposableInst {
   inits: Array<DisposableInit>;
   isInitialized?: boolean;
   dispose?(): void;
 }
 
-function addDisposer(disposable: Disposable, f: DisposableInit) {
+function addDisposer(disposable: DisposableInst, f: DisposableInit) {
   const result = f();
   if (!result) {
     return;
@@ -29,7 +33,7 @@ function addDisposer(disposable: Disposable, f: DisposableInit) {
 }
 
 function initDisposable(el: Element) {
-  const disposable: Disposable | undefined = (el as any)?.disposable;
+  const disposable: DisposableInst | undefined = (el as any)?.disposable;
   if (!disposable || disposable.isInitialized) {
     return;
   }
@@ -38,7 +42,7 @@ function initDisposable(el: Element) {
 }
 
 function dispose(el: Element) {
-  const disposable: Disposable | undefined = (el as any)?.disposable;
+  const disposable: DisposableInst | undefined = (el as any)?.disposable;
   if (!disposable?.isInitialized) {
     return;
   }
@@ -73,7 +77,7 @@ function elementUnmounted(el: Node) {
  * a function, that returned function will be called when el unmounts.
  */
 export function onMount(el: Element, fn: DisposableInit) {
-  const x = (el as unknown) as { disposable: Disposable };
+  const x = (el as unknown) as { disposable: DisposableInst };
   if (!x.disposable) {
     el.setAttribute('disposable', 'true');
     x.disposable = { inits: [] };

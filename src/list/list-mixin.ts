@@ -5,7 +5,14 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { MinidocKeyboardHandler, MinidocPlugin } from '../types';
+import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { Changeable } from '../undo-redo';
+import { toggleList } from './toggle-list';
+import { InlineTogglable } from '../inilne-toggle';
+
+export interface ListTogglable {
+  toggleList(tagName: string): void;
+}
 
 function convertNodeToList(tagName: string, node: Node) {
   const leaf = Dom.findLeaf(node);
@@ -64,7 +71,9 @@ function outdent(li: Element) {
   }
 }
 
-const handlers: { [key: string]: MinidocKeyboardHandler } = {
+const handlers: {
+  [key: string]: (e: KeyboardEvent, ctx: MinidocBase & InlineTogglable) => void;
+} = {
   Space(e, ctx) {
     if (ctx.isActive('LI')) {
       return;
@@ -145,9 +154,14 @@ const handlers: { [key: string]: MinidocKeyboardHandler } = {
   },
 };
 
-export const listPlugin: MinidocPlugin = (editor) => {
+export const listMixin: EditorMiddlewareMixin<ListTogglable> = (next, editor) => {
+  const result = editor as MinidocBase & ListTogglable & Changeable & InlineTogglable;
+  result.toggleList = (tagName) => {
+    const range = Rng.currentRange();
+    range && result.captureChange(() => toggleList(tagName, range));
+  };
   Dom.on(editor.root, 'keydown', (e) => {
-    !e.defaultPrevented && handlers[e.code]?.(e, editor);
+    !e.defaultPrevented && handlers[e.code]?.(e, result);
   });
-  return editor;
+  return next(result);
 };

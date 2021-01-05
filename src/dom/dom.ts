@@ -10,9 +10,35 @@ type ItemOrList<T> = T | Eachable;
 export function on<
   K extends keyof HTMLElementEventMap,
   T extends Pick<Element, 'addEventListener' | 'removeEventListener'>
->(el: T, evt: K, fn: (e: HTMLElementEventMap[K]) => any, opts?: boolean | EventListenerOptions) {
-  el.addEventListener(evt, fn as any, opts);
-  return () => el.removeEventListener(evt, fn as any, opts);
+>(
+  el: T,
+  type: K,
+  fn: (this: T, ev: HTMLElementEventMap[K]) => any,
+  opts?: boolean | AddEventListenerOptions,
+): () => any;
+export function on<T extends Pick<Element, 'addEventListener' | 'removeEventListener'>>(
+  el: T,
+  type: string,
+  fn: EventListenerOrEventListenerObject,
+  opts?: boolean | AddEventListenerOptions,
+): () => any;
+export function on<T extends Pick<Element, 'addEventListener' | 'removeEventListener'>>(
+  el: T,
+  type: string,
+  fn: EventListenerOrEventListenerObject,
+  opts?: boolean | AddEventListenerOptions,
+): () => any {
+  el.addEventListener(type, fn as any, opts);
+  return () => el.removeEventListener(type, fn as any, opts);
+}
+
+/**
+ * Emit a custom event with the specified detail.
+ */
+export function emit<T>(el: Element, type: string, detail?: T) {
+  el.dispatchEvent(
+    new CustomEvent<T>(type, { detail }),
+  );
 }
 
 /**

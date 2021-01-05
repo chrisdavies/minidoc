@@ -1,0 +1,33 @@
+/** Upload progress **/
+.minidoc-upload-progress {
+  padding: 0.5rem 0.5rem 0.25rem;
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 50%;
+  z-index: 10;
+  background: #fff;
+  box-shadow: 0 0.25rem 1rem -0.25rem rgba(0, 0, 0, 0.5);
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+}
+.minidoc-upload-header {
+  display: flex;
+  justify-content: space-between;
+  color: #718096;
+  margin-bottom: 0.25rem;
+}
+.minidoc-progress-bar-wrapper {
+  height: 0.25rem;
+}
+.minidoc-progress-bar {
+  background-color: #0070e0;
+  height: 100%;
+  border-radius: 0.25rem;
+  transition: width 0.25s, background-color 0.25s;
+}
+.minidoc-progress-done {
+  background-color: #48bb78;
+}

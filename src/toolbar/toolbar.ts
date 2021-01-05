@@ -1,44 +1,51 @@
-import * as Rng from '../range';
-import { h } from '../dom';
-import { debounce } from '../util';
-import { ToolbarButton } from './toolbar-button';
-import * as Disposable from '../disposable';
-import { MinidocEditor, MinidocToolbarAction, MinidocToolbarEditor } from '../types';
+/**
+ * This minidoc plugin adds a toolbar to the editor.
+ */
 
-export function createToolbar({
-  editor,
-  actions,
-}: {
-  editor: MinidocEditor;
-  actions: MinidocToolbarAction[];
-}) {
-  const toolbarEditor = editor as MinidocToolbarEditor;
+import { EditorMiddlewareMixin } from '../types';
+import * as Rng from '../range';
+import { ToolbarButton } from './toolbar-button';
+import * as Dom from '../dom';
+import { h } from '../dom';
+import * as Disposable from '../disposable';
+import { debounce } from '../util';
+import { MinidocToolbarAction, Toolbarable, MinidocToolbarEditor } from './toolbar-types';
+
+export const minidocToolbar = (
+  actions: MinidocToolbarAction[],
+): EditorMiddlewareMixin<Toolbarable> => (next, editor) => {
+  const result = editor as MinidocToolbarEditor;
   const root = h('header.minidoc-toolbar');
-  toolbarEditor.toolbar = {
+  const defaultMenu = h('.minidoc-default-menu');
+
+  result.toolbar = {
     root,
-    setMenu(el?: Element) {
+    dispose: Disposable.initialize(root, () => {}).dispose,
+    setMenu(el) {
       root.firstElementChild?.replaceWith(el || defaultMenu);
     },
-    dispose() {},
   };
+
+  // The toolbar buttons / actions.
   const btns = actions.map((b) => {
-    b.init && b.init(toolbarEditor);
-    return ToolbarButton(toolbarEditor, b);
+    b.init && b.init(result);
+    return ToolbarButton(result, b);
   });
-  const refreshButtons = debounce(() => {
-    const node = Rng.currentNode();
-    node && btns.forEach((b: any) => b.refreshState?.(toolbarEditor));
-  });
-  const defaultMenu = h('.minidoc-default-menu', btns);
 
   root.append(defaultMenu);
+  defaultMenu.append(...btns);
 
-  Disposable.onMount(root, () => editor.on('caretchange', refreshButtons));
+  // When the caret changes, we need to refresh the toolbar buttons so they
+  // activate / deactivate (e.g. the bold button is active if the caret is in
+  // a bold / strong tag).
+  Dom.on(
+    editor.root,
+    'mini:caretchange',
+    debounce(() => {
+      const node = Rng.currentNode();
+      node && btns.forEach((b: any) => b.refreshState?.(result));
+    }),
+  );
 
-  toolbarEditor.toolbar.dispose = Disposable.initialize(
-    toolbarEditor.toolbar.root,
-    () => {},
-  ).dispose;
-
-  return toolbarEditor.toolbar;
-}
+  return next(result);
+};

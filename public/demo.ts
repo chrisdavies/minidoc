@@ -1,10 +1,20 @@
-import { onMount } from '../src/disposable';
-import { minidoc, createToolbar, cardPlugin, defaultPlugins, defaultToolbarActions } from '../src';
+import {
+  minidoc,
+  minidocToolbar,
+  defaultToolbarActions,
+  placeholder,
+  cardMiddleware,
+  MinidocCardDefinition,
+  onMount,
+  MinidocToolbarAction,
+  Cardable,
+  mediaToolbarAction,
+  mediaMiddleware,
+} from '../src';
 import * as Dom from '../src/dom';
 import { h } from '../src/dom';
 import { debounce } from '../src/util';
-import '../src/types';
-import { MinidocCardDefinition, MinidocToolbarAction, Cardable } from '../src/types';
+import { mockUpload } from './mock-upload';
 
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
@@ -46,24 +56,11 @@ const counterCard: MinidocCardDefinition = {
   },
 };
 
-const mediaCard: MinidocCardDefinition = {
-  type: 'media',
-  render(opts) {
-    const { src, alt, type } = opts.state || { type: 'img', src: '/img/monkey.jpg', alt: 'monkey' };
-
-    if (type === 'img') {
-      return h('img', { src, alt });
-    } else {
-      return h('video', { src, controls: true, preload: 'metadata' });
-    }
-  },
-};
-
 const toolbarCounter: MinidocToolbarAction = {
   id: 'counter',
   label: 'Counter',
   html: '+/-',
-  run: (t) => (t as Cardable<typeof t>).cards.insert('counter', 42),
+  run: (t) => ((t as unknown) as Cardable).insertCard('counter', 42),
 };
 
 const el = document.querySelector('.example-doc');
@@ -72,13 +69,25 @@ el.remove();
 
 const editor = minidoc({
   doc: el.innerHTML,
-  placeholder: 'Type something awesome here.',
-  plugins: [cardPlugin([counterCard, mediaCard]), ...defaultPlugins],
+  middleware: [
+    placeholder('Type something fanci here.'),
+    minidocToolbar([...defaultToolbarActions, mediaToolbarAction(), toolbarCounter]),
+    cardMiddleware([counterCard]),
+    mediaMiddleware({
+      upload: mockUpload,
+      renderMedia(state) {
+        if (state.type.startsWith('image/')) {
+          return h('img', { src: state.url, alt: state.name });
+        } else if (state.type.startsWith('video/')) {
+          return h('video', { src: state.url, controls: true });
+        } else if (state.type.startsWith('audio/')) {
+          return h('audio', { src: state.url });
+        } else {
+          return h('a.minidoc-unknown-media', { href: state.url }, state.name);
+        }
+      },
+    }),
+  ],
 });
 
-const toolbar = createToolbar({
-  editor,
-  actions: [...defaultToolbarActions, toolbarCounter],
-});
-
-Dom.appendChildren([Sticky(toolbar.root), editor.root], document.querySelector('main'));
+Dom.appendChildren([Sticky(editor.toolbar.root), editor.root], document.querySelector('main'));

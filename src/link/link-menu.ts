@@ -2,8 +2,7 @@ import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { onMount } from '../disposable';
-import { ToolbarButton, Submenu } from '../toolbar';
-import { MinidocToolbarEditor } from '../types';
+import { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
 
 function highlight(range: Range) {
   const [inlinable] = Rng.inlinableRanges(range);

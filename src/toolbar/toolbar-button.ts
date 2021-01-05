@@ -1,5 +1,5 @@
 import { h } from '../dom';
-import { MinidocToolbarAction, MinidocToolbarEditor } from '../types';
+import { MinidocToolbarAction, MinidocToolbarEditor } from './toolbar-types';
 
 export function ToolbarButton(
   editor: MinidocToolbarEditor,

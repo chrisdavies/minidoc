@@ -1,1 +1,1 @@
-export * from './card-plugin';
+export * from './card-middleware';

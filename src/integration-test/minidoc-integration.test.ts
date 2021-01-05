@@ -66,14 +66,12 @@ function loadDoc(newDoc: string) {
     tests.editor?.dispose();
     tests.editor = tests.minidoc({
       doc,
-      plugins: [tests.cardPlugin([tests.counterCard]), ...tests.defaultPlugins],
+      middleware: [
+        tests.minidocToolbar(tests.defaultToolbarActions),
+        tests.cardMiddleware([tests.counterCard]),
+      ],
     });
-    const toolbar = tests.createToolbar({
-      editor: tests.editor,
-      actions: tests.defaultToolbarActions,
-    });
-
-    main.append(toolbar.root, tests.editor.root);
+    main.append(tests.editor.toolbar.root, tests.editor.root);
   }, newDoc);
 }
 
@@ -168,10 +166,6 @@ async function click(selector: string) {
     return (el instanceof Element ? el : el?.parentElement)?.closest(s);
   }, selector);
 }
-
-// function jsonAttr(obj: any) {
-//   return JSON.stringify(obj).replace(/\"/g, '&quot;');
-// }
 
 function execClipboardEvent(selector: string, name: string) {
   return page.evaluate(
@@ -552,8 +546,6 @@ function runTestsForBrowser(browserType: BrowserType) {
         await loadDoc(toolbarDoc);
         await selectRange('h2', 0, 'h2', 0);
         await press('Backspace');
-        expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>There</p>`);
-        await press('Backspace');
         expect(await serializeDoc()).toEqual(`<h1>HelloThere</h1>`);
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(`<h1>HelloyoThere</h1>`);
@@ -810,7 +802,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Delete');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><p>There</p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><p>There<br></p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
@@ -828,21 +820,21 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello<br></h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
-      it('undo / redo is adds and removes cards', async () => {
+      it('undo / redo adds and removes cards', async () => {
         await loadDoc(`<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`);
         await selectRange('h1', 0, 'p', 0);
         await page.keyboard.type('Hi ');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
         await pressCtrl('z');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`,
         );
         await pressCtrl('y');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
       });
     });
 

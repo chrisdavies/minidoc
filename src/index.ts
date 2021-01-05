@@ -1,12 +1,17 @@
-import { createCoreEditor } from './core';
-import { listPlugin, orderedListToolbarAction, unorderedListToolbarAction } from './list';
-import { linkToolbarAction } from './link';
-import { defaultPlugin } from './default-plugin';
-import { clipboardPlugin } from './clipboard';
-import { MinidocToolbarAction, MinidocPlugin, MinidocOptions, MinidocEditor } from './types';
+import { linkToolbarAction } from './link/link-toolbar-action';
+import { orderedListToolbarAction, unorderedListToolbarAction } from './list';
+import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
 export * from './card';
+export * from './media-middleware';
+export * from './placeholder';
+export * from './minidoc';
+export { onMount } from './disposable';
+
+// I don't like that this is global, but... it's the best way to get
+// paragraphs when the user presses enter.
+document.execCommand('defaultParagraphSeparator', false, 'p');
 
 export const defaultToolbarActions: MinidocToolbarAction[] = [
   {
@@ -41,13 +46,3 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   orderedListToolbarAction,
   unorderedListToolbarAction,
 ];
-
-export const defaultPlugins: MinidocPlugin[] = [listPlugin, defaultPlugin, clipboardPlugin];
-
-export function minidoc(opts: MinidocOptions): MinidocEditor {
-  return createCoreEditor({
-    ...opts,
-    placeholder: opts.placeholder || '',
-    plugins: opts.plugins || defaultPlugins,
-  });
-}

@@ -1,9 +1,8 @@
 import * as integrationTests from '../index';
 import { onMount } from '../disposable';
 import { h } from '../dom';
-import { MinidocCardDefinition } from '../types';
 
-const counterCard: MinidocCardDefinition = {
+const counterCard: integrationTests.MinidocCardDefinition = {
   type: 'counter',
   render(opts) {
     let count = opts.state || 0;

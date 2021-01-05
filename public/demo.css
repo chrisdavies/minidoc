@@ -11,6 +11,9 @@ h1,
 h2 {
   font-weight: normal;
 }
+p {
+  line-height: 1.4;
+}
 main {
   max-width: 50rem;
   margin: auto;
