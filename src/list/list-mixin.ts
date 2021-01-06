@@ -158,7 +158,15 @@ export const listMixin: EditorMiddlewareMixin<ListTogglable> = (next, editor) =>
   const result = editor as MinidocBase & ListTogglable & Changeable & InlineTogglable;
   result.toggleList = (tagName) => {
     const range = Rng.currentRange();
-    range && result.captureChange(() => toggleList(tagName, range));
+    range &&
+      result.captureChange(() => {
+        const isCollapsed = range.collapsed;
+        const newRange = toggleList(tagName, range);
+        if (isCollapsed) {
+          newRange.collapse(true);
+        }
+        Rng.setCurrentSelection(newRange);
+      });
   };
   Dom.on(editor.root, 'keydown', (e) => {
     !e.defaultPrevented && handlers[e.code]?.(e, result);

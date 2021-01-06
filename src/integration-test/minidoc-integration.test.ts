@@ -1098,5 +1098,5 @@ function runTestsForBrowser(browserType: BrowserType) {
 
 // TODO: support firefox and webkit in Linux...
 // runTestsForBrowser('firefox');
-// runTestsForBrowser('webkit');
+runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');
