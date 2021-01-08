@@ -4,6 +4,7 @@ export interface MinidocBase {
 
 export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlewareMixin>> {
   doc: string;
+  root?: Element;
   middleware?: T;
 }
 
