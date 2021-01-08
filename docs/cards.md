@@ -2,411 +2,154 @@
 
 ## Overview
 
-A rich editing experience requires more than just text. Depending on the platform, you probably want to embed images, video, and audio. You may want to embedded PDFs, charts, surveys, live stock tickers, etc.
+Cards are the mechanism by which applications can extend minidocs to add their own custom content embedded within a minidoc. These may be video, surveys, stock tickers, etc. 
 
-Many of these artifacts are outside the scope of a rich text editor. Even the handling of video or images often require customization. For example, you may want to transcode the video and replace it src with the transcoded result, or you may want to serve up all assets using s3's presigned URLs.
+## Representation
 
-For this reason, all such artifacts are beyond the scope of the minidoc editor, but the editor does expose an extension called "cards" which allow applications to create their own, embeddable widgets that can live within a greater document.
+Cards are a custom DOM element `mini-card` with a type and a state property. The state property is simply the card's state represented as a JSON string. The following is a hypothetical example:
 
-## Document Structure
-
-A minidoc document is a structure that looks something like this:
-
-```ts
-interface MinidocCard<T> {
-  type: string;
-  state: T;
-}
-
-interface MinidocDocument {
-  doc: string;
-  cards: MinidocCard[];
-}
+```html
+<mini-card
+  type='media'
+  state='{"type":"video/mp4","src":"/foo/bar.mp4","caption":"Swank","id":90}'
+></mini-card>
 ```
 
-For example:
+## Edge-case: video transcoding
+
+A card such as the media card example above might need to have its data updated by a background process. For example, the video might get transcoded, and the `state.type` might change from "video/mp4" to "application/x-mpegURL" or whatever.
+
+Ideally, such an update would be a simple SQL statement (or whatever your data store is), and would not require loading, parsing, updating, and re-serializing a minidoc.
+
+Such scenarios are beyond the scope of minidoc itself, but we'll consider them here to ensure the design of minidoc does not preclude them.
+
+Probably what the application would wish to do in this scenario is to store the video in an append-only table, lets call it: `files`.
+
+It might look like this:
+
+```
+id, url, type, size, created_at
+```
+
+And we might refer to it via an `attachments` table like so:
+
+```
+id, file_id, original_file_id, created_at, updated_at
+```
+
+So, a file embedded in a document will be an attachment and may point to both an original file and a current file.
+
+OK. So, when the user drops a video file onto a minidoc, the application's media card will upload it, get the attachment id, the file type, url, etc, and update the media card state accordingly.
+
+This state will be embedded in the document as JSON. When the transcoder completes, it will update the `attachments` record with the new info.
+
+When the media card is loaded, the application will side-load the file info for any attachments in the doc, and the media card will refer to this data for anything it needs.
+
+## Edge-case: surveys
+
+Imagine you have a doucument, and you want to embed a survey in it.
+
+It might be represented as follows:
+
+
+```html
+<mini-card
+  type='survey'
+  state='{"id":"abc","questions":[{"id":"q1","text":"What do you think?"}]}'
+></mini-card>
+```
+
+When you publish this document, the "view" mode of the survey card will present the user with the survey, or if the user has already taken the survey, the user will see the survey results.
+
+Once again, we have a problem. We probably want to store answers in a relational way. We also probably want to enforce rules about surveys. For instance, can users see the results, or can only the document author see results?
+
+To do this, we'd want to store the survey as a distinct table.
+
+Something roughly like this:
+
+```
+# surveys
+id, title, public_results, created_at
+
+# survey_questions
+id, survey_id, text, created_at, updated_at
+
+# survey_answers
+id, q_id, u_id, value
+```
+
+The application will need to track survey info on its own, so that when the author saves her document, the application can save the survey state independently. The mini-card's state attribute may contain nothing more than the survey id.
+
+Note: We may want to allow cards to distinguish between state that is in the undo / redo system and state that is persisted.
+
+```js
+// We may allow cards to specify getSaveState as well as using
+// `onStateChange` to update the transient state.
+opts.getSaveState = () => ({ id });
+```
+
+In this scenario, when the author performs an undo / redo operation, the questions may get added / removed / reordered, and the card should treat its initialState as authoritative, overriding the application state.
+
+- When the document loads, get the survey state from the application, not from the minidoc.
+- When an undo / redo occurs, treat the minidoc state as authoritative
+- When a copy / cut / paste occurs, treat the minidoc state as authoritative (see below for the clipboard edge-case)
+
+## Edge-case: clipboard
+
+When the user pastes a complex card (say, a survey), the card needs to be intelligent about what it should do.
+
+In the case of a survey, let's think through several edge-cases:
+
+- User cuts / pastes within document A, creating a move
+- User copies / pastes within document A, creating a copy
+- User copies / pastes from document A to document B, creating a copy
+
+Creating a duplicate within a document is something an application can detect by tracking its state like so:
 
 ```js
 {
-  doc: `
-    <h1>Welcome to minidoc</h1>
-    <p>A very basic editor</p>
-    <mini-card />
-    <p>That ^^^ is the first card</p>
-    <mini-card />
-    <p>And that is another...</p>
-  `,
-  cards: [
-    { type: 'foo', state: 'bar' },
-    { type: 'stock', state: 'EQX' },
-  ],
-}
-```
-
-Any `<mini-card />` elements in the document will be replaced with the appropriate card from the cards array. The `card.type` property is used by minidoc to look the card up in its registry.
-
-## Undo / redo
-
-Cards can (and should) plug themselves into minidoc's undo / redo system. That way, when the user makes various changes to the document, they can undo / redo everything, including card-specific edits.
-
-Here is a card definition that simply implements a button which, when you click it, increments a number and displays it as its text:
-
-
-```js
-const counterCard = {
-  type: 'counter',
-  initialState: 0,
-  render(ctx) {
-    const btn = document.createElement('button');
-    const setValue = (value) => {
-      btn.textContent = value;
-    };
-    btn.addEventListener('click', () => setValue(ctx.setState((x) => x + 1)));
-    setValue(ctx.state);
-    return btn;
-  },
-};
-```
-
-The render method is called only once per instance, and in the case of the previous example, an undo / redo operation that affects a counter card will simply destroy the previous element and recreate the card from scratch. This is obviously not very efficient, so minidoc exposes a mechanism for your cards to more efficiently hook into the undo / redo system.
-
-Below is the same counter card, only this time, it is much more efficient in undo / redo operations:
-
-```js
-const counterCard = {
-  type: 'counter',
-  initialState: 0,
-  render(ctx) {
-    const btn = document.createElement('button');
-    const setValue = (value) => {
-      btn.textContent = value;
-    };
-    // Note, here we mutate ctx. Mutation makes me sad :/, but this has
-    // some advantages, so we'll go with it.
-    ctx.onStateChange = setValue;
-    btn.addEventListener('click', () => ctx.setState((x) => x + 1));
-    setValue(ctx.state);
-    return btn;
-  },
-};
-```
-
-If a card has assigned the `onStateChange` property of its context object, minidoc will assume that the card knows how to handle undo / redo state changes and will not always destroy / rereate the card when undo / redo state affects it.
-
-For complex cards, it might make sense to use something like Preact or Svelte which intelligently updates the card content when an undo / redo change happens.
-
-Here's a Preact example of (almost) the same card:
-
-```js
-import { render } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
-
-function Counter(ctx) {
-  // Use Preact's useState hook to ensure that state changes cause
-  // a redraw of the component.
-  const [state, _setState] = useState(ctx.state);
-  // Use the card's setState, rather than Preact's setState.
-  const setState = ctx.setState;
-  // Assign Preact's setState as the onStateChange handler, so that Preact's setState
-  // is called any time our card's setState is called.
-  ctx.onStateChange = _setState;
-
-  return (
-    <button
-      onClick={(e) => setState((x) => x + 1)}
-    >
-      {state}
-    </button>
-  );
-}
-
-const preactCounterCard = {
-  type: 'preactCounter',
-  initialState: 0,
-  render(ctx) {
-    const el = document.createElement('div');
-    render(<Counter ctx={ctx} />, el);
-    return el;
-  },
-};
-```
-
-## Edit mode vs render mode
-
-Most cards are not going to be as simple as our previous illustrations, and in most cases, the cards will have different markup depending on whether or not the minidoc document is in edit mode vs display mode. These two modes are distinguishable by checking `ctx.isEditable` in your render function.
-
-For example, if you are using minidoc as the rich content editor for your blog, your blog post will render differently if you are editing it vs if your readers are viewing it.
-
-The following card is an exmaple of an image card that renders an input for the image caption, if in edit mode, but renders a figcaption if in display mode.
-
-```js
-// h is a helper function for quickly building DOM elements.
-import { h } from 'minidoc';
-
-const imgCard = {
-  type: 'img',
-
-  initialState: { src: '', caption: '' },
-
-  render(ctx) {
-    const img = h('img', { src: ctx.state.src, alt: ctx.state.caption });
-
-    // If we're not editable, we'll return a read-only DOM tree
-    if (!ctx.isEditable) {
-      return h('figure', img, ctx.state.caption && h('figcaption', ctx.state.caption));
-    }
-
-    const txtCaption = h('input', {
-      type: 'text',
-      value: ctx.state.caption,
-      // We could update our state on each input, or onchange, too
-      onblur: (e) => ctx.setState((s) => ({ ...s, caption: e.target.value })),
-    });
-
-    // When our state changes, we'll reflect that in the UI
-    ctx.onStateChange = (state) => {
-      if (img.src !== state.src) {
-        img.src = state.src;
-      }
-      if (txtCaption.value !== state.caption) {
-        txtCaption.value = state.caption;
-      }
-      img.alt = state.caption;
-    };
-
-    return h('figure', img, txtCaption);
-  },
-};
-```
-
-## Storage
-
-Storage is out of scope for the minidoc library, but it's worth thinking about it to ensure minidoc doesn't cause undue storage headaches.
-
-When saving a minidoc, you'll probably store the result in a database like Postgres, though you could just store it as JSON in s3 or on an SSD somewhere. At any rate, it's worth considering how a minidoc might be efficiently stored and loaded from a relational database.
-
-Let's say we have a minidoc with several image cards. Those image cards can be modified in the editor, but they also might be modified by a background process, such as an image optimizer. Let's say that our workflow is as follows:
-
-- A user adds an image to her document
-- We save the image to a `files` table
-- A background worker optimizes (and maybe converts the mime-type of) the image
-- The background worker then updates the `files` row with the new url and mime type
-- We also keep the original url around so we can link to it.
-
-The card looks similar to our previous img card, but in this scenario, the state may be a little more complex:
-
-```js
-{
-  id: 42,
-  src: '/foo/bar/baz.jpg',
-  mime: 'image/jpeg',
-  original: '/foo/bar/baz.png',
-  caption: 'A foo or a bar, who can tell?',
-}
-```
-
-Our card's render will include a link to the original that opens in a new target window.
-
-Anyway, when we save our document, it might look something like this:
-
-```js
-{
-  doc: `
-    <h1>Welcome to minidoc</h1>
-    <p>A very basic editor</p>
-    <mini-card />
-    <p>That ^^^ is the first card</p>
-    <mini-card />
-    <p>And that is another...</p>
-  `,
-  cards: [
-    {
-      type: 'img',
-      state: {
-        id: 42,
-        src: '/foo/bar/baz.jpg',
-        mime: 'image/jpeg',
-        original: '/foo/bar/baz.png',
-        caption: 'A foo or a bar, who can tell?',
-      },
+  surveys: {
+    32: {
+      title: 'Fanci survey',
+      parentDoc: 99,
+      refCount: 1,
+      questions: [],
     },
-    {
-      type: 'img',
-      state: {
-        id: 43,
-        src: '/foo/bar/bing.png',
-        mime: 'image/png',
-        caption: 'What is Bing? Let me Google that.',
-      },
-    },
-  ],
+  },
 }
 ```
 
-In this example, we have two cards. One with id 42 in its state, but another, newly added card with id 43. When the user adds an image, our card uploads it to Wasabi or Backblaze or, if you're a glutton for punishment, s3, notifies the back-end, and receives the row id back (43), and updates its state accordingly.
+So, survey 32 belongs to the document with id 99, and is referenced once.
 
-So now, we've got two image cards, but one of them is processing in a background worker in our service layer. The database record is overwritten before we save our document.
+When the user pastes a copy of it, and refCount is 1, the card should create a new survey entry (e.g. with id 33 or whatever).
 
-So now, on the server, we have a record that looks like this:
+When the user pastes a survey with a different parentDoc, the card should create a copy.
 
-```js
-{
-  id: 43,
-  src: '/foo/bar/bing.jpg',
-  mime: 'image/jpeg',
-  original: '/foo/bar/bing.png',
-  caption: 'What is Bing? Let me Google that.',
-}
+This is a hassle. And, there are further complications with the use of external state. If the application allows copying of documents wholesale (e.g. when looking at a list of documents, click "create a copy"), then the application needs to be smart enough to create copies of all related data (e.g surveys) *and* it needs to update the document's references to have the new ids.
+
+This seems needlessly complex.
+
+## Alternative
+
+Let's revisit the survey in light of the copying conundrum.
+
+What if instead of external data, the application treats the document as authoritative. So, you can create N copies of a document, and each survey, etc is treated independently.
+
+In this scenario, how might one go about tracking data such as survey answers?
+
+```
+# survey_answers
+id, doc_id, q_id, u_id, value
 ```
 
-When we save our document, a naive approach would simply overwrite the back-end records. However, what we really should do is track what properties have actually changed, and update only those.
+Here, the survey card would be responsible for generating unique question ids. A cut / paste would work. A copy / paste to another document, or a duplication of a document would work. The only thing that is still tricky is the copy / paste of a survey that produces a duplicate within the same document-- when a survey is pasted, the card needs to scan the document for the existence of any questions with the same ids as those in the survey, and if it finds dups, it should generate new ids for its own questions.
 
-So, it makes sense for minidoc applications to track their saved state and do an intelligent diff / update when saving to (mostly) avoid race conditions.
+### Drawbacks
 
-When loading a minidoc, the server needs to load up all relevant card state.
+If the application wishes to give visibility into surveys outside of a document (e.g. maybe there is a "surveys" screen that shows *only* surveys), this would not be possible if the embedded data was the source of truth.
 
-This could be done via normalization. A rough, probably really bad approximation:
+Also, if the application ever needed to make significant changes to how surveys were structured, the app would either have to create a brand new card, or keep backwards-compatibility forever, or migrate all documents. If instead the survey data was kept in a table, and side-loaded, migrations would be fairly trivial.
 
-```sql
--- images:        id, src, mime, original, caption, updated_at, created_at
--- counters:      id, value, updated_at, created_at
--- docs:          id, doc, updated_at, created_at
--- doc_images:    doc_id, image_id
--- doc_counters:  doc_id, counter_id
--- doc_card_order:  doc_id, card_type, card_id, order
-```
+## Conclusion
 
-On the other hand, card order seems like a pretty reasonable case for Postgres arrays...
-
-```sql
--- docs: id, doc, cards, updated_at, created_at
-```
-
-It might still make sense to have join tables, though, for referential integrity, ease of querying, etc.
-
-```js
-// This is a relatively efficient approach which would work well for databses like SQLServer that
-// support multiple parallel queries as a single request, but will work reasonably well for Postgres, etc.
-function loadDoc(id) {
-  const [doc, imageArr, counterArr] = await db.all([
-    'SELECT id, doc, cards FROM docs WHERE id=@id',
-    'SELECT i.id, i.src, i.mime, i.original, i.caption FROM images i INNER JOIN doc_images d ON d.image_id=i.id WHERE d.doc_id=@id',
-    'SELECT c.id, c.value FROM counters c INNER JOIN doc_counters d ON d.card_id=c.id WHERE d.doc_id=@id',
-  ], { id });
-  const cards = {
-    img: indexById(imageArr),
-    counter: indexById(counterArr),
-  };
-  return {
-    doc: doc.doc,
-    cards: doc.cards.map(({ type, id }) => ({ type, state: cards[type][id] })),
-  };
-}
-```
-
-The result is fairly cache-friendly, too, so caching / loading documents in Redis or similar could be a reasonable optimization.
-
-An alternative that requires two round trips, but avoids the need for join tables is to select cards based on the cards array in the docs table:
-
-```js
-function loadDoc(id) {
-  const doc = await db.one('SELECT id, doc, cards FROM docs WHERE id=@id', { id });
-  const [imageArr, counterArr] = await db.all([
-    'SELECT id, src, mime, original, caption FROM images WHERE id IN @imageIds',
-    'SELECT id, value FROM counters WHERE id IN @counterIds',
-  ], {
-    imageIds: doc.cards.filter((c) => c.type === 'img').map((c) => c.id),
-    counterIds: doc.cards.filter((c) => c.type === 'counter').map((c) => c.id),
-  });
-  const cards = {
-    img: indexById(imageArr),
-    counter: indexById(counterArr),
-  };
-  return {
-    doc: doc.doc,
-    cards: doc.cards.map(({ type, id }) => ({ type, state: cards[type][id] })),
-  };
-}
-```
-
-An alternative would be to store the cards as JSON in a cards table. Postgres has relatively good atomic JSON operations, so background workers could update images, etc. It's hacky, but let's consider it:
-
-```sql
--- cards: id, doc_id, type, state, updated_at, created_at
--- docs:  id, doc, cards, updated_at, created_at
-```
-
-In this world, we won't ever share a card between docs, which is honestly probably the correct decision.
-
-```js
-function loadDoc(id) {
-  const [doc, cardArr] = await db.all([
-    'SELECT id, doc, cards FROM docs WHERE id=@id',
-    'SELECT id, type, state FROM cards WHERE doc_id=@id',
-  ], { id });
-  const cards = indexById(cardArr);
-  return {
-    doc: doc.doc,
-    cards: doc.cards.map((id) => cards[id]),
-  };
-}
-```
-
-Let's consider something like a card that contains a survey. Its state might look something like this:
-
-```js
-{
-  questions: [
-    {
-      id: 1,
-      text: 'What do you think?',
-      choices: [{ id: 99, caption: 'No opinion' }, { id: 100: caption: 'Meh' }],
-    },
-    {
-      id: 2,
-      text: 'Should this really be relational?',
-      choices: [{ id: 101: 'Yes' }, { id: 200: 'Definitely' }],
-    },
-  ],
-}
-```
-
-If we stored that as JSON in a cards table, rather than as a relational set of tables, we might store answers like so:
-
-```sql
-survey_answers:   id, doc_id, user_id, question_id, choice_id, updated_at, created_at
-```
-
-So, with that, we can pretty quickly compute aggregates, etc on answers, but we still get the benefit of storing cards in a general table. 
-
-Downsides are:
-
-- Loss of any referential integrity between survey questions and answers
-- Migration headaches if we make structural / system changes to the shape of a survey card's state
-
-Database migrations are generally fairly trivial when the data is relational. Add a column, here's the default, here's the constraint. With JSON, you lose data integrity, referential integrity, and doing migrations like "rename this column" becomes hairy.
-
-Also, if you are using minidoc in a multi-user scenario, where multiple users can edit the same document simultaneously, the JSON changes become even gnarlier. Then again, that scenario itself is already gnarly, so...
-
-Anyway, I'd lean towards a normalized(ish) approach, simply because the flexibility of it is almost always useful over time, and the majority of times I've used unstructured storage, I've regretted it.
-
-Anyway, this was a digression. The end result is that keeping card state as a standalone structure aids in the storage mechanism.
-
-
-## Copying
-
-When a user copies a card, that card's state is copied, and any changes to the copy have no impact on the original. This presents challenges when saving minidocs.
-
-For example, let's say you had a media card with this state:
-
-```js
-{
-  // The database id associated with the stored file
-  id: 92,
-  url: 'https://example.com/foo.png',
-}
-```
-
-Copying that card would produce two cards with id 92.
-
-When the user saves the minidoc, the application needs to identify the duplication and create a new record.
+There are pitfalls to any approach to complex cards. I think that I would lean towards having the document be the sole source of truth. But in the case where an external source of truth is desired, workarounds should not be *too* hard.
