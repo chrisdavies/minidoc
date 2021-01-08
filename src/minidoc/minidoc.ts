@@ -66,5 +66,6 @@ export function minidoc<T extends Array<EditorMiddleware>>(
   // Associate the editor with the root element.
   (root as any).$editor = editor;
   editor.beforeMount(core.root);
+  editor.afterMount();
   return editor;
 }

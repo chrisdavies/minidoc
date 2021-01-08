@@ -77,7 +77,11 @@ function loadDoc(newDoc: string) {
 
 function loadDefault() {
   return loadDoc(
-    `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a><em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>`,
+    `
+<h1>Hello</h1>
+<h2>There</h2>
+<p><strong>I'm strong</strong><a href="http://example.com">Foo</a><em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>
+`,
   );
 }
 

@@ -20,6 +20,7 @@ import { EditorMiddlewareMixin, MinidocBase } from '../types';
 import { UndoHistoryState, DetachedRange } from './types';
 import { Serializable } from '../serializable';
 import { Mountable } from '../mountable';
+import { chain } from '../util';
 
 export interface Undoable {
   undo(): void;
@@ -96,14 +97,7 @@ function patchDoc({ doc, ctx }: UndoHistoryState<DetachedRange>, editor: Minidoc
   selection && Rng.setCurrentSelection(selection);
 }
 
-/**
- * Mixin that converts the editor to a disposable interface.
- */
-export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Changeable> = (
-  next,
-  editor,
-) => {
-  const result = next(editor as MinidocBase & Undoable & Redoable & Changeable);
+function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializable) {
   const el = editor.root;
 
   // We track the caret until the user makes an edit, then we wait
@@ -113,12 +107,12 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
   let isApplyingHistory = false;
 
   const undoHistory = undoRedo(
-    { doc: el.innerHTML, ctx: Rng.emptyDetachedRange() },
+    { doc: editor.serialize(), ctx: Rng.emptyDetachedRange() },
     () => {
       // Serialize should be an immutable operation, but there was a strange case
       // in Safari where it screwed up the range, probably due to calling normalize.
       // So, we have to serialize *prior* to getting the range. :/
-      const doc = (editor as MinidocBase & Serializable).serialize();
+      const doc = editor.serialize();
       const range = Rng.currentRange();
       const ctx = (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange();
       return { doc, ctx };
@@ -128,23 +122,23 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
     },
   );
 
-  result.undo = () => {
+  editor.undo = () => {
     isApplyingHistory = true;
     patchDoc(undoHistory.undo(), editor);
   };
 
-  result.redo = () => {
+  editor.redo = () => {
     isApplyingHistory = true;
     patchDoc(undoHistory.redo(), editor);
   };
 
-  result.captureChange = (fn) => {
+  editor.captureChange = (fn) => {
     undoHistory.commit();
     fn();
     undoHistory.commit();
   };
 
-  result.onChange = undoHistory.onChange;
+  editor.onChange = undoHistory.onChange;
 
   // Override the undo / redo shortcuts, as we need to customize history.
   Dom.on(el, 'keydown', (e) => {
@@ -153,10 +147,10 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
     }
     if (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ')) {
       e.preventDefault();
-      result.redo();
+      editor.redo();
     } else if (e.code === 'KeyZ') {
       e.preventDefault();
-      result.undo();
+      editor.undo();
     }
   });
 
@@ -186,6 +180,23 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
   });
 
   Dom.on(el, 'keyup', () => undoHistory.onChange());
+}
+
+/**
+ * Mixin that converts the editor to a disposable interface.
+ */
+export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Changeable> = (
+  next,
+  editor,
+) => {
+  const result = next(
+    editor as MinidocBase & Undoable & Redoable & Changeable & Mountable & Serializable,
+  );
+
+  // We have to initialize undo / redo only after the doc has been mounted. Prior to this,
+  // the doc may be in an intermadiate / initializing state. The setTimeout is to put our
+  // initialization after any DOM change events have propagated.
+  result.afterMount = chain(result.afterMount, () => setTimeout(() => init(result)));
 
   return result;
 };

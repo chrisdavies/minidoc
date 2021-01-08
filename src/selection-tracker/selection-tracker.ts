@@ -15,7 +15,9 @@ export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) =>
   Dom.on(el, 'focus', (e) => {
     if (!off) {
       off = Dom.on(document, 'selectionchange', (e) => Dom.emit(el, 'mini:caretchange', e));
-      Dom.emit(el, 'mini:caretchange', e);
+      // The setTimeout ensures the range / selection has moved into the element before we fire
+      // off mini:caretchange.
+      setTimeout(() => Dom.emit(el, 'mini:caretchange', e));
     }
   });
 

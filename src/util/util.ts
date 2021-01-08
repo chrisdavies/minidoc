@@ -24,6 +24,13 @@ export function compose<T extends (arg: any) => any>(a: T, b: T): T {
   return (((arg: any) => b(a(arg))) as unknown) as T;
 }
 
+export function chain<T extends (...args: any) => any>(a: T, b: T): T {
+  return ((...args: any) => {
+    a(...args);
+    return b(...args);
+  }) as T;
+}
+
 export function last<T>(list: { [i: number]: T; length: number }): T | undefined {
   return list[list.length - 1];
 }

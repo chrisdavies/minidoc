@@ -2,6 +2,7 @@ import * as Dom from '../dom';
 import { EditorMiddlewareMixin, MinidocBase } from '../types';
 
 export interface Mountable {
+  afterMount(): void;
   beforeMount: typeof beforeMount;
 }
 
@@ -17,6 +18,7 @@ export const mountable: EditorMiddlewareMixin<Mountable> = (next, editor) => {
   const result = editor as MinidocBase & Mountable;
 
   result.beforeMount = beforeMount;
+  result.afterMount = () => {};
 
   return next(result);
 };
