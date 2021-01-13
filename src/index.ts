@@ -7,6 +7,7 @@ export * from './card';
 export * from './media-middleware';
 export * from './placeholder';
 export * from './minidoc';
+export { h, on } from './dom';
 export { onMount } from './disposable';
 
 // I don't like that this is global, but... it's the best way to get
