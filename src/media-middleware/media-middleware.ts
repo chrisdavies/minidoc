@@ -9,7 +9,7 @@ import { h } from '../dom';
 import { renderUploader, Uploader, UploadRef } from './uploader';
 import { onMount } from '../disposable';
 import { EditorMiddlewareMixin, MinidocBase } from '../types';
-import { Cardable } from '../card';
+import { Cardable, CardRenderOptions } from '../card';
 import { DragDroppable } from '../drag-drop';
 
 export interface Mediable {
@@ -28,7 +28,7 @@ export interface MediaCardState {
   caption?: string;
 }
 
-export type MediaRenderer = (state: MediaCardState) => Element;
+export type MediaRenderer = (state: MediaCardState, opts: CardRenderOptions) => Element;
 
 /**
  * We track media references in order to allow file uploads to exist
@@ -81,10 +81,13 @@ export const mediaMiddleware = ({
         onMount(el, () => () => URL.revokeObjectURL(fileUrl));
       }
 
-      const mediaEl = renderMedia({
-        ...state,
-        url,
-      });
+      const mediaEl = renderMedia(
+        {
+          ...state,
+          url,
+        },
+        opts,
+      );
 
       Dom.appendChildren(
         [
