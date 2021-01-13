@@ -292,7 +292,8 @@ export function assignAttrs(attrs: { [k: string]: any }, el: Element): Element {
     Object.keys(attrs).forEach((k) => {
       const val = attrs[k];
       if (k === 'class' || k === 'className') {
-        val && el.classList.add(...val.split(' '));
+        const classes = val && val.split(' ');
+        classes && classes.length && el.classList.add(...classes);
       } else if (
         k === 'innerHTML' ||
         k === 'textContent' ||
