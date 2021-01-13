@@ -8,7 +8,7 @@ import { h } from '../dom';
 import { EditorMiddlewareMixin, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { toggleList } from './toggle-list';
-import { InlineTogglable } from '../inilne-toggle';
+import { InlineTogglable } from '../inline-toggle';
 
 export interface ListTogglable {
   toggleList(tagName: string): void;

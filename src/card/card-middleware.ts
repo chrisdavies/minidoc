@@ -5,7 +5,7 @@ import { h } from '../dom';
 import { EditorMiddlewareMixin, ImmutableLeaf, MinidocBase } from '../types';
 import { Mountable } from '../mountable/mountable';
 import { Serializable } from '../serializable/serializable';
-import { InlineTogglable } from '../inilne-toggle';
+import { InlineTogglable } from '../inline-toggle';
 import { DragDroppable } from '../drag-drop';
 
 export interface CardRenderOptions {

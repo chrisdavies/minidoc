@@ -4,7 +4,7 @@ import { EditorMiddleware, MinidocBase, ReturnTypesIntersection, MinidocOptions 
 import { serializable } from '../serializable';
 import { mountable } from '../mountable';
 import { undoRedoMiddleware } from '../undo-redo';
-import { inlineTogglable } from '../inilne-toggle';
+import { inlineTogglable } from '../inline-toggle';
 import { dragDropMixin } from '../drag-drop';
 import { selectionTracker } from '../selection-tracker';
 import { blockTogglable } from '../block-toggle';
