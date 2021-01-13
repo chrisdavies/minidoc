@@ -116,6 +116,7 @@ export function initialize(el: Element, onChange: () => void): Element & { dispo
   const result: any = el;
   result.dispose = () => {
     elementUnmounted(el);
+    el.remove();
     observer.disconnect();
   };
   elementMounted(onMount(el, () => {}));
