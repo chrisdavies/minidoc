@@ -190,6 +190,23 @@ export function isAtEndOf(node: Node, range: Range): boolean {
   }
 }
 
+function makeLeadingSpaceVisible(el: Element) {
+  const treeWalker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+
+  let currentNode: Node | null = treeWalker.currentNode;
+
+  while (currentNode) {
+    if (currentNode instanceof Text && currentNode.length) {
+      const text = currentNode.textContent;
+      if (text?.startsWith(' ')) {
+        currentNode.textContent = '\u00a0' + text.slice(1);
+      }
+      return;
+    }
+    currentNode = treeWalker.nextNode();
+  }
+}
+
 /**
  * Split the container into two at the range.
  */
@@ -216,6 +233,11 @@ export function $splitContainer(
   const tailEl = tailRange.cloneContents().children[0];
   container.parentElement?.insertBefore(tailEl, container.nextSibling);
   tailRange.deleteContents();
+
+  // If the tail element starts with a whitespace, we need to
+  // convert it to nbsp.
+  makeLeadingSpaceVisible(tailEl);
+
   range.setStartBefore(tailEl);
   return [container.isConnected ? container : undefined, tailEl];
 }

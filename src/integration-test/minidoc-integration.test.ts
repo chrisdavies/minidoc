@@ -527,11 +527,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 2, 'strong', 3);
         await press('Enter');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><h1><strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><p><strong> strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><h1><strong>yo strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><p><strong>yo strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
         );
       });
 
@@ -806,7 +806,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Delete');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><p>There<br></p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><p>There</p><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
@@ -824,7 +824,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello<br></h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
@@ -832,13 +832,13 @@ function runTestsForBrowser(browserType: BrowserType) {
         await loadDoc(`<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`);
         await selectRange('h1', 0, 'p', 0);
         await page.keyboard.type('Hi ');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
         await pressCtrl('z');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`,
         );
         await pressCtrl('y');
-        expect(await serializeDoc()).toEqual(`<h1>Hi You<br></h1>`);
+        expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
       });
     });
 

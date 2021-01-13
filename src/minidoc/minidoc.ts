@@ -10,12 +10,14 @@ import { selectionTracker } from '../selection-tracker';
 import { blockTogglable } from '../block-toggle';
 import { listMixin } from '../list';
 import { clipbordMiddleware } from '../clipboard-middleware';
+import { stylePrevention } from '../style-prevention';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;
 }
 
 const defaultMiddleware = getDefaultMiddleware([
+  stylePrevention,
   disposable,
   serializable,
   mountable,

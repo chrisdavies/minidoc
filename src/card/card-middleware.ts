@@ -202,7 +202,7 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       return;
     }
 
-    if (e.code === 'Enter') {
+    if (e.key === 'Enter') {
       e.preventDefault();
       Rng.setCaretAtStart(Dom.insertAfter(Dom.newLeaf(), Dom.findLeaf(Rng.currentNode()!)!));
       return;
