@@ -202,6 +202,7 @@ export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, ed
       isToggling = true;
       const normalized = normalizeTagName(tagName);
       toggledTags.has(normalized) ? toggledTags.delete(normalized) : toggledTags.add(normalized);
+      setTimeout(() => (isToggling = false));
     }
     Rng.setCurrentSelection(range);
   }
@@ -210,7 +211,6 @@ export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, ed
   // recompute the active tags and reset the toggled tags.
   Dom.on(el, 'mini:caretchange', () => {
     if (isToggling) {
-      isToggling = false;
       return;
     }
     const range = Rng.currentRange();

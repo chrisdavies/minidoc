@@ -355,6 +355,12 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><i>I'm italic</i></p>`,
         );
+        await selectRange('p', 0);
+        await pressCtrl('b');
+        await page.type('p', 'Yall');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><h2>There</h2><p><strong>Yall</strong>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><i>I'm italic</i></p>`,
+        );
       });
 
       it('italic and unitalic', async () => {
@@ -371,6 +377,12 @@ function runTestsForBrowser(browserType: BrowserType) {
         await page.click('[aria-label="Italic"]');
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b><em>I'm italic</em></p>`,
+        );
+        await selectRange('p', 0);
+        await pressCtrl('i');
+        await page.type('p', 'Yall');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><h2>There</h2><p><strong><em>Yall</em>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b><em>I'm italic</em></p>`,
         );
       });
 
