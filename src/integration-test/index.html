@@ -7,6 +7,19 @@
   <title>Minidoc</title>
 
   <link rel='stylesheet' href='../../dist/client/bundle.css'>
+  <style>
+    /*
+      This is important, as it causes the default content-editable
+      to totally jack styles on delete, backspace, etc.
+    */
+    body {
+      font-family: inherit;
+      font-size: 1rem;
+      color: inherit;
+      background-color: inherit;
+      font-family: inherit;
+    }
+  </style>
 </head>
 <body>
   <main></main>

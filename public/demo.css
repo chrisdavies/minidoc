@@ -1,10 +1,17 @@
 * {
   box-sizing: border-box;
 }
-html,
-body {
+html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
     'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
+  background-color: inherit;
+  font-family: inherit;
 }
 
 h1,
@@ -27,6 +34,91 @@ main {
 .minidoc-editor img,
 .minidoc-editor video {
   width: 100%;
+}
+
+/*
+  Styling the editor contents.
+*/
+
+/* Styles for the rich-text content */
+.minidoc-content {
+  outline: none;
+  white-space: pre-wrap;
+  line-height: 1.5rem;
+  padding: 2rem;
+  font-size: 1rem;
+}
+
+.minidoc-content h1 {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
+.minidoc-content h2 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.minidoc-content ul,
+.minidoc-content ol {
+  list-style: inside;
+}
+
+.minidoc-content ul ul,
+.minidoc-content ol ul,
+.minidoc-content ul ol,
+.minidoc-content ol ol {
+  margin-bottom: unset;
+  margin-left: 1.5rem;
+}
+
+.minidoc-content ul {
+  list-style-type: disc;
+}
+
+.minidoc-content ul ul {
+  list-style-type: circle;
+}
+
+.minidoc-content ul ul ul {
+  list-style-type: square;
+}
+
+.minidoc-content ol {
+  list-style-type: decimal;
+}
+
+.minidoc-content ol ol {
+  list-style-type: lower-alpha;
+}
+
+.minidoc-content ol ol ol {
+  list-style-type: lower-roman;
+}
+
+.minidoc-content h1,
+.minidoc-content h2,
+.minidoc-content h3,
+.minidoc-content h4,
+.minidoc-content h5,
+.minidoc-content p,
+.minidoc-content ol,
+.minidoc-content ul {
+  margin-bottom: 1rem;
+}
+
+.minidoc-editor {
+  padding-bottom: 4rem;
+}
+
+.minidoc-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minidoc-toolbar-btn:focus {
+  outline: none;
 }
 
 /*
