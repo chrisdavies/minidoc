@@ -138,3 +138,14 @@ main {
   border-radius: 0;
   box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
 }
+
+/*
+  File-handling is now application-specific. This is just
+  a dumb class for demo purposes.
+*/
+.demo-file {
+  background: #f8fafc;
+  padding: 0.5rem;
+  color: #444;
+  border-radius: 0.25rem;
+}

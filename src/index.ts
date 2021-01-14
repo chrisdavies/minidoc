@@ -4,7 +4,7 @@ import { MinidocToolbarAction } from './toolbar';
 
 export * from './toolbar';
 export * from './card';
-export * from './media-middleware';
+export * from './file-drop';
 export * from './placeholder';
 export * from './minidoc';
 export { h, on } from './dom';

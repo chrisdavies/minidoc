@@ -8,13 +8,11 @@ import {
   onMount,
   MinidocToolbarAction,
   Cardable,
-  mediaToolbarAction,
-  mediaMiddleware,
+  fileDrop,
 } from '../src';
 import * as Dom from '../src/dom';
 import { h } from '../src/dom';
 import { debounce } from '../src/util';
-import { mockUpload } from './mock-upload';
 
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
@@ -56,6 +54,13 @@ const counterCard: MinidocCardDefinition = {
   },
 };
 
+const myfileCard: MinidocCardDefinition = {
+  type: 'myfile',
+  render(opts) {
+    return h('.demo-file', `${opts.state.type}: ${opts.state.name}`);
+  },
+};
+
 const toolbarCounter: MinidocToolbarAction = {
   id: 'counter',
   label: 'Counter',
@@ -71,21 +76,10 @@ const editor = minidoc({
   doc: el.innerHTML,
   middleware: [
     placeholder('Type something fanci here.'),
-    minidocToolbar([...defaultToolbarActions, mediaToolbarAction(), toolbarCounter]),
-    cardMiddleware([counterCard]),
-    mediaMiddleware({
-      upload: mockUpload,
-      renderMedia(state) {
-        if (state.type.startsWith('image/')) {
-          return h('img', { src: state.url, alt: state.name });
-        } else if (state.type.startsWith('video/')) {
-          return h('video', { src: state.url, controls: true });
-        } else if (state.type.startsWith('audio/')) {
-          return h('audio', { src: state.url });
-        } else {
-          return h('a.minidoc-unknown-media', { href: state.url }, state.name);
-        }
-      },
+    minidocToolbar([...defaultToolbarActions, toolbarCounter]),
+    cardMiddleware([counterCard, myfileCard]),
+    fileDrop((opts) => {
+      editor.insertCard('myfile', { type: opts.files[0].type, name: opts.files[0].name });
     }),
   ],
 });
