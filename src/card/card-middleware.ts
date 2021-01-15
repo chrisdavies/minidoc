@@ -8,15 +8,15 @@ import { Serializable } from '../serializable/serializable';
 import { InlineTogglable } from '../inline-toggle';
 import { DragDroppable } from '../drag-drop';
 
-export interface CardRenderOptions {
-  state: any;
+export interface CardRenderOptions<T = any> {
+  state: T;
   editor: MinidocBase;
-  stateChanged(state: any): void;
+  stateChanged(state: T): void;
 }
 
-export interface MinidocCardDefinition {
+export interface MinidocCardDefinition<T = any> {
   type: string;
-  render(opts: CardRenderOptions): Element;
+  render(opts: CardRenderOptions<T>): Element;
 }
 
 export interface Cardable {
