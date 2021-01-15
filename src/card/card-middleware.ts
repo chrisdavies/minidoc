@@ -108,7 +108,6 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
     if (!def) {
       throw new Error(`Unknown card type "${cardType}"`);
     }
-    const state = JSON.parse(Dom.attr('state', el) || 'null');
     const { render } = definitions[cardType];
     Dom.assignAttrs(
       {
@@ -117,7 +116,13 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       },
       el,
     );
-
+    const opts: CardRenderOptions = {
+      editor,
+      state: JSON.parse(Dom.attr('state', el) || 'null'),
+      stateChanged(state) {
+        Dom.assignAttrs({ state: JSON.stringify(state) }, el);
+      },
+    };
     const content = h(
       '.minidoc-card-contents',
       {
@@ -130,13 +135,7 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
         oncopy: stopPropagation,
         input: stopPropagation,
       },
-      render({
-        state,
-        editor,
-        stateChanged(state) {
-          Dom.assignAttrs({ state: JSON.stringify(state) }, el);
-        },
-      }),
+      render(opts),
     );
 
     Dom.appendChildren(
@@ -154,10 +153,12 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       setTimeout(() => Rng.setCaretAtStart(el));
     });
 
-    ((el as unknown) as Serializable).serialize = () =>
+    ((el as unknown) as Serializable).serialize = (forSave) =>
       h(cardTagName, {
         type: Dom.attr('type', el),
-        state: Dom.attr('state', el),
+        // If we're serializing for a save operation, we'll use the current
+        // state. Otherwise, for undo / redo, we'll use whatever is in the DOM.
+        state: forSave ? JSON.stringify(opts.state) : Dom.attr('state', el),
       }).outerHTML;
 
     content.setAttribute('draggable', 'true');

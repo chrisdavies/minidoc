@@ -107,12 +107,12 @@ function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializa
   let isApplyingHistory = false;
 
   const undoHistory = undoRedo(
-    { doc: editor.serialize(), ctx: Rng.emptyDetachedRange() },
+    { doc: editor.serialize(false), ctx: Rng.emptyDetachedRange() },
     () => {
       // Serialize should be an immutable operation, but there was a strange case
       // in Safari where it screwed up the range, probably due to calling normalize.
       // So, we have to serialize *prior* to getting the range. :/
-      const doc = editor.serialize();
+      const doc = editor.serialize(false);
       const range = Rng.currentRange();
       const ctx = (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange();
       return { doc, ctx };

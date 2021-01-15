@@ -1,7 +1,7 @@
 import { EditorMiddlewareMixin, MinidocBase } from '../types';
 
 export interface Serializable {
-  serialize(): string;
+  serialize(forSave?: boolean): string;
 }
 
 function isSerializable(n: any): n is Serializable {
@@ -12,9 +12,9 @@ export const serializable: EditorMiddlewareMixin<Serializable> = (next, editor) 
   const result = editor as MinidocBase & Serializable;
   const el = editor.root;
 
-  result.serialize = () =>
+  result.serialize = (forSave = true) =>
     Array.from(el.children)
-      .map((n) => (isSerializable(n) ? n.serialize() : n.outerHTML))
+      .map((n) => (isSerializable(n) ? n.serialize(forSave) : n.outerHTML))
       .join('');
 
   return next(result);
