@@ -8,7 +8,7 @@ mini-card {
   margin: 0.5rem 0;
 }
 
-.minidoc-card-contents::before {
+.minidoc-editable .minidoc-card-contents::before {
   content: '';
   width: 1.5rem;
   box-sizing: border-box;
@@ -20,11 +20,11 @@ mini-card {
   cursor: move;
 }
 
-.minidoc-card-contents:hover::before {
+.minidoc-editable .minidoc-card-contents:hover::before {
   content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 6' stroke='%23777'%3E%3Cpath d='M1,1h0 M3,1h0 M1,3h0 M3,3h0 M1,5h0 M3,5h0' stroke-linecap='round' /%3E%3C/svg%3E");
 }
 
-.minidoc-card-active {
+.minidoc-editable .minidoc-card-active {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #6366f1;
   border-radius: 1px;
   z-index: 10;

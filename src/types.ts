@@ -1,10 +1,24 @@
 export interface MinidocBase {
   root: Element;
+  readonly?: boolean;
 }
 
 export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlewareMixin>> {
+  /**
+   * The raw document as HTML.
+   */
   doc: string;
+  /**
+   * Whether or not the document is editable or simply viewable.
+   */
+  readonly?: boolean;
+  /**
+   * If specified, this is the contenteditable used to render the document.
+   */
   root?: Element;
+  /**
+   * The set of middleware used in this document.
+   */
   middleware?: T;
 }
 

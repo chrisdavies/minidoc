@@ -58,21 +58,25 @@ function isActiveToolbarButton(selector: string) {
   return page.waitForSelector(`${selector}.minidoc-toolbar-btn-active`);
 }
 
-function loadDoc(newDoc: string) {
-  return page.evaluate((doc) => {
-    const tests = (window as any).integrationTests;
-    const main = document.querySelector('main')!;
-    main.innerHTML = '';
-    tests.editor?.dispose();
-    tests.editor = tests.minidoc({
-      doc,
-      middleware: [
-        tests.minidocToolbar(tests.defaultToolbarActions),
-        tests.cardMiddleware([tests.counterCard]),
-      ],
-    });
-    main.append(tests.editor.toolbar.root, tests.editor.root);
-  }, newDoc);
+function loadDoc(newDoc: string, { readonly } = { readonly: false }) {
+  return page.evaluate(
+    ([doc, readonly]) => {
+      const tests = (window as any).integrationTests;
+      const main = document.querySelector('main')!;
+      main.innerHTML = '';
+      tests.editor?.dispose();
+      tests.editor = tests.minidoc({
+        doc,
+        readonly,
+        middleware: [
+          tests.minidocToolbar(tests.defaultToolbarActions),
+          tests.cardMiddleware([tests.counterCard]),
+        ],
+      });
+      main.append(tests.editor.toolbar.root, tests.editor.root);
+    },
+    [newDoc, readonly],
+  );
 }
 
 function loadDefault() {
@@ -690,6 +694,16 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
+      });
+
+      it('cards have access to the readonly property on the editor', async () => {
+        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        await loadDoc(doc, { readonly: true });
+        const editorCount = await page.evaluate(
+          () => document.querySelectorAll('[contenteditable=true]').length,
+        );
+        expect(editorCount).toEqual(0);
+        expect(await page.textContent('mini-card')).toContain('is readonly: true');
       });
 
       //   it('cards are initialized and disposed in edit mode', async () => {

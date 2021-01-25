@@ -10,7 +10,7 @@ const counterCard: integrationTests.MinidocCardDefinition = {
     const el = h(
       'button',
       { onclick: (e: any) => (e.target.textContent = `Incremented count + ${++count}`) },
-      `Empty count ${count}`,
+      `Empty count ${count} is readonly: ${opts.editor.readonly}`,
     );
     onMount(el, () => {
       console.log(`counter:init(${count})`);

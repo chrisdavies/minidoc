@@ -14,6 +14,8 @@ import * as Dom from '../src/dom';
 import { h } from '../src/dom';
 import { debounce } from '../src/util';
 
+let readonly = location.search === '?readonly';
+
 function Sticky(child: Node) {
   const placeholder = h('div', { style: 'height: 0px' }) as HTMLDivElement;
   const el = h('div', placeholder, child);
@@ -73,6 +75,7 @@ const el = document.querySelector('.example-doc');
 el.remove();
 
 const editor = minidoc({
+  readonly,
   doc: el.innerHTML,
   middleware: [
     placeholder('Type something fanci here.'),
@@ -84,4 +87,7 @@ const editor = minidoc({
   ],
 });
 
-Dom.appendChildren([Sticky(editor.toolbar.root), editor.root], document.querySelector('main'));
+Dom.appendChildren(
+  [!readonly && Sticky(editor.toolbar.root), editor.root],
+  document.querySelector('main'),
+);
