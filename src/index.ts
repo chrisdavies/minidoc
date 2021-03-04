@@ -10,6 +10,8 @@ export * from './minidoc';
 export { h, on } from './dom';
 export { onMount } from './disposable';
 
+import './css/index.css';
+
 // I don't like that this is global, but... it's the best way to get
 // paragraphs when the user presses enter.
 document.execCommand('defaultParagraphSeparator', false, 'p');
