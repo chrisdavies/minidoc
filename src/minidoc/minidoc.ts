@@ -57,9 +57,14 @@ export function minidoc<T extends Array<EditorMiddleware>>(
 ): MinidocCore & ReturnTypesIntersection<T> {
   const root =
     opts.root ||
-    h(`div.minidoc-editor${opts.readonly ? '.minidoc-readonly' : '.minidoc-editable'}`, {
-      contentEditable: !opts.readonly,
-    });
+    h(
+      `div.minidoc-editor.minidoc-content${
+        opts.readonly ? '.minidoc-readonly' : '.minidoc-editable'
+      }`,
+      {
+        contentEditable: !opts.readonly,
+      },
+    );
   root.innerHTML = opts.doc;
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
