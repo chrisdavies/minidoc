@@ -45,7 +45,15 @@ const counterCard: MinidocCardDefinition = {
 
     const el = h(
       'button',
-      { onclick: (e) => (e.target.textContent = `Incremented count + ${++count}`) },
+      {
+        onclick: (e) => {
+          ++count;
+          // This is how we notify minidoc that we have a new
+          // state (so it shows up in undo / redo history)
+          opts.stateChanged(count);
+          e.target.textContent = `Incremented count + ${count}`;
+        },
+      },
       `Empty count ${count}`,
     );
     onMount(el, () => {
@@ -81,6 +89,8 @@ const editor = minidoc({
     placeholder('Type something fanci here.'),
     minidocToolbar([...defaultToolbarActions, toolbarCounter]),
     cardMiddleware([counterCard, myfileCard]),
+    // The fileDrop middleware adds support for dropping files onto the editor via
+    // the HTML5 drag / drop API.
     fileDrop((opts) => {
       editor.insertCard('myfile', { type: opts.files[0].type, name: opts.files[0].name });
     }),
