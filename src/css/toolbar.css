@@ -140,3 +140,9 @@
   visibility: visible;
   opacity: 1;
 }
+
+.minidoc-toolbar-btn .mini-quote {
+  font-family: serif;
+  font-size: 1.5rem;
+  margin-bottom: -0.5rem;
+}
