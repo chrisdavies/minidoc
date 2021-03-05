@@ -9,17 +9,18 @@ import { EditorMiddlewareMixin, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { toggleList } from './toggle-list';
 import { InlineTogglable } from '../inline-toggle';
+import { OnSequenceable } from '../on-sequence';
 
 export interface ListTogglable {
   toggleList(tagName: string): void;
 }
 
-function convertNodeToList(tagName: string, node: Node) {
+const convertNodeTo = (tagName: string) => (node: Node) => {
   const leaf = Dom.findLeaf(node);
   const li = h('li', h('br'));
   leaf?.replaceWith(h(tagName, li));
   Rng.setCaretAtStart(li);
-}
+};
 
 function convertListItemToLeaf(li: Element, range: Range) {
   // We're in an empty li, and the user is attempting to break out of it
@@ -74,21 +75,6 @@ function outdent(li: Element) {
 const handlers: {
   [key: string]: (e: KeyboardEvent, ctx: MinidocBase & InlineTogglable) => void;
 } = {
-  Space(e, ctx) {
-    if (ctx.isActive('LI')) {
-      return;
-    }
-    const node = Rng.currentNode();
-    if (!Dom.isText(node) || node.length > 2) {
-      return;
-    }
-    const text = node.textContent;
-    const tagName = text === '*' || text === '-' ? 'ul' : text === '1.' ? 'ol' : undefined;
-    if (tagName && node) {
-      e.preventDefault();
-      convertNodeToList(tagName, node);
-    }
-  },
   Enter(e, ctx) {
     if (!ctx.isActive('LI')) {
       return;
@@ -155,7 +141,11 @@ const handlers: {
 };
 
 export const listMixin: EditorMiddlewareMixin<ListTogglable> = (next, editor) => {
-  const result = editor as MinidocBase & ListTogglable & Changeable & InlineTogglable;
+  const result = editor as MinidocBase &
+    ListTogglable &
+    Changeable &
+    InlineTogglable &
+    OnSequenceable;
   result.toggleList = (tagName) => {
     const range = Rng.currentRange();
     range &&
@@ -168,6 +158,11 @@ export const listMixin: EditorMiddlewareMixin<ListTogglable> = (next, editor) =>
         Rng.setCurrentSelection(newRange);
       });
   };
+
+  result.onSequence('* ', convertNodeTo('ul'));
+  result.onSequence('- ', convertNodeTo('ul'));
+  result.onSequence('1.', convertNodeTo('ol'));
+
   Dom.on(editor.root, 'keydown', (e) => {
     !e.defaultPrevented && handlers[e.code]?.(e, result);
   });

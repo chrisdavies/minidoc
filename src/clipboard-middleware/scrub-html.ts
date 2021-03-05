@@ -24,6 +24,7 @@ const allowableTags = new Set([
   'UL',
   'OL',
   'LI',
+  'HR',
   'MINI-CARD',
 ]);
 

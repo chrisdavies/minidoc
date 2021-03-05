@@ -11,6 +11,8 @@ import { blockTogglable } from '../block-toggle';
 import { listMixin } from '../list';
 import { clipbordMiddleware } from '../clipboard-middleware';
 import { stylePrevention } from '../style-prevention';
+import { onSequenceMixin } from '../on-sequence';
+import { horizontalRuleMixin } from '../horizontal-rule';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;
@@ -18,6 +20,7 @@ function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T):
 
 const defaultMiddleware = getDefaultMiddleware([
   stylePrevention,
+  onSequenceMixin,
   disposable,
   serializable,
   mountable,
@@ -27,6 +30,7 @@ const defaultMiddleware = getDefaultMiddleware([
   selectionTracker,
   blockTogglable,
   listMixin,
+  horizontalRuleMixin,
   clipbordMiddleware,
 ]);
 

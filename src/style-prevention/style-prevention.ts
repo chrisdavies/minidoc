@@ -40,14 +40,26 @@ function onBackspace(e: Event) {
 
 function onInput(e: KeyboardEvent) {
   const sel = document.getSelection();
-  if (!sel || sel.isCollapsed) {
+  if (!sel) {
     return;
   }
   const isTyping = !e.ctrlKey && !e.metaKey && e.key.length === 1;
   if (!isTyping) {
     return;
   }
-  deleteRange(sel.getRangeAt(0), 'right');
+  const range = sel.getRangeAt(0);
+  if (!sel.isCollapsed) {
+    deleteRange(range, 'right');
+  }
+  // Detect if we're attempting to type into an invalid leaf (a
+  // text node at the root of the editor), and if so, convert it
+  // to a paragraph.
+  if (Dom.isRoot(range.startContainer)) {
+    // Rng.setCaretAtStart(Rng.toNode(range));
+    const leaf = Dom.newLeaf();
+    range.insertNode(leaf);
+    Rng.setCaretAtStart(leaf);
+  }
 }
 
 function onEnter(e: KeyboardEvent) {

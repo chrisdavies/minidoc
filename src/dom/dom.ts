@@ -333,10 +333,18 @@ export function newLeaf() {
 }
 
 /**
+ * Check to see if the node is an uneditable node type.
+ * @param node
+ */
+function isUneditable(node: Node) {
+  return isElement(node) && node.matches('hr,img,video,audio');
+}
+
+/**
  * Ensure the specified node is editable. This is mutative.
  */
 export function $makeEditable(node: Node): Node {
-  if (!isEmpty(node)) {
+  if (!isEmpty(node) || isUneditable(node)) {
     return node;
   }
   if (isList(node)) {
@@ -349,7 +357,7 @@ export function $makeEditable(node: Node): Node {
   return node;
 }
 
-const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,section,footer,header,nav,table,mini-card';
+const blockSelector = 'div,p,li,ul,ol,h1,h2,h3,h4,h5,hr,section,footer,header,nav,table,mini-card';
 
 export function isBlock(node: Node) {
   return isElement(node) && node.matches(blockSelector);

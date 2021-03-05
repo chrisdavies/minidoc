@@ -1123,6 +1123,17 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
     });
+
+    describe('horizontal rules', () => {
+      it('adds a horizontal rule when --- is typed on a new line', async () => {
+        await loadDoc(`<h1>Hello</h1><p><br></p><p>World</p>`);
+        await selectRange('p', 0);
+        await page.keyboard.type('---');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><hr contenteditable="false"><p><br></p><p>World</p>`,
+        );
+      });
+    });
   });
 }
 
