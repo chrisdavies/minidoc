@@ -111,7 +111,7 @@ function getInlineTags(until: string, node: Node | undefined) {
 /**
  * Removes the inline tag from the range.
  */
-function unapply(tagName: string, r: Range) {
+export function unapply(tagName: string, r: Range) {
   const selector = normalizeSelector(tagName);
   // Track all tags between our range and the ancestor we're leaving.
   // So, if we are attempting to remove b from this: <b><i>foo</i></b>
@@ -129,6 +129,7 @@ function unapply(tagName: string, r: Range) {
     r.setEndAfter(closest);
     const tailContent = r.extractContents();
     !Dom.isEmpty(tailContent) && r.insertNode(tailContent);
+    Dom.isEmpty(closest) && closest.remove();
   }
 
   // Remove all children that match the inline selector.

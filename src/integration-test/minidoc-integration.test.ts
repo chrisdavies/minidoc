@@ -1154,6 +1154,28 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
     });
+
+    describe('highlighting', () => {
+      it('highlights a single selection', async () => {
+        await loadDoc(`<h1>Hello</h1><p>World</p>`);
+        await selectRange('p', 0, 'p', 5);
+        await page.click('[aria-label="Highlight"]');
+        await page.click('.minidoc-highlight-color');
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p><mini-color style="background-color: #FECACA">World</mini-color></p>`,
+        );
+      });
+
+      it('clears the highlight', async () => {
+        await loadDoc(
+          `<h1>Hello</h1><p><mini-color style="background-color: #FECACA">World</mini-color></p>`,
+        );
+        await selectRange('mini-color', 0, 'mini-color', 5);
+        await page.click('[aria-label="Highlight"]');
+        await page.click('.minidoc-clear-highlight');
+        expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>World</p>`);
+      });
+    });
   });
 }
 

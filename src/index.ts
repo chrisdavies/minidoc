@@ -1,6 +1,7 @@
 import { linkToolbarAction } from './link/link-toolbar-action';
 import { orderedListToolbarAction, unorderedListToolbarAction } from './list';
 import { MinidocToolbarAction } from './toolbar';
+import { highlightToolbarAction } from './highlight';
 
 export * from './toolbar';
 export * from './card';
@@ -34,7 +35,7 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   {
     id: 'blockquote',
     label: 'Quote',
-    html: '<b class="mini-quote">”</b>',
+    html: '<b class="minidoc-quote">”</b>',
     run: (t) => t.toggleBlock('blockquote'),
     isActive: (t) => t.isActive('blockquote'),
   },
@@ -55,4 +56,5 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   linkToolbarAction,
   orderedListToolbarAction,
   unorderedListToolbarAction,
+  highlightToolbarAction,
 ];

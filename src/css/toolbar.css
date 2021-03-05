@@ -58,7 +58,8 @@
 }
 
 .minidoc-toolbar-btn svg {
-  max-width: 1.4rem;
+  width: 1rem;
+  max-width: 1.5rem;
 }
 
 .minidoc-toolbar-txt {
@@ -85,7 +86,20 @@
 }
 
 .minidoc-btn-fadein {
+  line-height: 0;
+  color: #4b5563;
   animation: minidoc-fade-in-delayed 0.4s forwards;
+}
+
+.minidoc-btn-fadein svg {
+  min-width: 1.5rem;
+}
+
+.minidoc-toolbar-divider {
+  height: 1.5rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  padding-left: 0.5rem;
+  margin-left: 0.75rem;
 }
 
 /* Tooltips */
@@ -141,8 +155,25 @@
   opacity: 1;
 }
 
-.minidoc-toolbar-btn .mini-quote {
+.minidoc-toolbar-btn .minidoc-quote {
   font-family: serif;
   font-size: 1.5rem;
   margin-bottom: -0.5rem;
+}
+
+.minidoc-clear-highlight,
+.minidoc-highlight-color {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-block;
+  border-radius: 100%;
+}
+
+.minidoc-clear-highlight {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.minidoc-ico-link {
+  height: 0.9rem;
 }
