@@ -14,7 +14,13 @@ export const serializable: EditorMiddlewareMixin<Serializable> = (next, editor) 
 
   result.serialize = (forSave = true) =>
     Array.from(el.children)
-      .map((n) => (isSerializable(n) ? n.serialize(forSave) : n.outerHTML))
+      .map((n) =>
+        isSerializable(n)
+          ? // Use custom serialization if the element has specified it
+            n.serialize(forSave)
+          : // Use outerHTML, but remove any empty tags <foo></foo>
+            n.outerHTML.replace(/<([a-z\-]+)><\/([a-z\-]+)>/g, (a, b, c) => (b === c ? '' : a)),
+      )
       .join('');
 
   return next(result);

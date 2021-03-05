@@ -275,11 +275,14 @@ export function toHTML(n: Node) {
 /**
  * Append the specified child / children to the specified element.
  */
-export function appendChildren(children: ItemOrList<Node | string>, el: Element | Range) {
+export function appendChildren<T extends Element | Range>(
+  children: ItemOrList<Node | string>,
+  el: T,
+): T {
   if (isElement(el)) {
     el.appendChild(toFragment(children));
   } else {
-    el.insertNode(toFragment(children));
+    (el as Range).insertNode(toFragment(children));
   }
   return el;
 }

@@ -92,7 +92,25 @@ function loadDefault() {
 function serializeDoc() {
   return page
     .evaluate(() => (window as any).integrationTests.editor.serialize())
-    .then((s) => s.replace(/&nbsp;/g, ' '));
+    .then((s) => normalizeOutput(s.replace(/&nbsp;/g, ' ')));
+}
+
+/**
+ * This normalizes spaces and trailing brs across the tests so that we can
+ * check for those things in a uniform way. In reality, the variations don't
+ * make a difference, so our tests are fine being fuzzy on these points.
+ *
+ * It also normalizes b / strong and i / em.
+ * @param s
+ */
+function normalizeOutput(s: string) {
+  return s
+    .replace(/>( |&nbsp;)</g, '><br><')
+    .replace(/([^>])<br></g, '$1<')
+    .replace(/<b>/g, '<strong>')
+    .replace(/<\/b>/g, '</strong>')
+    .replace(/<i>/g, '<em>')
+    .replace(/<\/i>/g, '</em>');
 }
 
 function editorEl(selector: string) {
@@ -212,7 +230,7 @@ async function press(...keys: string[]) {
 }
 
 function pressCtrl(key: string) {
-  return press('Meta', key);
+  return page.keyboard.press('Control+' + key);
 }
 
 function runTestsForBrowser(browserType: BrowserType) {
@@ -348,22 +366,22 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectNodeContent('strong');
         await page.click('[aria-label="Bold"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await selectNodeContent('b');
         await page.click('[aria-label="Bold"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em>I'm bold<i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em>I'm bold<em>I'm italic</em></p>`,
         );
         await page.click('[aria-label="Bold"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await selectRange('p', 0);
         await pressCtrl('b');
         await page.type('p', 'Yall');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>Yall</strong>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>Yall</strong>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -371,22 +389,22 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectNodeContent('em');
         await page.click('[aria-label="Italic"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await selectNodeContent('i');
         await page.click('[aria-label="Italic"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b>I'm italic</p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<strong>I'm bold</strong>I'm italic</p>`,
         );
         await page.click('[aria-label="Italic"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b><em>I'm italic</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await selectRange('p', 0);
         await pressCtrl('i');
         await page.type('p', 'Yall');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong><em>Yall</em>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<b>I'm bold</b><em>I'm italic</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong><em>Yall</em>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -404,8 +422,10 @@ function runTestsForBrowser(browserType: BrowserType) {
         await press('Backspace');
         expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>Stuff  here</p>`);
         await page.type('[contenteditable]', 'goes');
-        expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>Stuff <b>goes</b> here</p>`);
-        await selectRange('b', 0, 'b', 4);
+        expect(await serializeDoc()).toEqual(
+          `<h1>Hello</h1><p>Stuff <strong>goes</strong> here</p>`,
+        );
+        await selectRange('b,strong', 0, 'b,strong', 4);
         await pressCtrl('b');
         expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>Stuff goes here</p>`);
         await press('Backspace');
@@ -421,7 +441,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         await btnLink.click();
         await page.waitForSelector('[href="/foo/bar"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="/foo/bar">Foo</a><em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><a href="/foo/bar">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.waitForSelector('[aria-label="Link"]');
         await page.click('[aria-label="Link"]');
@@ -430,7 +450,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         await btnUnlink.click();
         await page.waitForFunction(() => !document.querySelector('.minidoc-highlighter'));
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong>Foo<em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong>Foo<em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -467,11 +487,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 2, 'strong', 3);
         await press(key);
         expect(await serializeDoc()).toEqual(
-          `<h1>He<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>Heyo<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Heyo<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       }
 
@@ -529,11 +549,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 2, 'strong', 3);
         await page.keyboard.type('man');
         expect(await serializeDoc()).toEqual(
-          `<h1>Heman<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Heman<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hemanyo<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hemanyo<strong> strong</strong><em>I'm emphasized</em></h1><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -543,11 +563,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 2, 'strong', 3);
         await press('Enter');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><p><strong> strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><p><strong> strong</strong><em>I'm emphasized</em></p><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>He</h1><p><strong>yo strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>He</h1><p><strong>yo strong</strong><em>I'm emphasized</em></p><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -597,11 +617,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('p', 0, 'p', 0);
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There<strong>I'm strong</strong><em>I'm emphasized</em></h2><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>There<strong>I'm strong</strong><em>I'm emphasized</em></h2><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>Thereyo<strong>I'm strong</strong><em>I'm emphasized</em></h2><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hello</h1><h2>Thereyo<strong>I'm strong</strong><em>I'm emphasized</em></h2><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -611,11 +631,11 @@ function runTestsForBrowser(browserType: BrowserType) {
         await selectRange('h1', 5, 'h1', 5);
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hell</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hell</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
         await page.keyboard.type('yo');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hellyo</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`,
+          `<h1>Hellyo</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <strong>I'm bold</strong><em>I'm italic</em></p>`,
         );
       });
 
@@ -627,7 +647,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         await page.click('h1');
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
-          `<h1>HoiThis is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></h1><p>This is using i and b instead of em and strong. <b>Does</b> it <i>work</i>?. Well, here's an <em>em</em></p>`,
+          `<h1>HoiThis is using i and b instead of em and strong. <strong>Does</strong> it <em>work</em>?. Well, here's an <em>em</em></h1><p>This is using i and b instead of em and strong. <strong>Does</strong> it <em>work</em>?. Well, here's an <em>em</em></p>`,
         );
       });
 
@@ -850,7 +870,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello<br></h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
@@ -1137,7 +1157,7 @@ function runTestsForBrowser(browserType: BrowserType) {
   });
 }
 
-// TODO: support firefox and webkit in Linux...
+// TODO: support firefox
 // runTestsForBrowser('firefox');
 runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');

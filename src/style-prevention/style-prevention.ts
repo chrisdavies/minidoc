@@ -64,12 +64,19 @@ function onInput(e: KeyboardEvent) {
 
 function onEnter(e: KeyboardEvent) {
   const range = Rng.currentRange();
-  if (!range || range.collapsed) {
+  if (!range) {
     return;
   }
   e.preventDefault();
-  const [, tail] = Rng.$splitContainer(Dom.findLeaf, range);
-  tail && Rng.setCaretAtStart(tail);
+  const [head, tail] = Rng.$splitContainer(Dom.findLeaf, range);
+  if (head) {
+    Dom.$makeEditable(head);
+  }
+  if (tail) {
+    const leaf = Dom.isEmpty(tail) ? Dom.newLeaf() : tail;
+    tail.replaceWith(leaf);
+    Rng.setCaretAtStart(Dom.$makeEditable(leaf));
+  }
 }
 
 export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => {

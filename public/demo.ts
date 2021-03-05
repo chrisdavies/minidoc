@@ -101,3 +101,11 @@ Dom.appendChildren(
   [!readonly && Sticky(editor.toolbar.root), editor.root],
   document.querySelector('main'),
 );
+
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log(editor.serialize());
+  }
+});
