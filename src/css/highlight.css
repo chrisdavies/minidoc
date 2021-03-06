@@ -1,0 +1,39 @@
+/* Highlights */
+
+.minidoc-toolbar-color[data-bg='red'],
+mini-color[data-bg='red'] {
+  background: #fecaca;
+}
+
+.minidoc-toolbar-color[data-bg='yellow'],
+mini-color[data-bg='yellow'] {
+  background: #fde68a;
+}
+
+.minidoc-toolbar-color[data-bg='green'],
+mini-color[data-bg='green'] {
+  background: #a7f3d0;
+}
+
+.minidoc-toolbar-color[data-bg='blue'],
+mini-color[data-bg='blue'] {
+  background: #bfdbfe;
+}
+
+.minidoc-toolbar-color[data-bg='purple'],
+mini-color[data-bg='purple'] {
+  background: #ddd6fe;
+}
+
+.minidoc-clear-highlight,
+.minidoc-toolbar-color {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-block;
+  border-radius: 100%;
+}
+
+.minidoc-clear-highlight {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+}

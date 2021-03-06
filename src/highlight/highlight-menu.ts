@@ -3,7 +3,13 @@ import { h } from '../dom';
 import { Submenu, MinidocToolbarEditor, ToolbarButton } from '../toolbar';
 import { unapply } from '../inline-toggle';
 
-const palette = ['#FECACA', '#FDE68A', '#A7F3D0', '#BFDBFE', '#DDD6FE'];
+const palette: Record<string, string> = {
+  purple: 'Purple',
+  red: 'Red',
+  yellow: 'Yellow',
+  green: 'Green',
+  blue: 'Blue',
+};
 
 export function HighlightMenu(editor: MinidocToolbarEditor) {
   const range = Rng.currentRange();
@@ -18,7 +24,7 @@ export function HighlightMenu(editor: MinidocToolbarEditor) {
       const ranges = Rng.inlinableRanges(range);
       ranges.forEach((r) => {
         unapply('mini-color', r);
-        const el = h('mini-color', { style: `background-color: ${color}` }, r.extractContents());
+        const el = h('mini-color', { 'data-bg': color }, r.extractContents());
         r.insertNode(el);
       });
       ranges.length && Rng.setCurrentSelection(ranges[0]).collapse(true);
@@ -41,10 +47,10 @@ export function HighlightMenu(editor: MinidocToolbarEditor) {
 
   const menu = Submenu({
     children: [
-      ...palette.map((color) =>
+      ...Object.keys(palette).map((color) =>
         ToolbarButton(editor, {
-          label: 'Highlight',
-          html: `<span class="minidoc-highlight-color" style="background-color: ${color}"></span>`,
+          label: palette[color],
+          html: `<span class="minidoc-toolbar-color" data-bg="${color}"></span>`,
           run: () => highlight(color),
         }),
       ),

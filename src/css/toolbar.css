@@ -161,19 +161,6 @@
   margin-bottom: -0.5rem;
 }
 
-.minidoc-clear-highlight,
-.minidoc-highlight-color {
-  width: 1.5rem;
-  height: 1.5rem;
-  display: inline-block;
-  border-radius: 100%;
-}
-
-.minidoc-clear-highlight {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: #fff;
-}
-
 .minidoc-ico-link {
   height: 0.9rem;
 }
