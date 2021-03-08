@@ -295,6 +295,14 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await serializeDoc()).toEqual(`<h1>Focused?</h1><h2>There</h2><p>You</p>`);
       });
 
+      it('selects a whole line with triple clicks and toggles h1', async () => {
+        const toolbarDoc = `<p>Hello friend</p><p>How are you?</p>`;
+        await loadDoc(toolbarDoc);
+        await page.click('p', { clickCount: 3 });
+        await page.click('[aria-label="Heading 1"]');
+        expect(await serializeDoc()).toEqual(`<h1>Hello friend</h1><p>How are you?</p>`);
+      });
+
       it('toggles h2', async () => {
         const toolbarDoc = `<h1>Hello</h1><h2>There</h2><p>You</p>`;
         await loadDoc(toolbarDoc);
