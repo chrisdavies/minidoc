@@ -1179,12 +1179,5 @@ function runTestsForBrowser(browserType: BrowserType) {
 
 // TODO: support firefox
 // runTestsForBrowser('firefox');
-const { EXCLUDED_BROWSERS } = process.env;
-if (!EXCLUDED_BROWSERS?.includes('webkit')) {
-  console.log('Running tests on webkit.');
-  runTestsForBrowser('webkit');
-}
-if (!EXCLUDED_BROWSERS?.includes('chromium')) {
-  console.log('Running tests on chromium.');
-  runTestsForBrowser('chromium');
-}
+runTestsForBrowser('webkit');
+runTestsForBrowser('chromium');

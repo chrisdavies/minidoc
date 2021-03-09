@@ -8,13 +8,10 @@ on:
 
 jobs:
   e2e-tests:
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        config:
-          - { os: ubuntu-latest,  excluded_browsers: '' }
-          - { os: macos-latest,   excluded_browsers: '' }
-          - { os: windows-latest, excluded_browsers: 'webkit' }
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -24,9 +21,5 @@ jobs:
       - uses: microsoft/playwright-github-action@v1
       - name: Install dependencies
         run: npm install
-      - name: Set the value
-        id: step_one
-        run: |
-            echo "env.excluded_browsers=${{ matrix.config.excluded_browsers }}" >> $GITHUB_ENV
       - name: Run tests
         run: npm test
