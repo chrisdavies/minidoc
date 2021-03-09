@@ -1,0 +1,32 @@
+name: "tests"
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  e2e-tests:
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: ubuntu-latest,  excluded_browsers: '' }
+          - { os: macos-latest,   excluded_browsers: '' }
+          - { os: windows-latest, excluded_browsers: 'webkit' }
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - uses: microsoft/playwright-github-action@v1
+      - name: Install dependencies
+        run: npm install
+      - name: Set the value
+        id: step_one
+        run: |
+            echo "env.excluded_browsers=${{ matrix.config.excluded_browsers }}" >> $GITHUB_ENV
+      - name: Run tests
+        run: npm test
