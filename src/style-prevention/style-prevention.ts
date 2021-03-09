@@ -45,11 +45,9 @@ function onDelete(e: Event) {
       Dom.isText(range.startContainer) &&
       range.startOffset < range.startContainer.length)
   ) {
-    console.log('a');
     return;
   }
 
-  console.log('b');
   e.preventDefault();
   deleteRange(range, 'right');
 }
@@ -110,10 +108,8 @@ export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => 
   const result = next(editor);
   Dom.on(result.root, 'keydown', (e) => {
     if (e.defaultPrevented) {
-      console.log('defaultPrevented...');
       return;
     }
-    console.log('keykdown...');
     if (e.code === 'Delete') {
       onDelete(e);
     } else if (e.code === 'Backspace') {
