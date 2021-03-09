@@ -39,35 +39,6 @@ function toggleActive(el: Element, isActive: boolean) {
   el.classList.toggle('minidoc-card-active', isActive);
 }
 
-function handleDeleteIntoCard(e: KeyboardEvent) {
-  // Check if we're backspacing / deleting into a card. If so, instead of deleting it / merging,
-  // we want to simply focus the card. The *next* backspace / delete will then delete it.
-  if (e.code !== 'Backspace' && e.code !== 'Delete') {
-    return;
-  }
-  const range = Rng.currentRange();
-  if (!range?.collapsed) {
-    return;
-  }
-  const leaf = Dom.findLeaf(Rng.toNode(range))!;
-  const deletingInto =
-    e.code === 'Backspace'
-      ? Rng.isAtStartOf(leaf, range) &&
-        leaf.previousElementSibling?.matches(cardTagName) &&
-        leaf.previousElementSibling
-      : Rng.isAtEndOf(leaf, range) &&
-        leaf.nextElementSibling?.matches(cardTagName) &&
-        leaf.nextElementSibling;
-  if (!deletingInto) {
-    return;
-  }
-  e.preventDefault();
-  Rng.setCaretAtStart(deletingInto);
-  if (Dom.isEmpty(leaf)) {
-    leaf.remove();
-  }
-}
-
 /**
  * Add support for cards to minidoc.
  */
@@ -196,9 +167,6 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
   });
 
   Dom.on(editor.root, 'keydown', (e) => {
-    // Deleting from an element into a card
-    handleDeleteIntoCard(e);
-
     if (e.defaultPrevented || !result.isActive(cardTagName)) {
       return;
     }

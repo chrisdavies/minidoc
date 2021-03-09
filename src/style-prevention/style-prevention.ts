@@ -6,10 +6,35 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { EditorMiddleware, MinidocBase } from '../types';
 
-function deleteRange(range: Range, direction: 'left' | 'right') {
-  const result = range.collapsed ? Rng.extendSelection(direction)! : range;
-  Rng.$deleteAndMergeContents(result);
-  Rng.setCurrentSelection(result);
+/**
+ * If we're deleting / backspacing into an immutable node (a),
+ * we need to hand behavioral control over to the immutable
+ * node's code, and we'll allow it to handle things. If the
+ * node we're leaving (b) is empty, we'll delete it.
+ */
+function deleteIntoImmutable(a: Node, b: Node) {
+  if (!Dom.isImmutable(a)) {
+    return;
+  }
+  if (Dom.isEmpty(b)) {
+    Dom.remove(b);
+  }
+  Rng.setCaretAtStart(a);
+  return true;
+}
+
+function deleteRange(originalRange: Range, direction: 'left' | 'right') {
+  let range = originalRange;
+  if (range.collapsed) {
+    range = Rng.extendSelection(direction)!;
+    const [a, b] = Rng.findLeafs(range);
+    if (deleteIntoImmutable(a, b) || deleteIntoImmutable(b, a)) {
+      return;
+    }
+  }
+
+  Rng.$deleteAndMergeContents(range);
+  Rng.setCurrentSelection(range);
 }
 
 function onDelete(e: Event) {
@@ -20,9 +45,11 @@ function onDelete(e: Event) {
       Dom.isText(range.startContainer) &&
       range.startOffset < range.startContainer.length)
   ) {
+    console.log('a');
     return;
   }
 
+  console.log('b');
   e.preventDefault();
   deleteRange(range, 'right');
 }
@@ -83,8 +110,10 @@ export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => 
   const result = next(editor);
   Dom.on(result.root, 'keydown', (e) => {
     if (e.defaultPrevented) {
+      console.log('defaultPrevented...');
       return;
     }
+    console.log('keykdown...');
     if (e.code === 'Delete') {
       onDelete(e);
     } else if (e.code === 'Backspace') {
