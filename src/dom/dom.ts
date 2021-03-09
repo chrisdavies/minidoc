@@ -95,7 +95,7 @@ export function isList(el: any): el is HTMLOListElement | HTMLUListElement {
 /**
  * Determine if the node is empty.
  */
-export function isEmpty(node: Node, ignoreBrs?: boolean): boolean {
+export function isEmpty(node: Node): boolean {
   // This is a bit of a hack, to say the least. But it turns out there are
   // scenarios where the node appears to have content (e.g. a space or something),
   // but it renders as empty. This attempts to capture that.
@@ -107,21 +107,12 @@ export function isEmpty(node: Node, ignoreBrs?: boolean): boolean {
     return true;
   }
 
-  const treeWalker = document.createTreeWalker(
-    node,
-    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-  );
+  const treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
 
   let currentNode: Node | null = treeWalker.currentNode;
 
   while (currentNode) {
     if (currentNode instanceof Text && currentNode.length) {
-      return false;
-    }
-    if (
-      (currentNode as Element).tagName === 'MINI-CARD' ||
-      (!ignoreBrs && (currentNode as Element).tagName === 'BR')
-    ) {
       return false;
     }
     currentNode = treeWalker.nextNode();
@@ -347,7 +338,7 @@ function isUneditable(node: Node) {
  * Ensure the specified node is editable. This is mutative.
  */
 export function $makeEditable(node: Node): Node {
-  if (!isEmpty(node) || isUneditable(node)) {
+  if (!isEmpty(node) || node.lastChild instanceof HTMLBRElement || isUneditable(node)) {
     return node;
   }
   if (isList(node)) {

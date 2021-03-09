@@ -63,7 +63,7 @@ function handleDeleteIntoCard(e: KeyboardEvent) {
   }
   e.preventDefault();
   Rng.setCaretAtStart(deletingInto);
-  if (Dom.isEmpty(leaf, true)) {
+  if (Dom.isEmpty(leaf)) {
     leaf.remove();
   }
 }

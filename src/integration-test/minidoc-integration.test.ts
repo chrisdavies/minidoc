@@ -416,6 +416,17 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
+      it('triple click, bold, italic, with br does not produce loads of empty brs and elements', async () => {
+        const toolbarDoc = `<p>Hello there<br></p>`;
+        await loadDoc(toolbarDoc);
+        await page.click('p', { clickCount: 3 });
+        await page.click('[aria-label="Bold"]');
+        await page.click('[aria-label="Italic"]');
+        await page.click('[aria-label="Bold"]');
+        await page.click('[aria-label="Italic"]');
+        expect(await serializeDoc()).toEqual(`<p>Hello there</p>`);
+      });
+
       it('bold and backspacing', async () => {
         await loadDoc(`<h1>Hello</h1><p>Stuff goes here</p>`);
         await selectRange('p', 6, 'p', 10);

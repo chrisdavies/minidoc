@@ -67,7 +67,7 @@ function outdent(li: Element) {
 
   grandparent.insertBefore(li, parent.parentElement?.nextElementSibling!);
   Rng.setCaretAtStart(li);
-  if (Dom.isEmpty(parent, true)) {
+  if (Dom.isEmpty(parent)) {
     Dom.remove(parent);
   }
 }
@@ -92,7 +92,7 @@ const handlers: {
       // to do.
       return;
     }
-    if (!Dom.isEmpty(li, true)) {
+    if (!Dom.isEmpty(li)) {
       // We're in a non-empty li. In this scenario, we split it at the caret.
       const [a, b] = Rng.$splitContainer(Dom.closest('li'), range);
       a && Dom.$makeEditable(a);

@@ -103,7 +103,7 @@ export function $deleteAndMergeContents(range: Range) {
     }
     Dom.remove(endEl);
   }
-  if (Dom.isEmpty(startEl, true)) {
+  if (Dom.isEmpty(startEl)) {
     Dom.$makeEditable(startEl);
   } else if (endLeaf.matches('ol,ul') && endLeaf.previousElementSibling?.matches('ol,ul')) {
     // The deletion resulted in two sibling lists, so we need to merge them.
@@ -148,7 +148,7 @@ export function isAtStartOf(node: Node, range: Range): boolean {
   const { startOffset } = range;
   let curr: Node | null = toNode(range);
   // This happens when we have something like <p><br></p>
-  if (Dom.isEmpty(curr, true) && curr.previousSibling && Dom.isEmpty(curr.previousSibling, true)) {
+  if (Dom.isEmpty(curr) && curr.previousSibling && Dom.isEmpty(curr.previousSibling)) {
     curr = curr.previousSibling;
   } else if (startOffset) {
     return false;
@@ -173,7 +173,7 @@ export function isAtEndOf(node: Node, range: Range): boolean {
   const { startOffset } = range;
   let curr: Node | null = toNode(range);
   // This happens when we have something like <p><br></p>
-  if (Dom.isEmpty(curr, true) && curr.nextSibling && Dom.isEmpty(curr.nextSibling, true)) {
+  if (Dom.isEmpty(curr) && curr.nextSibling && Dom.isEmpty(curr.nextSibling)) {
     curr = curr.nextSibling;
   } else if (startOffset && Dom.isText(curr) && curr.length > startOffset) {
     return false;
@@ -271,8 +271,8 @@ export function $splitAndInsert(
 
   const result = fromNodes([lastNode]);
 
-  a && Dom.isEmpty(a, true) && a.remove();
-  b && Dom.isEmpty(b, true) && b.remove();
+  a && Dom.isEmpty(a) && a.remove();
+  b && Dom.isEmpty(b) && b.remove();
 
   // Possibly merge the first element into the first slice of the sandwich
   const mergeA =

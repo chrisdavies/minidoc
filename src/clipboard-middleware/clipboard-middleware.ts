@@ -180,7 +180,7 @@ function mergeLists(list: Element, range: Range, frag: DocumentFragment) {
 
   range.selectNodeContents(lastLi);
 
-  if (trailingLi && !Dom.isEmpty(trailingLi, true)) {
+  if (trailingLi && !Dom.isEmpty(trailingLi)) {
     if (lastLi !== firstLi) {
       lastLi.append(Dom.toFragment(trailingLi.childNodes));
     } else {
@@ -216,7 +216,7 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: Mountable)
 
   if (Dom.isImmutable(targetLeaf)) {
     return insertBelow(newLeafs, targetLeaf);
-  } else if (Dom.isEmpty(targetLeaf, true)) {
+  } else if (Dom.isEmpty(targetLeaf)) {
     const result = insertBelow(newLeafs, targetLeaf);
     targetLeaf.remove();
     return result;

@@ -9,7 +9,7 @@ export const placeholder = (placeholder: string): EditorMiddleware => (next, edi
   const updatePlaceholder = () => {
     const placeholderText =
       (el.childElementCount <= 1 &&
-        Dom.isEmpty(el, true) &&
+        Dom.isEmpty(el) &&
         !Dom.isList(el.firstElementChild) &&
         placeholder) ||
       '';
