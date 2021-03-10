@@ -109,6 +109,14 @@ function moveToClipboard(e: ClipboardEvent, isCut: boolean) {
   const content = extractCopyContent(range, isCut);
   if (content) {
     content.normalize();
+
+    dataTransfer.setData(
+      'text/plain',
+      Array.from(content.children)
+        .map((el) => el.textContent)
+        .join('\n\n'),
+    );
+
     dataTransfer.setData('text/html', Dom.toHTML(content));
   }
 }
