@@ -12,7 +12,7 @@
     "start": "npm-run-all --parallel watch:**",
     "watch:es": "esbuild public/demo.ts --global-name=minidoc --bundle --servedir=public --outfile=public/dist/bundle.js --sourcemap --define:process.env.NODE_ENV=\"'development'\"",
     "watch:ts": "tsc --noEmit --watch --preserveWatchOutput",
-    "prepare": "rm -rf ./dist && npm test && npm-run-all --parallel release:**",
+    "prepack": "rm -rf ./dist && npm test && npm-run-all --parallel release:**",
     "release:ts": "tsc --declaration --declarationDir dist/types --declarationMap --emitDeclarationOnly",
     "release:es": "NODE_ENV=production esbuild --minify --sourcemap=external --format=cjs --bundle src/index.ts --outfile=dist/minidoc.min.js"
   },
@@ -27,11 +27,13 @@
     "esbuild": "0.8.55",
     "jasmine": "3.6.3",
     "npm-run-all": "4.1.5",
-    "onchange": "7.1.0",
     "playwright": "1.9.1",
     "sirv": "1.0.11",
     "ts-node": "9.1.0",
     "typescript": "4.1.2"
+  },
+  "optionalDependencies": {
+    "onchange": "7.1.0"
   },
   "prettier": {
     "trailingComma": "all",
