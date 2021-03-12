@@ -41,6 +41,7 @@ export const fileDrop = (handler: FileDropHandler): EditorMiddleware => (next, e
         if (files?.length) {
           handler({ editor: core, files });
         }
+        return undefined;
       });
     }
   });

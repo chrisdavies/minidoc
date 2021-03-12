@@ -8,12 +8,12 @@ import { EditorMiddlewareMixin, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { debounce } from '../util';
 
+export type MinidocDropHandler = (e: DragEvent, target: HTMLElement) => HTMLElement | undefined;
+
 export interface DragDroppable {
   isDragging: boolean;
-  beginDragDrop(e: DragEvent, onDrop: (e: DragEvent, target: Element) => void): void;
+  beginDragDrop(e: DragEvent, onDrop: MinidocDropHandler): void;
 }
-
-export type MinidocDropHandler = (e: DragEvent, target: HTMLElement) => Element | undefined | void;
 
 // We show a dragging line in the editor, so we'll use a transparent gif to hide the drag image,
 // which I find to be more of a distraction than a help.
@@ -83,6 +83,7 @@ export const dragDropMixin: EditorMiddlewareMixin<DragDroppable> = (next, editor
     if (onDrop) {
       const dropResult = onDrop?.(e as DragEvent, dropTarget);
       dropResult && dropTarget.replaceWith(dropResult);
+      dropResult?.focus();
       result.onChange();
     }
     e.preventDefault();

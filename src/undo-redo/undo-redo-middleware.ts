@@ -20,7 +20,7 @@ import { EditorMiddlewareMixin, MinidocBase } from '../types';
 import { UndoHistoryState, DetachedRange } from './types';
 import { Serializable } from '../serializable';
 import { Mountable } from '../mountable';
-import { chain } from '../util';
+import { Scrubbable } from '../scrubbable';
 
 export interface Undoable {
   undo(): void;
@@ -43,15 +43,6 @@ export interface Changeable {
   captureChange(fn: () => void): void;
 }
 
-function cardsEqual(a?: Element, b?: Element) {
-  return (
-    a &&
-    b &&
-    a.getAttribute('type') === b.getAttribute('type') &&
-    a.getAttribute('state') === b.getAttribute('state')
-  );
-}
-
 /**
  * Replace the editor's document with the one provided by the undo / redo system.
  *
@@ -62,36 +53,27 @@ function cardsEqual(a?: Element, b?: Element) {
  * particular undo frame, but not for the typical typing and undoing of typing.
  */
 function patchDoc({ doc, ctx }: UndoHistoryState<DetachedRange>, editor: MinidocBase) {
-  const existingCards: Element[] = [];
-  const range = Rng.createRange();
-  range.setStart(editor.root, 0);
-  let cardIndex = 0;
+  const leafs = new Map<string, Node[]>();
 
-  Array.from(editor.root.childNodes).forEach((n) => {
-    if (Dom.isCard(n)) {
-      existingCards.push(n);
+  Array.from(editor.root.children).forEach((n: any) => {
+    const key: string = n.serialize ? n.serialize() : n.outerHTML;
+    const arr = leafs.get(key) || [];
+    n.remove();
+    arr.push(n);
+    leafs.set(key, arr);
+  });
+
+  editor.root.innerHTML = '';
+
+  Array.from(h('div', { innerHTML: doc }).children).forEach((n) => {
+    const key = n.outerHTML;
+    const existingLeaf = leafs.get(key);
+    if (existingLeaf?.length) {
+      editor.root.append(existingLeaf.pop()!);
     } else {
-      n.remove();
+      editor.root.append((editor as MinidocBase & Scrubbable).scrub(Dom.toFragment([n])));
     }
   });
-
-  Array.from(h('div', { innerHTML: doc }).childNodes).forEach((n) => {
-    const newCard = Dom.isCard(n) ? n : undefined;
-    const existingCard = existingCards[cardIndex];
-
-    newCard && ++cardIndex;
-
-    if (cardsEqual(newCard, existingCard)) {
-      range.setStartAfter(existingCard);
-      return;
-    }
-
-    newCard && existingCard?.remove();
-    range.insertNode((editor as MinidocBase & Mountable).beforeMount(Dom.toFragment([n])));
-    n.isConnected && range.setStartAfter(n);
-  });
-
-  existingCards.slice(cardIndex).forEach((n) => n.remove());
 
   const selection = Rng.attachTo(ctx, editor.root);
   selection && Rng.setCurrentSelection(selection);
@@ -196,7 +178,7 @@ export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Cha
   // We have to initialize undo / redo only after the doc has been mounted. Prior to this,
   // the doc may be in an intermadiate / initializing state. The setTimeout is to put our
   // initialization after any DOM change events have propagated.
-  result.afterMount = chain(result.afterMount, () => setTimeout(() => init(result)));
+  setTimeout(() => init(result));
 
   return result;
 };

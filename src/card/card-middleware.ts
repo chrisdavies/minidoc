@@ -7,15 +7,20 @@ import { Mountable } from '../mountable/mountable';
 import { Serializable } from '../serializable/serializable';
 import { InlineTogglable } from '../inline-toggle';
 import { DragDroppable } from '../drag-drop';
+import { Scrubbable } from '../scrubbable';
 
-export interface CardRenderOptions<T = any> {
+export interface CardRenderOptions<T extends object = any> {
   state: T;
+  readonly: boolean;
   editor: MinidocBase;
   stateChanged(state: T): void;
 }
 
-export interface MinidocCardDefinition<T = any> {
+export interface MinidocCardDefinition<T extends object = any> {
   type: string;
+  selector: string;
+  deriveState(el: HTMLElement): T;
+  serialize(opts: CardRenderOptions<T>): HTMLElement;
   render(opts: CardRenderOptions<T>): Element;
 }
 
@@ -46,8 +51,14 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
   next,
   editor,
 ) => {
-  const result = editor as MinidocBase & Cardable & Mountable & InlineTogglable & DragDroppable;
+  const result = editor as MinidocBase &
+    Cardable &
+    Mountable &
+    InlineTogglable &
+    DragDroppable &
+    Scrubbable;
   const activeCards = new Set<Element>();
+  const selector = [cardTagName, ...defs.map((d) => d.selector).filter((s) => !!s)].join(',');
 
   const definitions = defs.reduce((acc, c) => {
     acc[c.type] = c;
@@ -69,17 +80,33 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
     }
   }
 
-  function mountCard(el: Element, editor: MinidocBase) {
-    if (el.tagName !== cardTagName || (el as ImmutableLeaf).$immutable) {
-      return;
+  function mountCard(el: Element, editor: MinidocBase, state?: any) {
+    if (!el.matches(selector) || (el as ImmutableLeaf).$immutable) {
+      return el;
     }
+
+    const def =
+      el.tagName !== cardTagName
+        ? defs.find((d) => d.selector && d.deriveState && el.matches(d.selector))!
+        : definitions[Dom.attr('type', el)!];
+
     (el as ImmutableLeaf).$immutable = true;
-    const cardType = Dom.attr('type', el)!;
-    const def = definitions[cardType];
     if (!def) {
-      throw new Error(`Unknown card type "${cardType}"`);
+      console.error(el);
+      throw new Error(`Unknown card type`);
     }
-    const { render } = definitions[cardType];
+    if (state === undefined) {
+      state = def.deriveState
+        ? def.deriveState(el as HTMLElement)
+        : JSON.parse(Dom.attr('state', el) || '{}');
+    }
+    if (el.tagName !== cardTagName) {
+      const newEl = h('mini-card', { type: def.type, state: JSON.stringify(state) });
+      el.replaceWith(newEl);
+      el = newEl;
+      (el as ImmutableLeaf).$immutable = true;
+    }
+    const { render } = def;
     Dom.assignAttrs(
       {
         tabindex: -1,
@@ -89,7 +116,8 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
     );
     const opts: CardRenderOptions = {
       editor,
-      state: JSON.parse(Dom.attr('state', el) || 'null'),
+      readonly: !!editor.readonly,
+      state,
       stateChanged(state) {
         Dom.assignAttrs({ state: JSON.stringify(state) }, el);
       },
@@ -124,15 +152,10 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       setTimeout(() => Rng.setCaretAtStart(el));
     });
 
-    ((el as unknown) as Serializable).serialize = (forSave) =>
-      h(cardTagName, {
-        type: Dom.attr('type', el),
-        // If we're serializing for a save operation, we'll use the current
-        // state. Otherwise, for undo / redo, we'll use whatever is in the DOM.
-        state: forSave ? JSON.stringify(opts.state) : Dom.attr('state', el),
-      }).outerHTML;
+    ((el as unknown) as Serializable).serialize = () => def.serialize(opts).outerHTML;
 
     content.setAttribute('draggable', 'true');
+    return el;
   }
 
   result.defineCard = (def) => (definitions[def.type] = def);
@@ -144,17 +167,25 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       tabindex: -1,
     });
     Rng.$splitAndInsert(Dom.findLeaf, Rng.currentRange()!, Dom.toFragment(card));
-    mountCard(card, result);
+    mountCard(card, result, initialState);
     Rng.setCaretAtStart(card);
     return card;
   };
 
-  // When the editor loads a doc, we need to mount all the cards
+  // When the editor loads any content, we need to mount all the cards
   // before history and other plugins kick in.
-  result.beforeMount = compose(result.beforeMount, (frag) => {
-    frag.querySelectorAll(cardTagName).forEach((n) => mountCard(n, result));
-    return frag;
-  });
+  result.scrub = compose((node) => {
+    const parentNode = (node as unknown) as ParentNode;
+    if (parentNode.querySelectorAll) {
+      parentNode.querySelectorAll(selector).forEach((n) => {
+        if (Dom.isImmutable(Dom.findLeaf(n))) {
+          return;
+        }
+        mountCard(n, result);
+      });
+    }
+    return node;
+  }, result.scrub);
 
   // If the caret enters a card, display it as active.
   Dom.on(editor.root, 'mini:caretchange', () => {

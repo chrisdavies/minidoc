@@ -11,7 +11,7 @@ import {
   fileDrop,
 } from '../src';
 import * as Dom from '../src/dom';
-import { h } from '../src/dom';
+import { h, on } from '../src/dom';
 import { debounce } from '../src/util';
 
 let readonly = location.search === '?readonly';
@@ -38,27 +38,27 @@ function Sticky(child: Node) {
   return el;
 }
 
-const counterCard: MinidocCardDefinition = {
+const counterButtonText = ({ count }: { count: number }) => `Count=${count}`;
+const counterCard: MinidocCardDefinition<{ count: number }> = {
   type: 'counter',
+  selector: 'button[data-count]',
+  deriveState(el) {
+    return { count: parseInt(el.dataset.count || '0', 10) };
+  },
+  serialize({ state }) {
+    return h('button', { 'data-count': state.count }, counterButtonText(state));
+  },
   render(opts) {
-    let count = opts.state || 0;
-
-    const el = h(
-      'button',
-      {
-        onclick: (e) => {
-          ++count;
-          // This is how we notify minidoc that we have a new
-          // state (so it shows up in undo / redo history)
-          opts.stateChanged(count);
-          e.target.textContent = `Incremented count + ${count}`;
-        },
-      },
-      `Empty count ${count}`,
-    );
+    const { state } = opts;
+    const el = counterCard.serialize(opts);
+    on(el, 'click', (e) => {
+      ++state.count;
+      el.dataset.count = state.count.toString();
+      el.textContent = counterButtonText(state);
+    });
     onMount(el, () => {
-      console.log(`counter:init(${count})`);
-      return () => console.log(`counter:dispose(${count})`);
+      console.log(`counter:init(${state.count})`);
+      return () => console.log(`counter:dispose(${state.count})`);
     });
     return el;
   },
@@ -66,8 +66,72 @@ const counterCard: MinidocCardDefinition = {
 
 const myfileCard: MinidocCardDefinition = {
   type: 'myfile',
+  selector: 'a[download]',
+  deriveState(el: HTMLAnchorElement) {
+    return {
+      src: el.href,
+      name: el.download,
+      type: el.dataset.type,
+    };
+  },
+  serialize({ state }) {
+    return h(
+      'a.demo-file',
+      { href: state.src, download: state.name, 'data-type': state.type },
+      state.name,
+    );
+  },
   render(opts) {
-    return h('.demo-file', `${opts.state.type}: ${opts.state.name}`);
+    if (opts.readonly) {
+      return myfileCard.serialize(opts);
+    }
+    return h('div.demo-file', opts.state.name);
+  },
+};
+
+const videoCard: MinidocCardDefinition<{ src: string; type: string }> = {
+  type: 'vid',
+  selector: 'video',
+  deriveState(el: HTMLVideoElement) {
+    const source = el.querySelector('source');
+    return { src: source?.src || el.src, type: source?.type || el.dataset.type || 'video/unknown' };
+  },
+  serialize({ state }) {
+    return h('video', { src: state.src, 'data-type': state.type, controls: true });
+  },
+  render(opts) {
+    return videoCard.serialize(opts);
+  },
+};
+
+const imgCard: MinidocCardDefinition<{ src: string; caption?: string }> = {
+  type: 'img',
+  selector: 'img,figure',
+  deriveState(el) {
+    switch (el.tagName) {
+      case 'IMG': {
+        const img = el as HTMLImageElement;
+        return { src: img.src, caption: img.alt };
+      }
+      default: {
+        const img = el.querySelector('img');
+        const caption = el.querySelector('caption');
+        return {
+          src: img?.src || '',
+          caption: caption?.textContent || img?.alt || '',
+        };
+      }
+    }
+  },
+  serialize({ state }) {
+    return h(
+      'figure',
+      h('img', { src: state.src, alt: state.caption }),
+      state.caption && h('figcaption', state.caption),
+    );
+  },
+  render(opts) {
+    return imgCard.serialize(opts);
   },
 };
 
@@ -75,7 +139,7 @@ const toolbarCounter: MinidocToolbarAction = {
   id: 'counter',
   label: 'Counter',
   html: '+/-',
-  run: (t) => ((t as unknown) as Cardable).insertCard('counter', 42),
+  run: (t) => ((t as unknown) as Cardable).insertCard('counter', { count: 42 }),
 };
 
 const el = document.querySelector('.example-doc');
@@ -88,7 +152,7 @@ const editor = minidoc({
   middleware: [
     placeholder('Type something fanci here.'),
     minidocToolbar([...defaultToolbarActions, toolbarCounter]),
-    cardMiddleware([counterCard, myfileCard]),
+    cardMiddleware([counterCard, myfileCard, imgCard, videoCard]),
     // The fileDrop middleware adds support for dropping files onto the editor via
     // the HTML5 drag / drop API.
     fileDrop((opts) => {

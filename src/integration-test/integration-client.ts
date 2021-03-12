@@ -1,21 +1,21 @@
 import * as integrationTests from '../index';
-import { onMount } from '../disposable';
-import { h } from '../dom';
+import { h, on } from '../dom';
 
-const counterCard: integrationTests.MinidocCardDefinition = {
+const text = (count: number, isReadonly: boolean) =>
+  `Count is ${count}${isReadonly ? ' (readonly)' : ''}`;
+
+const counterCard: integrationTests.MinidocCardDefinition<{ count: number }> = {
   type: 'counter',
+  selector: 'button[data-count]',
+  deriveState(el) {
+    return { count: parseInt(el.dataset.count || '0', 10) };
+  },
+  serialize(opts) {
+    return h('button', { 'data-count': opts.state.count }, text(opts.state.count, opts.readonly));
+  },
   render(opts) {
-    let count = opts.state || 0;
-
-    const el = h(
-      'button',
-      { onclick: (e: any) => (e.target.textContent = `Incremented count + ${++count}`) },
-      `Empty count ${count} is readonly: ${opts.editor.readonly}`,
-    );
-    onMount(el, () => {
-      console.log(`counter:init(${count})`);
-      return () => console.log(`counter:dispose(${count})`);
-    });
+    const el = counterCard.serialize(opts);
+    on(el, 'click', (e: any) => (e.target.textContent = text(++opts.state.count, opts.readonly)));
     return el;
   },
 };

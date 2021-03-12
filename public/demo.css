@@ -151,9 +151,13 @@ main {
   File-handling is now application-specific. This is just
   a dumb class for demo purposes.
 */
+
 .demo-file {
+  display: block;
   background: #f8fafc;
+  border: 1px solid #eee;
   padding: 0.5rem;
   color: #444;
   border-radius: 0.25rem;
+  text-decoration: none;
 }

@@ -13,12 +13,14 @@ import { clipbordMiddleware } from '../clipboard-middleware';
 import { stylePrevention } from '../style-prevention';
 import { onSequenceMixin } from '../on-sequence';
 import { horizontalRuleMixin } from '../horizontal-rule';
+import { scrubbableMiddleware } from '../scrubbable';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;
 }
 
 const defaultMiddleware = getDefaultMiddleware([
+  scrubbableMiddleware,
   stylePrevention,
   onSequenceMixin,
   disposable,
@@ -80,7 +82,6 @@ export function minidoc<T extends Array<EditorMiddleware>>(
 
   // Associate the editor with the root element.
   (root as any).$editor = editor;
-  editor.beforeMount(core.root);
-  editor.afterMount();
+  editor.beforeMount(editor.scrub(core.root));
   return editor;
 }

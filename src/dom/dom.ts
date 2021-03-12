@@ -1,3 +1,4 @@
+import { Serializable } from '../serializable';
 import { ImmutableLeaf } from '../types';
 import { last } from '../util';
 
@@ -189,7 +190,7 @@ export function findLeaf(node: Node): Element | undefined {
   while (true) {
     const parent = node.parentElement;
     if (!parent) {
-      return;
+      return node.isConnected ? undefined : (node as Element);
     }
     if (isRoot(parent)) {
       return isElement(node) ? node : undefined;
@@ -255,9 +256,14 @@ export function toFragment(
 }
 
 export function toHTML(n: Node) {
+  const serializable = n as Serializable & Element;
+  if (serializable.serialize) {
+    return serializable.serialize();
+  }
   if (isElement(n)) {
     return n.outerHTML;
-  } else if (n instanceof DocumentFragment) {
+  }
+  if (n instanceof DocumentFragment) {
     return h('div', n).innerHTML;
   }
   throw new Error(`Node ${n.nodeType} cannot be converted to HTML.`);

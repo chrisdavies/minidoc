@@ -8,41 +8,23 @@
  */
 import * as Dom from '../dom';
 import * as Rng from '../range';
-import { h } from '../dom';
 import { last } from '../util';
-import { scrubHtml } from './scrub-html';
 import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { Mountable } from '../mountable';
+import { Scrubbable } from '../scrubbable';
+import { h } from '../dom';
 
-function stripBrs(el: Element) {
-  Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
+function stripBrs(el: Node) {
+  Dom.isElement(el) && Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
   return el;
-}
-
-function readClipboard(e: ClipboardEvent): DocumentFragment | undefined {
-  const { clipboardData } = e;
-
-  if (!clipboardData) {
-    return;
-  }
-
-  const rawHtml = clipboardData.getData('text/html');
-  if (rawHtml) {
-    return scrubHtml(rawHtml);
-  }
-
-  const text = clipboardData.getData('text/plain');
-  if (text) {
-    return Dom.toFragment(text);
-  }
 }
 
 /**
  * Convert the specified document fragment into Elements that are
  * valid as document leaf nodes.
  */
-function convertToLeafs(frag: DocumentFragment | undefined) {
+function convertToLeafs<T extends Node>(frag?: T) {
   if (!frag) {
     return;
   }
@@ -65,36 +47,67 @@ function convertToLeafs(frag: DocumentFragment | undefined) {
   });
 
   // Sanitize and remove any empty leafs from the fragment
-  Array.from(frag.children).forEach((n) => {
+  Array.from(frag.childNodes).forEach((n) => {
     Dom.$makeEditable(stripBrs(n));
   });
 
   return frag;
 }
 
-function extractCopyContent(range: Range, isCut: boolean) {
-  const startLeaf = Dom.findLeaf(Rng.toNode(range));
-  const endLeaf = Dom.findLeaf(Rng.toEndNode(range));
+function readClipboard(
+  e: ClipboardEvent,
+  editor: MinidocBase & Mountable & Scrubbable,
+): DocumentFragment | undefined {
+  const { clipboardData } = e;
 
-  // Handle the special case where we're copying a single card
-  if (startLeaf && range.collapsed && Dom.isImmutable(startLeaf)) {
-    isCut && startLeaf.remove();
-    return Dom.toFragment(startLeaf.cloneNode(false));
+  if (!clipboardData) {
+    return;
   }
 
-  const content = isCut ? Rng.$deleteAndMergeContents(range) : range.cloneContents();
-
-  if (startLeaf !== endLeaf || !Dom.isList(startLeaf)) {
-    return content;
+  const rawHtml = clipboardData.getData('text/html');
+  if (rawHtml) {
+    return editor.scrub(Dom.toFragment(h('div', { innerHTML: rawHtml }).childNodes));
   }
 
-  // We're copying lis, so we need to make sure the clipboard contains a valid list (e.g. ol/ul)
-  // This can happen when we've selected just the text of an li and it has a sublist
-  const listContent =
-    !Dom.isElement(content?.firstChild) || !content?.firstChild.matches('li')
-      ? h('li', content)
-      : content;
-  return Dom.toFragment(h(startLeaf.tagName, listContent));
+  const text = clipboardData.getData('text/plain');
+  if (text) {
+    return Dom.toFragment(text);
+  }
+}
+
+function extractCopyContent(range: Range) {
+  const leafs = Rng.findLeafs(range);
+  const startLeaf = leafs[0];
+  const endLeaf = leafs[leafs.length - 1];
+
+  // If we're copying the children of a list, we need to convert the copied
+  // content to a full list (e.g. ol / ul so that we paste the right thing)
+  if (leafs.length === 1 && Dom.isList(startLeaf)) {
+    const content = range.cloneContents();
+    const listContent =
+      !Dom.isElement(content?.firstChild) || !content?.firstChild.matches('li')
+        ? h('li', content)
+        : content;
+    return [h(startLeaf.tagName, listContent)];
+  }
+
+  return leafs.map((el) => {
+    if ((el as any).serialize) {
+      return el;
+    }
+    const tmp = Rng.createRange();
+    if (el.contains(startLeaf)) {
+      tmp.setStart(range.startContainer, range.startOffset);
+    } else {
+      tmp.setStartBefore(el);
+    }
+    if (el.contains(endLeaf)) {
+      tmp.setEnd(range.endContainer, range.endOffset);
+    } else {
+      tmp.setEndAfter(el);
+    }
+    return tmp.cloneContents();
+  });
 }
 
 function moveToClipboard(e: ClipboardEvent, isCut: boolean) {
@@ -106,18 +119,17 @@ function moveToClipboard(e: ClipboardEvent, isCut: boolean) {
     return;
   }
 
-  const content = extractCopyContent(range, isCut);
-  if (content) {
-    content.normalize();
-
-    dataTransfer.setData(
-      'text/plain',
-      Array.from(content.children)
-        .map((el) => el.textContent)
-        .join('\n\n'),
-    );
-
-    dataTransfer.setData('text/html', Dom.toHTML(content));
+  const content = extractCopyContent(range);
+  if (content.length) {
+    dataTransfer.setData('text/plain', content.map((el) => el.textContent).join('\n\n'));
+    dataTransfer.setData('text/html', content.map((n) => Dom.toHTML(n)).join(''));
+  }
+  if (!isCut) {
+    return;
+  }
+  Rng.$deleteAndMergeContents(range);
+  if (content.length === 1 && Dom.isImmutable(content[0])) {
+    (content[0] as Element).remove();
   }
 }
 
@@ -240,7 +252,7 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: Mountable)
  */
 export const clipbordMiddleware: EditorMiddleware = (next, b: MinidocBase) => {
   const el = b.root;
-  const editor = b as MinidocBase & Changeable & Mountable;
+  const editor = b as MinidocBase & Changeable & Mountable & Scrubbable;
 
   Dom.on(el, 'paste', (e) => {
     if (e.defaultPrevented) {
@@ -250,7 +262,7 @@ export const clipbordMiddleware: EditorMiddleware = (next, b: MinidocBase) => {
     const range = Rng.currentRange()!;
     !range.collapsed && Rng.$deleteAndMergeContents(range);
 
-    const content = convertToLeafs(readClipboard(e));
+    const content = convertToLeafs(readClipboard(e, editor));
     if (!content) {
       return;
     }

@@ -723,7 +723,7 @@ function runTestsForBrowser(browserType: BrowserType) {
       beforeAll(() => page.reload());
 
       it('paste does not write into a card', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('p');
         await selectNodeContent('p');
@@ -731,78 +731,45 @@ function runTestsForBrowser(browserType: BrowserType) {
         await click('mini-card');
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
       it('cards have access to the readonly property on the editor', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc, { readonly: true });
         const editorCount = await page.evaluate(
           () => document.querySelectorAll('[contenteditable=true]').length,
         );
         expect(editorCount).toEqual(0);
-        expect(await page.textContent('mini-card')).toContain('is readonly: true');
+        expect(await page.textContent('mini-card')).toContain('(readonly)');
       });
 
-      //   it('cards are initialized and disposed in edit mode', async () => {
-      //     await page.evaluate(() => {
-      //       const el: any = document.querySelector('[data-test-subj="editor-container"]');
-      //       el.innerHTML = '';
-      //       el.editor.dispose();
-
-      //       const win: any = window;
-
-      //       const testCard = {
-      //         type: 'testcard',
-      //         render() {
-      //           const el = document.createElement('strong');
-      //           el.innerHTML = 'Heyo!';
-      //           win.integrationTests.onMount(el, () => {
-      //             win.editableTestCard = 'initialized';
-      //             return () => (win.editableTestCard = 'disposed');
-      //           });
-      //           return el;
-      //         },
-      //       };
-      //       el.editor = win.integrationTests.editableMinidoc({
-      //         el,
-      //         doc: `<h1>Hi</h1><mini-card type="testcard"></mini-card><p>There</p>`,
-      //         cards: [testCard],
-      //         toolbarActions: win.integrationTests.defaultToolbarActions,
-      //       });
-      //     });
-
-      //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('initialized');
-      //     await page.evaluate(() => document.querySelector('mini-card')!.remove());
-      //     expect(await page.evaluate(() => (window as any).editableTestCard)).toEqual('disposed');
-      //   });
-
       it('cards are copiable', async () => {
-        const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><h2>There</h2><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('mini-card');
         await clipboard.copy('[contenteditable]');
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><button data-count="0">Count is 0</button><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
       it('cards are pastable in other elements', async () => {
-        const doc = `<h1>Hello</h1><p>There</p><mini-card type="counter" state="0"></mini-card><p>End</p>`;
+        const doc = `<h1>Hello</h1><p>There</p><button data-count="0">Count is 0</button><p>End</p>`;
         await loadDoc(doc);
         await click('mini-card');
         await clipboard.copy('[contenteditable]');
         await selectRange('p', 1);
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><p>T</p><mini-card type="counter" state="0"></mini-card><p>here</p><mini-card type="counter" state="0"></mini-card><p>End</p>`,
+          `<h1>Hello</h1><p>T</p><button data-count="0">Count is 0</button><p>here</p><button data-count="0">Count is 0</button><p>End</p>`,
         );
       });
 
       it('cards are cuttable', async () => {
-        const doc = `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><h2>There</h2><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('mini-card');
         await clipboard.cut('[contenteditable]');
@@ -811,26 +778,26 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
         await clipboard.paste('[contenteditable]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2>There</h2><mini-card type="counter" state="0"></mini-card><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><h2>There</h2><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
       it('pressing enter in a card', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('mini-card');
         await press('Enter');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><button data-count="0">Count is 0</button><p><br></p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
         await page.keyboard.type('Hoi!');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><button data-count="0">Count is 0</button><p>Hoi!</p><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
       });
 
       it('cards can be backspaced', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('mini-card');
         await press('Backspace');
@@ -844,7 +811,7 @@ function runTestsForBrowser(browserType: BrowserType) {
       });
 
       it('cards can be deleted', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await click('mini-card');
         await press('Delete');
@@ -858,12 +825,12 @@ function runTestsForBrowser(browserType: BrowserType) {
       });
 
       it('deleting into a block', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await selectRange('h1', 5, 'h1', 5);
         await press('Delete');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
         await press('Delete');
         expect(await serializeDoc()).toEqual(
@@ -876,12 +843,12 @@ function runTestsForBrowser(browserType: BrowserType) {
       });
 
       it('backspacing into a block', async () => {
-        const doc = `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
+        const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
         await selectRange('h2', 0, 'h2', 0);
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="0"></mini-card><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
+          `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`,
         );
         await press('Backspace');
         expect(await serializeDoc()).toEqual(
@@ -894,71 +861,18 @@ function runTestsForBrowser(browserType: BrowserType) {
       });
 
       it('undo / redo adds and removes cards', async () => {
-        await loadDoc(`<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`);
+        await loadDoc(`<h1>Hello</h1><button data-count="7">Count is 7</button><p>You</p>`);
         await selectRange('h1', 0, 'p', 0);
         await page.keyboard.type('Hi ');
         expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
         await pressCtrl('z');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><mini-card type="counter" state="7"></mini-card><p>You</p>`,
+          `<h1>Hello</h1><button data-count="7">Count is 7</button><p>You</p>`,
         );
         await pressCtrl('y');
         expect(await serializeDoc()).toEqual(`<h1>Hi You</h1>`);
       });
     });
-
-    // describe('readonly mode', () => {
-    //   beforeAll(() => page.reload());
-
-    //   it('is not editable', async () => {
-    //     const state = {
-    //       name: 'pic.png',
-    //       src: '/pic.png',
-    //       type: 'image/png',
-    //     };
-    //     const cardHtml = `<mini-card type="media" state="${jsonAttr(state)}"></mini-card>`;
-    //     await loadDoc(`<h1>Hi</h1>${cardHtml}<p>There</p>`, true);
-    //     expect(await page.$('[contenteditable]')).toBeFalsy();
-    //     expect(
-    //       await page.evaluate(
-    //         () => document.querySelector('[data-test-subj="editor-container"]')!.innerHTML,
-    //       ),
-    //     ).toEqual(
-    //       `<div class="minidoc-root minidoc-content"><h1>Hi</h1><mini-card type="media" state="{&quot;name&quot;:&quot;pic.png&quot;,&quot;src&quot;:&quot;/pic.png&quot;,&quot;type&quot;:&quot;image/png&quot;}" class="minidoc-card minidoc-card-align-full"><div class="minidoc-card-contents"><figure class="minidoc-media"><img class="minidoc-media-asset" src="/pic.png" alt="pic.png"><figcaption class="minidoc-media-caption"></figcaption></figure></div></mini-card><p>There</p></div>`,
-    //     );
-    //   });
-
-    //   it('inits and disposes cards', async () => {
-    //     await page.evaluate(() => {
-    //       const el: any = document.querySelector('[data-test-subj="editor-container"]');
-    //       const win: any = window;
-    //       el.innerHTML = '';
-    //       el.editor.dispose();
-
-    //       const testCard = {
-    //         type: 'testcard',
-    //         render() {
-    //           const el = document.createElement('strong');
-    //           el.innerHTML = 'Heyo!';
-    //           win.integrationTests.onMount(el, () => {
-    //             win.readonlyTestCard = 'initialized';
-    //             return () => (win.readonlyTestCard = 'disposed');
-    //           });
-    //           return el;
-    //         },
-    //       };
-    //       el.editor = win.integrationTests.readonlyMinidoc({
-    //         el,
-    //         doc: `<h1>Hi</h1><mini-card type="testcard"></mini-card><p>There</p>`,
-    //         cards: [testCard],
-    //       });
-    //     });
-
-    //     expect(await page.evaluate(() => (window as any).readonlyTestCard)).toEqual('initialized');
-    //     await page.evaluate(() => document.querySelector('mini-card')!.remove());
-    //     expect(await page.evaluate(() => (window as any).readonlyTestCard)).toEqual('disposed');
-    //   });
-    // });
 
     describe('lists', () => {
       beforeAll(() => page.reload());
