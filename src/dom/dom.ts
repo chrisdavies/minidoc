@@ -315,7 +315,7 @@ export function assignAttrs(attrs: { [k: string]: any }, el: Element): Element {
  * @param  {...any} args attributes object, and / or child nodes, text content, etc.
  * @returns {Element}
  */
-export function h<T extends Element>(tag: string, ...args: any): T {
+export function h<T extends HTMLElement>(tag: string, ...args: any): T {
   const [tagName, ...classes] = tag.split('.');
   const el = document.createElement(tagName || 'div');
   const arg0 = args[0];

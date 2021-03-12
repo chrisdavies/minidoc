@@ -4,15 +4,15 @@ import {
   defaultToolbarActions,
   placeholder,
   cardMiddleware,
-  MinidocCardDefinition,
-  onMount,
-  MinidocToolbarAction,
-  Cardable,
   fileDrop,
 } from '../src';
 import * as Dom from '../src/dom';
-import { h, on } from '../src/dom';
+import { h } from '../src/dom';
+import { counterCard, toolbarCounter } from './counter-card';
 import { debounce } from '../src/util';
+import { myfileCard } from './myfile-card';
+import { videoCard } from './video-card';
+import { imgCard } from './img-card';
 
 let readonly = location.search === '?readonly';
 
@@ -37,110 +37,6 @@ function Sticky(child: Node) {
 
   return el;
 }
-
-const counterButtonText = ({ count }: { count: number }) => `Count=${count}`;
-const counterCard: MinidocCardDefinition<{ count: number }> = {
-  type: 'counter',
-  selector: 'button[data-count]',
-  deriveState(el) {
-    return { count: parseInt(el.dataset.count || '0', 10) };
-  },
-  serialize({ state }) {
-    return h('button', { 'data-count': state.count }, counterButtonText(state));
-  },
-  render(opts) {
-    const { state } = opts;
-    const el = counterCard.serialize(opts);
-    on(el, 'click', (e) => {
-      ++state.count;
-      el.dataset.count = state.count.toString();
-      el.textContent = counterButtonText(state);
-    });
-    onMount(el, () => {
-      console.log(`counter:init(${state.count})`);
-      return () => console.log(`counter:dispose(${state.count})`);
-    });
-    return el;
-  },
-};
-
-const myfileCard: MinidocCardDefinition = {
-  type: 'myfile',
-  selector: 'a[download]',
-  deriveState(el: HTMLAnchorElement) {
-    return {
-      src: el.href,
-      name: el.download,
-      type: el.dataset.type,
-    };
-  },
-  serialize({ state }) {
-    return h(
-      'a.demo-file',
-      { href: state.src, download: state.name, 'data-type': state.type },
-      state.name,
-    );
-  },
-  render(opts) {
-    if (opts.readonly) {
-      return myfileCard.serialize(opts);
-    }
-    return h('div.demo-file', opts.state.name);
-  },
-};
-
-const videoCard: MinidocCardDefinition<{ src: string; type: string }> = {
-  type: 'vid',
-  selector: 'video',
-  deriveState(el: HTMLVideoElement) {
-    const source = el.querySelector('source');
-    return { src: source?.src || el.src, type: source?.type || el.dataset.type || 'video/unknown' };
-  },
-  serialize({ state }) {
-    return h('video', { src: state.src, 'data-type': state.type, controls: true });
-  },
-  render(opts) {
-    return videoCard.serialize(opts);
-  },
-};
-
-const imgCard: MinidocCardDefinition<{ src: string; caption?: string }> = {
-  type: 'img',
-  selector: 'img,figure',
-  deriveState(el) {
-    switch (el.tagName) {
-      case 'IMG': {
-        const img = el as HTMLImageElement;
-        return { src: img.src, caption: img.alt };
-      }
-      default: {
-        const img = el.querySelector('img');
-        const caption = el.querySelector('caption');
-        return {
-          src: img?.src || '',
-          caption: caption?.textContent || img?.alt || '',
-        };
-      }
-    }
-  },
-  serialize({ state }) {
-    return h(
-      'figure',
-      h('img', { src: state.src, alt: state.caption }),
-      state.caption && h('figcaption', state.caption),
-    );
-  },
-  render(opts) {
-    return imgCard.serialize(opts);
-  },
-};
-
-const toolbarCounter: MinidocToolbarAction = {
-  id: 'counter',
-  label: 'Counter',
-  html: '+/-',
-  run: (t) => ((t as unknown) as Cardable).insertCard('counter', { count: 42 }),
-};
 
 const el = document.querySelector('.example-doc');
 

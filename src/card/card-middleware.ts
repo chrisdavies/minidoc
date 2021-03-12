@@ -20,12 +20,12 @@ export interface MinidocCardDefinition<T extends object = any> {
   type: string;
   selector: string;
   deriveState(el: HTMLElement): T;
-  serialize(opts: CardRenderOptions<T>): HTMLElement;
+  serialize(opts: CardRenderOptions<T>): string;
   render(opts: CardRenderOptions<T>): Element;
 }
 
 export interface Cardable {
-  insertCard(type: string, initialState: any): void;
+  insertCard<T = any>(type: string, initialState: T): void;
   defineCard(def: MinidocCardDefinition): void;
 }
 
@@ -152,7 +152,7 @@ export const cardMiddleware = (defs: MinidocCardDefinition[]): EditorMiddlewareM
       setTimeout(() => Rng.setCaretAtStart(el));
     });
 
-    ((el as unknown) as Serializable).serialize = () => def.serialize(opts).outerHTML;
+    ((el as unknown) as Serializable).serialize = () => def.serialize(opts);
 
     content.setAttribute('draggable', 'true');
     return el;
