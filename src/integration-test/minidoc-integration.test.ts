@@ -58,9 +58,17 @@ function isActiveToolbarButton(selector: string) {
   return page.waitForSelector(`${selector}.minidoc-toolbar-btn-active`);
 }
 
-function loadDoc(newDoc: string, { readonly } = { readonly: false }) {
+function loadDoc(
+  newDoc: string,
+  options?: {
+    readonly?: boolean;
+    singleLine?: boolean;
+  },
+) {
+  const { readonly = false, singleLine = false } = options || {};
+
   return page.evaluate(
-    ([doc, readonly]) => {
+    ([doc, readonly, singleLine]) => {
       const tests = (window as any).integrationTests;
       const main = document.querySelector('main')!;
       main.innerHTML = '';
@@ -68,6 +76,7 @@ function loadDoc(newDoc: string, { readonly } = { readonly: false }) {
       tests.editor = tests.minidoc({
         doc,
         readonly,
+        singleLine,
         middleware: [
           tests.minidocToolbar(tests.defaultToolbarActions),
           tests.cardMiddleware([tests.counterCard]),
@@ -75,7 +84,7 @@ function loadDoc(newDoc: string, { readonly } = { readonly: false }) {
       });
       main.append(tests.editor.toolbar.root, tests.editor.root);
     },
-    [newDoc, readonly],
+    [newDoc, readonly, singleLine],
   );
 }
 
@@ -494,6 +503,18 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await serializeDoc()).toEqual(
           `<h1>Hello</h1><h2>There</h2><ul><li>Fella</li></ul><p>You</p><p>Guys</p>`,
         );
+      });
+    });
+
+    describe('singleLine', () => {
+      it('enter in singleLine mode', async () => {
+        const doc = `<p>Hello</p>`;
+        await loadDoc(doc, { singleLine: true });
+        await selectRange('p', 5);
+        await press('Enter');
+        expect(await serializeDoc()).toEqual(`<p>Hello</p>`);
+        await page.keyboard.type('yo');
+        expect(await serializeDoc()).toEqual(`<p>Helloyo</p>`);
       });
     });
 

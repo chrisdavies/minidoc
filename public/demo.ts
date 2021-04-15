@@ -57,8 +57,19 @@ const editor = minidoc({
   ],
 });
 
+const titleEl = document.querySelector('.title-doc');
+titleEl.remove();
+
+const titleEditor = minidoc({
+  readonly,
+  doc: titleEl.innerHTML,
+  middleware: [placeholder('Title here')],
+  singleLine: true,
+});
+titleEditor.root.classList.add('title-editor');
+
 Dom.appendChildren(
-  [!readonly && Sticky(editor.toolbar.root), editor.root],
+  [!readonly && Sticky(editor.toolbar.root), titleEditor.root, editor.root],
   document.querySelector('main'),
 );
 

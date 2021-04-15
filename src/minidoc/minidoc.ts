@@ -74,7 +74,7 @@ export function minidoc<T extends Array<EditorMiddleware>>(
   root.innerHTML = opts.doc;
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
-  const core: MinidocBase = { root, readonly: opts.readonly };
+  const core: MinidocBase = { root, readonly: opts.readonly, singleLine: opts.singleLine };
   const middleware = opts.middleware
     ? [...defaultMiddleware, ...opts.middleware]
     : defaultMiddleware;

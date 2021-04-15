@@ -87,12 +87,18 @@ function onInput(e: KeyboardEvent) {
   }
 }
 
-function onEnter(e: KeyboardEvent) {
+function onEnter(e: KeyboardEvent, editor: MinidocBase) {
   const range = Rng.currentRange();
   if (!range) {
     return;
   }
   e.preventDefault();
+
+  // Returning here to prevent line breaks.
+  if (editor.singleLine) {
+    return;
+  }
+
   const [head, tail] = Rng.$splitContainer(Dom.findLeaf, range);
   if (head) {
     Dom.$makeEditable(head);
@@ -115,7 +121,7 @@ export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => 
     } else if (e.code === 'Backspace') {
       onBackspace(e);
     } else if (e.key === 'Enter') {
-      onEnter(e);
+      onEnter(e, editor);
     } else {
       // The user is typing, and we need to make sure we delete any
       // selection cleanly, or the editor will bork up the markup.

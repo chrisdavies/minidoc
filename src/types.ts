@@ -1,6 +1,7 @@
 export interface MinidocBase {
   root: Element;
   readonly?: boolean;
+  singleLine?: boolean;
 }
 
 export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlewareMixin>> {
@@ -12,6 +13,10 @@ export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlew
    * Whether or not the document is editable or simply viewable.
    */
   readonly?: boolean;
+  /**
+   * If true, it prevents line breaks.
+   */
+  singleLine?: boolean;
   /**
    * If specified, this is the contenteditable used to render the document.
    */
