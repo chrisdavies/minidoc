@@ -483,7 +483,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         const btnLink = await findByText('button', 'Link');
         await btnLink.click();
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><h2><a href="/xoxo">There</a></h2><ul><li>Fella</li></ul><p>You</p><p>Guys</p>`,
+          `<h1>Hello</h1><h2><a target="_blank" href="/xoxo">There</a></h2><ul><li>Fella</li></ul><p>You</p><p>Guys</p>`,
         );
         await page.waitForSelector('[aria-label="Link"]');
         await page.click('[aria-label="Link"]');

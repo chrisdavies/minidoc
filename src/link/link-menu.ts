@@ -51,7 +51,9 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
     if (a) {
       Dom.assignAttrs({ href }, a);
     } else {
-      range?.insertNode(h('a', { href }, range.collapsed ? href : range.extractContents()));
+      range?.insertNode(
+        h('a', { target: '_blank', href }, range.collapsed ? href : range.extractContents()),
+      );
     }
     Rng.setCurrentSelection(range);
     hide();
