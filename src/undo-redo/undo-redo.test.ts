@@ -2,7 +2,7 @@ import FakeTimers from '@sinonjs/fake-timers';
 import { undoRedo } from './undo-redo';
 
 export function fakeClock() {
-  let clock: FakeTimers.InstalledClock;
+  let clock: FakeTimers.Clock;
 
   beforeEach(() => {
     clock = FakeTimers.install();

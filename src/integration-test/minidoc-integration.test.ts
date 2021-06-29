@@ -1095,13 +1095,13 @@ function runTestsForBrowser(browserType: BrowserType) {
         await page.click('[aria-label="Highlight"]');
         await page.click('[aria-label="Red"]');
         expect(await serializeDoc()).toEqual(
-          `<h1>Hello</h1><p><mini-color data-bg="red">World</mini-color></p>`,
+          `<h1>Hello</h1><p><mark data-bg="red">World</mark></p>`,
         );
       });
 
       it('clears the highlight', async () => {
-        await loadDoc(`<h1>Hello</h1><p><mini-color data-bg="blue">World</mini-color></p>`);
-        await selectRange('mini-color', 0, 'mini-color', 5);
+        await loadDoc(`<h1>Hello</h1><p><mark data-bg="blue">World</mark></p>`);
+        await selectRange('mark', 0, 'mark', 5);
         await page.click('[aria-label="Highlight"]');
         await page.click('.minidoc-clear-highlight');
         expect(await serializeDoc()).toEqual(`<h1>Hello</h1><p>World</p>`);

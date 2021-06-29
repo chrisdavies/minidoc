@@ -23,8 +23,8 @@ export function HighlightMenu(editor: MinidocToolbarEditor) {
     try {
       const ranges = Rng.inlinableRanges(range);
       ranges.forEach((r) => {
-        unapply('mini-color', r);
-        const el = h('mini-color', { 'data-bg': color }, r.extractContents());
+        unapply('mark', r);
+        const el = h('mark', { 'data-bg': color }, r.extractContents());
         r.insertNode(el);
       });
       ranges.length && Rng.setCurrentSelection(ranges[0]).collapse(true);
@@ -37,7 +37,7 @@ export function HighlightMenu(editor: MinidocToolbarEditor) {
     try {
       const ranges = Rng.inlinableRanges(range);
       ranges.forEach((r) => {
-        unapply('mini-color', r);
+        unapply('mark', r);
       });
       ranges.length && Rng.setCurrentSelection(ranges[0]).collapse(true);
     } finally {

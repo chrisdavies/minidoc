@@ -12,5 +12,5 @@ export const highlightToolbarAction: MinidocToolbarAction = {
   label: 'Highlight',
   html: icoHighlighter,
   run: (t) => t.toolbar.setMenu(HighlightMenu(t)),
-  isActive: (t) => t.isActive('mini-color'),
+  isActive: (t) => t.isActive('mark'),
 };
