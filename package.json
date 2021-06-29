@@ -1,6 +1,6 @@
 {
   "name": "minidoc-editor",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "main": "./dist/minidoc.min.js",
   "types": "./dist/types",
   "files": [
