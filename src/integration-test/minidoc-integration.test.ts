@@ -1112,5 +1112,5 @@ function runTestsForBrowser(browserType: BrowserType) {
 
 // TODO: support firefox
 // runTestsForBrowser('firefox');
-runTestsForBrowser('webkit');
+// runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');
