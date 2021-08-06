@@ -77,7 +77,7 @@ function elementUnmounted(el: Node) {
  * a function, that returned function will be called when el unmounts.
  */
 export function onMount(el: Element, fn: DisposableInit) {
-  const x = (el as unknown) as { disposable: DisposableInst };
+  const x = el as unknown as { disposable: DisposableInst };
   if (!x.disposable) {
     el.setAttribute('disposable', 'true');
     x.disposable = { inits: [] };
@@ -112,7 +112,7 @@ export function initialize(el: Element, onChange: () => void): Element & { dispo
       });
     }
   });
-  observer.observe(el, { childList: true, subtree: true, characterData: true });
+  observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
   const result: any = el;
   result.dispose = () => {
     elementUnmounted(el);

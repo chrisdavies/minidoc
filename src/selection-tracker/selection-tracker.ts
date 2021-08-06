@@ -32,7 +32,11 @@ export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) =>
   Dom.on(el, 'click', (e) => {
     if (e.detail === 3) {
       e.preventDefault();
-      const leaf = Dom.findLeaf(Rng.currentNode()!)!;
+      const node = Rng.currentNode();
+      if (!node) {
+        return;
+      }
+      const leaf = Dom.findLeaf(node)!;
       const range = Rng.createRange();
       range.selectNodeContents(leaf);
       Rng.setCurrentSelection(range);
