@@ -402,3 +402,13 @@ export function inlinableRanges(range: Range): Range[] {
 
   return result;
 }
+
+export function ensureSelectionWithin(el: Element) {
+  let range = currentRange();
+  if (!range || !el.contains(range.startContainer)) {
+    range = createRange();
+    range.selectNodeContents(el);
+    range.collapse(true);
+    setCurrentSelection(range);
+  }
+}

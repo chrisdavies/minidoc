@@ -10,13 +10,18 @@ import { h } from '../dom';
 import * as Disposable from '../disposable';
 import { debounce } from '../util';
 import { MinidocToolbarAction, Toolbarable, MinidocToolbarEditor } from './toolbar-types';
+import { ensureSelectionWithin } from '../range';
 
 export const minidocToolbar = (
   actions: MinidocToolbarAction[],
 ): EditorMiddlewareMixin<Toolbarable> => (next, editor) => {
   const result = editor as MinidocToolbarEditor;
   const root = h('header.minidoc-toolbar');
-  const defaultMenu = h('.minidoc-default-menu');
+  const defaultMenu = h('.minidoc-default-menu', {
+    onmousedown() {
+      ensureSelectionWithin(editor.root);
+    },
+  });
 
   result.toolbar = {
     root,
