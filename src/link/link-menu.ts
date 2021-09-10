@@ -48,10 +48,11 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
     if (!href) {
       return unlink();
     }
+    const url = /^(https:\/\/)|^(\/)|^(mailto:)/.test(href) ? href : `//${href}`;
     if (a) {
-      Dom.assignAttrs({ href }, a);
+      Dom.assignAttrs({ href: url }, a);
     } else {
-      range?.insertNode(h('a', { href }, range.collapsed ? href : range.extractContents()));
+      range?.insertNode(h('a', { href: url }, range.collapsed ? href : range.extractContents()));
     }
     Rng.setCurrentSelection(range);
     hide();
