@@ -20,7 +20,7 @@ function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T):
 }
 
 const defaultMiddleware = getDefaultMiddleware([
-  scrubbableMiddleware,
+  scrubbableMiddleware(),
   stylePrevention,
   onSequenceMixin,
   disposable,

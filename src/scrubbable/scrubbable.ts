@@ -17,6 +17,7 @@ const allowableTags = new Set([
   'A',
   'I',
   'B',
+  'MARK',
   'STRONG',
   'EM',
   'BLOCKQUOTE',
@@ -42,6 +43,9 @@ const allowableAttributes: { [k: string]: { [k: string]: (val?: string) => boole
   A: {
     href: isSafeUrl,
   },
+  MARK: {
+    'data-bg': () => true,
+  },
   'MINI-CARD': {
     state: () => true,
     type: () => true,
@@ -54,35 +58,43 @@ function isAllowableAttribute(el: Element, attr: string) {
   return check && check(el.getAttribute(attr) || undefined);
 }
 
-export const scrubbableMiddleware: EditorMiddlewareMixin<Scrubbable> = (next, editor) => {
-  const result = editor as MinidocBase & Scrubbable;
+type Scrubber = (node: Node, baseScrub: (node: Node) => void, editor: MinidocBase) => void;
 
-  result.scrub = (content) => {
-    function scrub(node: Node) {
-      node.childNodes.forEach((el) => {
-        if (!Dom.isElement(el) || Dom.isImmutable(el)) {
-          return;
-        }
-        if (!allowableTags.has(el.tagName)) {
-          el.remove();
-          return;
-        }
-        el.getAttributeNames().forEach((a) => {
-          if (!isAllowableAttribute(el, a)) {
-            el.removeAttribute(a);
+const defaultScrubber: Scrubber = (node, baseScrub) => baseScrub(node);
+
+export const scrubbableMiddleware =
+  (scrubber: Scrubber = defaultScrubber): EditorMiddlewareMixin<Scrubbable> =>
+  (next, editor) => {
+    const result = editor as MinidocBase & Scrubbable;
+
+    result.scrub = (content) => {
+      function scrub(node: Node) {
+        Array.from(node.childNodes).forEach((el) => {
+          if (!Dom.isElement(el) || Dom.isImmutable(el)) {
+            return;
+          }
+          if (!allowableTags.has(el.tagName)) {
+            const frag = Dom.toFragment(el.childNodes);
+            scrub(frag);
+            el.replaceWith(frag);
+            return;
+          }
+          el.getAttributeNames().forEach((a) => {
+            if (!isAllowableAttribute(el, a)) {
+              el.removeAttribute(a);
+            }
+          });
+          const children = el.childNodes;
+          if (children && children.length) {
+            scrub(el);
           }
         });
-        const children = el.childNodes;
-        if (children && children.length) {
-          Array.from(children).forEach(scrub);
-        }
-      });
-    }
+      }
 
-    scrub(content);
+      scrubber(content, scrub, result);
 
-    return content;
+      return content;
+    };
+
+    return next(result);
   };
-
-  return next(result);
-};
