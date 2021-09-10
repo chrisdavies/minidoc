@@ -303,7 +303,11 @@ export function $splitAndInsert(
  */
 export function setCaretAtStart(node: Node): Range {
   const range = createRange();
-  range.setStart(node, 0);
+  let child: Node | null = node;
+  while (child && !Dom.isText(child)) {
+    child = child.firstChild;
+  }
+  range.setStart(child || node, 0);
   return setCurrentSelection(range);
 }
 

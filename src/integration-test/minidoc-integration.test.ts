@@ -1111,6 +1111,6 @@ function runTestsForBrowser(browserType: BrowserType) {
 }
 
 // TODO: support firefox
-// runTestsForBrowser('firefox');
+runTestsForBrowser('firefox');
 // runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');

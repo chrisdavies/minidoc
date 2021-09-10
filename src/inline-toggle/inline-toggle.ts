@@ -203,7 +203,13 @@ export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, ed
       isToggling = true;
       const normalized = normalizeTagName(tagName);
       toggledTags.has(normalized) ? toggledTags.delete(normalized) : toggledTags.add(normalized);
-      setTimeout(() => (isToggling = false));
+      // Hack for FireFox, which calls caret change several
+      // times when toggling inline styles.
+      setTimeout(() =>
+        setTimeout(() => {
+          isToggling = false;
+        }),
+      );
     }
     Rng.setCurrentSelection(range);
   }
