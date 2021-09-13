@@ -745,6 +745,14 @@ function runTestsForBrowser(browserType: BrowserType) {
         expect(await page.textContent('mini-card')).toContain('(readonly)');
       });
 
+      it('cards are promoted to leaf nodes', async () => {
+        const doc = `<p>Hello<button data-count="0">Count is 0</button>World!</p>`;
+        await loadDoc(doc);
+        expect(await serializeDoc()).toEqual(
+          `<p>Hello</p><button data-count="0">Count is 0</button><p>World!</p>`,
+        );
+      });
+
       it('cards are copiable', async () => {
         const doc = `<h1>Hello</h1><h2>There</h2><button data-count="0">Count is 0</button><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);

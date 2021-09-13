@@ -84,6 +84,8 @@ export const cardMiddleware =
         return el;
       }
 
+      ensureLeaf(el);
+
       const def =
         el.tagName !== cardTagName
           ? defs.find((d) => d.selector && d.deriveState && el.matches(d.selector))!
@@ -245,3 +247,23 @@ export const cardMiddleware =
 
     return next(result);
   };
+
+function ensureLeaf(el: Element) {
+  // Cards are expected to be leaf nodes. This detects the scenario
+  // where a card is not a leaf, and promotes it to a leaf node.
+  if (!el.parentNode || Dom.isRoot(el.parentNode)) {
+    return;
+  }
+
+  const leaf = Dom.findLeaf(el);
+  if (!leaf?.parentNode) {
+    return;
+  }
+
+  const range = Rng.createRange();
+  range.selectNodeContents(leaf);
+  range.setStartAfter(el);
+  const frag = range.extractContents();
+  !Dom.isEmpty(frag) && Dom.insertAfter(h('p', frag), leaf);
+  Dom.insertAfter(el, leaf);
+}

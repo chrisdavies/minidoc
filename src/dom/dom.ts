@@ -10,7 +10,7 @@ type ItemOrList<T> = T | Eachable;
  */
 export function on<
   K extends keyof HTMLElementEventMap,
-  T extends Pick<Element, 'addEventListener' | 'removeEventListener'>
+  T extends Pick<Element, 'addEventListener' | 'removeEventListener'>,
 >(
   el: T,
   type: K,
@@ -37,9 +37,7 @@ export function on<T extends Pick<Element, 'addEventListener' | 'removeEventList
  * Emit a custom event with the specified detail.
  */
 export function emit<T>(el: Element, type: string, detail?: T) {
-  el.dispatchEvent(
-    new CustomEvent<T>(type, { detail }),
-  );
+  el.dispatchEvent(new CustomEvent<T>(type, { detail }));
 }
 
 /**
@@ -325,7 +323,7 @@ export function h<T extends HTMLElement>(tag: string, ...args: any): T {
   }
   assignAttrs(attrs, el);
   appendChildren(attrs ? args.slice(1) : args, el);
-  return (el as unknown) as T;
+  return el as unknown as T;
 }
 
 export function newLeaf() {
