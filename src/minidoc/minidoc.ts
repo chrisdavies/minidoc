@@ -13,7 +13,7 @@ import { clipbordMiddleware } from '../clipboard-middleware';
 import { stylePrevention } from '../style-prevention';
 import { onSequenceMixin } from '../on-sequence';
 import { horizontalRuleMixin } from '../horizontal-rule';
-import { scrubbableMiddleware } from '../scrubbable';
+import { middleware as scrubbableMiddleware } from '../scrubbable';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;

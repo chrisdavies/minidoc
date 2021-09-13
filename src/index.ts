@@ -8,7 +8,7 @@ export * from './card';
 export * from './file-drop';
 export * from './placeholder';
 export * from './minidoc';
-export { scrubbableMiddleware } from './scrubbable';
+export * as scrubbable from './scrubbable';
 export { h, on } from './dom';
 export { onMount } from './disposable';
 
