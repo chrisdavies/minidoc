@@ -21,15 +21,43 @@ function stripBrs(el: Node) {
 }
 
 /**
+ * Convert any URL-like text into hyperlinks.
+ */
+function linkify(node: Node) {
+  const textNodes: Text[] = [];
+  const urls = /(https?:\/\/[^\s]+)/;
+
+  Dom.walk(node, NodeFilter.SHOW_TEXT, (n) => {
+    const t = n as Text;
+    if (urls.test(t.textContent || '') && !n.parentElement?.closest('a') && t.replaceWith) {
+      textNodes.push(t);
+    }
+  });
+
+  textNodes.forEach((n) => {
+    n.replaceWith(
+      ...n.textContent!.split(urls).map((s) => {
+        if (s.startsWith('http://') || s.startsWith('https://')) {
+          return h('a', { href: s }, s);
+        }
+        return s;
+      }),
+    );
+  });
+}
+
+/**
  * Convert the specified document fragment into Elements that are
  * valid as document leaf nodes.
  */
-function convertToLeafs<T extends Node>(frag?: T) {
+function convertToLeafs(frag?: DocumentFragment) {
   if (!frag) {
     return;
   }
 
   let leaf: Node | undefined;
+
+  linkify(frag);
 
   // Leaf nodes must be blocks. E.g. a span cannot be a leaf node.
   // This moves all non-blocks into a block, while retaining any
@@ -71,7 +99,12 @@ function readClipboard(
 
   const text = clipboardData.getData('text/plain');
   if (text) {
-    return Dom.toFragment(text);
+    return Dom.toFragment(
+      text
+        .split('\n')
+        .filter((s) => s.length)
+        .map((s) => h('p', s)),
+    );
   }
 }
 

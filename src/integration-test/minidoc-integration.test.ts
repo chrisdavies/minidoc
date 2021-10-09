@@ -193,9 +193,9 @@ async function click(selector: string) {
   }, selector);
 }
 
-function execClipboardEvent(selector: string, name: string) {
+function execClipboardEvent(selector: string, name: string, value?: string) {
   return page.evaluate(
-    ({ selector, name }: { selector: string; name: string }) => {
+    ({ selector, name, value }: { selector: string; name: string; value?: string }) => {
       const el = document.querySelector(selector);
       const e = new CustomEvent(name);
       const win = window as any;
@@ -203,7 +203,7 @@ function execClipboardEvent(selector: string, name: string) {
       (e as any).clipboardData = {
         files: [],
         getData(k: string) {
-          return win.puppeteerClipboard.get(k);
+          return value || win.puppeteerClipboard.get(k);
         },
         setData(k: string, v: any) {
           win.puppeteerClipboard.set(k, v);
@@ -211,14 +211,14 @@ function execClipboardEvent(selector: string, name: string) {
       };
       el?.dispatchEvent(e);
     },
-    { selector, name },
+    { selector, name, value },
   );
 }
 
 const clipboard = {
   copy: (selector: string) => execClipboardEvent(selector, 'copy'),
   cut: (selector: string) => execClipboardEvent(selector, 'cut'),
-  paste: (selector: string) => execClipboardEvent(selector, 'paste'),
+  paste: (selector: string, value?: string) => execClipboardEvent(selector, 'paste', value),
 };
 
 async function press(...keys: string[]) {
@@ -249,6 +249,21 @@ function runTestsForBrowser(browserType: BrowserType) {
       await new Promise((resolve, reject) =>
         server.close((err) => (err ? reject(err) : resolve(undefined))),
       );
+    });
+
+    describe('clipboard', () => {
+      it('auto-detects links', async () => {
+        const doc = `<p><br></p>`;
+        await loadDoc(doc);
+        await selectRange('p', 0);
+        await clipboard.paste(
+          '[contenteditable]',
+          '<p>This is a link http://foo.bar/baz does it work?</p><p>https://example.com?stuff=yup</p>',
+        );
+        expect(await serializeDoc()).toEqual(
+          `<p>This is a link <a href="http://foo.bar/baz">http://foo.bar/baz</a> does it work?</p><p><a href="https://example.com?stuff=yup">https://example.com?stuff=yup</a></p><p><br></p>`,
+        );
+      });
     });
 
     describe('toolbar', () => {

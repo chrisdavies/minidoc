@@ -81,7 +81,7 @@ export function isCard(n: any): n is HTMLDivElement {
  * Determine if the node is iterable.
  */
 function isIterable<T = any>(x: any): x is Eachable & Iterable<T> {
-  return !!x.forEach;
+  return !!x?.forEach;
 }
 
 /**
@@ -89,6 +89,21 @@ function isIterable<T = any>(x: any): x is Eachable & Iterable<T> {
  */
 export function isList(el: any): el is HTMLOListElement | HTMLUListElement {
   return el?.matches?.('ul,ol');
+}
+
+export function walk(node: Node, filter: number, handler: (n: Node) => boolean | undefined | void) {
+  const treeWalker = document.createTreeWalker(node, filter);
+
+  let currentNode: Node | null = treeWalker.currentNode;
+
+  while (currentNode) {
+    if (handler(currentNode)) {
+      return true;
+    }
+    currentNode = treeWalker.nextNode();
+  }
+
+  return false;
 }
 
 /**
@@ -106,18 +121,11 @@ export function isEmpty(node: Node): boolean {
     return true;
   }
 
-  const treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-
-  let currentNode: Node | null = treeWalker.currentNode;
-
-  while (currentNode) {
-    if (currentNode instanceof Text && currentNode.length) {
-      return false;
-    }
-    currentNode = treeWalker.nextNode();
-  }
-
-  return true;
+  return !walk(
+    node,
+    NodeFilter.SHOW_TEXT,
+    (currentNode) => currentNode instanceof Text && !!currentNode.length,
+  );
 }
 
 /**
@@ -241,7 +249,7 @@ function appendChild<T extends Node | Range | undefined>(child: Node | string, e
 }
 
 export function toFragment(
-  children: ItemOrList<Node | string>,
+  children?: ItemOrList<Node | string>,
   frag?: DocumentFragment,
 ): DocumentFragment {
   frag ||= document.createDocumentFragment();

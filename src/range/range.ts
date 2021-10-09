@@ -191,20 +191,14 @@ export function isAtEndOf(node: Node, range: Range): boolean {
 }
 
 function makeLeadingSpaceVisible(el: Element) {
-  const treeWalker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-
-  let currentNode: Node | null = treeWalker.currentNode;
-
-  while (currentNode) {
-    if (currentNode instanceof Text && currentNode.length) {
+  Dom.walk(el, NodeFilter.SHOW_TEXT, (currentNode) => {
+    if (Dom.isText(currentNode) && currentNode.length) {
       const text = currentNode.textContent;
       if (text?.startsWith(' ')) {
         currentNode.textContent = '\u00a0' + text.slice(1);
       }
-      return;
     }
-    currentNode = treeWalker.nextNode();
-  }
+  });
 }
 
 /**
