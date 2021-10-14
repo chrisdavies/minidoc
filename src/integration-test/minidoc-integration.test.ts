@@ -264,6 +264,19 @@ function runTestsForBrowser(browserType: BrowserType) {
           `<p>This is a link <a href="http://foo.bar/baz">http://foo.bar/baz</a> does it work?</p><p><a href="https://example.com?stuff=yup">https://example.com?stuff=yup</a></p><p><br></p>`,
         );
       });
+
+      it('scrubs whacky markup', async () => {
+        const doc = `<p><br></p>`;
+        await loadDoc(doc);
+        await selectRange('p', 0);
+        await clipboard.paste(
+          '[contenteditable]',
+          '<div>Stuff<h1 style="color:red">Hello, there!</h1>And whatnot<ol><li>Shazm</li></ol></div>',
+        );
+        expect(await serializeDoc()).toEqual(
+          `<p>Stuff</p><h1>Hello, there!</h1><p>And whatnot</p><ol><li>Shazm</li></ol><p><br></p>`,
+        );
+      });
     });
 
     describe('toolbar', () => {

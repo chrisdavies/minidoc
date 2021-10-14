@@ -1,4 +1,4 @@
-import { h } from '../dom';
+import { h, toFragment } from '../dom';
 import { disposable } from './disposable-mixin';
 import { EditorMiddleware, MinidocBase, ReturnTypesIntersection, MinidocOptions } from '../types';
 import { serializable } from '../serializable';
@@ -71,7 +71,7 @@ export function minidoc<T extends Array<EditorMiddleware>>(
         contentEditable: !opts.readonly,
       },
     );
-  root.innerHTML = opts.doc;
+
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
   const core: MinidocBase = { root, readonly: opts.readonly };
@@ -82,6 +82,8 @@ export function minidoc<T extends Array<EditorMiddleware>>(
 
   // Associate the editor with the root element.
   (root as any).$editor = editor;
-  editor.beforeMount(editor.scrub(core.root));
+
+  root.append(editor.scrub(toFragment(h('div', { innerHTML: opts.doc }).childNodes)));
+  editor.beforeMount(editor.root);
   return editor;
 }
