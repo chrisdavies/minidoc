@@ -526,8 +526,6 @@ function runTestsForBrowser(browserType: BrowserType) {
     });
 
     describe('selection', () => {
-      beforeAll(() => page.reload());
-
       async function deleteWithKey(key: string) {
         const toolbarDoc = `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`;
         await loadDoc(toolbarDoc);
@@ -748,8 +746,6 @@ function runTestsForBrowser(browserType: BrowserType) {
     });
 
     describe('cards', () => {
-      beforeAll(() => page.reload());
-
       it('paste does not write into a card', async () => {
         const doc = `<h1>Hello</h1><button data-count="0">Count is 0</button><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p>`;
         await loadDoc(doc);
@@ -911,8 +907,6 @@ function runTestsForBrowser(browserType: BrowserType) {
     });
 
     describe('lists', () => {
-      beforeAll(() => page.reload());
-
       it('tab / shift tab', async () => {
         await loadDoc(`<h1>Hello</h1><ul><li>A</li><li>B</li><li>C</li></ul><p>Ze end!</p>`);
         await page.click('li ~ li');
@@ -1146,7 +1140,6 @@ function runTestsForBrowser(browserType: BrowserType) {
   });
 }
 
-// TODO: support firefox
+// TODO: support webkit -- runTestsForBrowser('webkit');
 runTestsForBrowser('firefox');
-// runTestsForBrowser('webkit');
 runTestsForBrowser('chromium');
