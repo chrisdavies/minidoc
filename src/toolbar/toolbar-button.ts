@@ -13,6 +13,7 @@ export function ToolbarButton(
     onclick() {
       run(editor);
     },
+    type: 'button',
     'aria-label': label,
     innerHTML: html,
   });
