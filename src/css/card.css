@@ -1,11 +1,15 @@
 /** Cards **/
 mini-card {
-  display: block;
+  display: flex;
   outline: none;
   position: relative;
   margin-bottom: 1rem;
   clear: both;
   margin: 0.5rem 0;
+}
+
+.minidoc-card-contents {
+  flex-grow: 1;
 }
 
 .minidoc-editable .minidoc-card-contents::before {
@@ -30,24 +34,38 @@ mini-card {
   z-index: 10;
 }
 
-minidoc-focuser {
+/*
+ * Card pseudo-caret styling.
+ */
+
+@keyframes minidoc-an-blink {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.minidoc-editable .minidoc-card-caret-right::before,
+.minidoc-editable .minidoc-card-caret-left::before {
+  content: '';
   position: absolute;
   top: 0;
-  left: 0;
   bottom: 0;
-  z-index: 0;
+  border-left: 2px solid #6366f1;
+  animation: minidoc-an-blink infinite ease 0.75s;
 }
 
-.minidoc-card-align-left {
-  float: left;
-  width: calc(50% - 1rem);
-  margin-right: 2rem;
+.minidoc-editable .minidoc-card-caret-right::before {
+  right: -2px;
 }
 
-.minidoc-card-align-right {
-  float: right;
-  width: calc(50% - 1rem);
-  margin-left: 2rem;
+.minidoc-editable .minidoc-card-caret-left::before {
+  left: -2px;
 }
 
 /** Drag / drop **/

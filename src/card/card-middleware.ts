@@ -9,6 +9,9 @@ import { InlineTogglable } from '../inline-toggle';
 import { DragDroppable } from '../drag-drop';
 import { Scrubbable } from '../scrubbable';
 
+const rightCaretClass = 'minidoc-card-caret-right';
+const leftCaretClass = 'minidoc-card-caret-left';
+
 export interface CardRenderOptions<T extends object = any> {
   state: T;
   readonly: boolean;
@@ -41,7 +44,15 @@ const cardTagName = 'MINI-CARD';
 const stopPropagation = (e: Event) => e.stopPropagation();
 
 function toggleActive(el: Element, isActive: boolean) {
+  if (!isActive) {
+    el.classList.remove(leftCaretClass, rightCaretClass);
+  }
   el.classList.toggle('minidoc-card-active', isActive);
+}
+
+function assignCaret(el: Element, caret: string) {
+  el.classList.remove(leftCaretClass, rightCaretClass);
+  el.classList.add(caret);
 }
 
 /**
@@ -203,9 +214,33 @@ export const cardMiddleware =
         return;
       }
 
+      const card = activeCards.values().next().value;
+
+      if (e.code === 'ArrowLeft' || (e.code === 'ArrowUp' && card === editor.root.children[0])) {
+        if (!card.classList.contains(leftCaretClass)) {
+          e.preventDefault();
+          assignCaret(card, leftCaretClass);
+        }
+        return;
+      } else if (
+        e.code === 'ArrowRight' ||
+        (e.code === 'ArrowDown' && card === editor.root.children[editor.root.children.length - 1])
+      ) {
+        if (!card.classList.contains(rightCaretClass)) {
+          e.preventDefault();
+          assignCaret(card, rightCaretClass);
+        }
+        return;
+      }
+
       if (e.key === 'Enter') {
         e.preventDefault();
-        Rng.setCaretAtStart(Dom.insertAfter(Dom.newLeaf(), Dom.findLeaf(Rng.currentNode()!)!));
+        const leaf = Dom.findLeaf(Rng.currentNode()!)!;
+        if (card.classList.contains(leftCaretClass)) {
+          editor.root.insertBefore(Dom.newLeaf(), leaf);
+        } else {
+          Rng.setCaretAtStart(Dom.insertAfter(Dom.newLeaf(), leaf));
+        }
         return;
       }
 
