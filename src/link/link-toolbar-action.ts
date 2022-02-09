@@ -15,7 +15,7 @@ export const linkToolbarAction: MinidocToolbarAction = {
     linkHoverPreview(editor.root);
 
     Dom.on(editor.root, 'keydown', (e) => {
-      if (!e.defaultPrevented && (e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+      if (!e.defaultPrevented && (e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'KeyK') {
         e.preventDefault();
         editor.toolbar.setMenu(LinkMenu(editor));
       }
