@@ -228,6 +228,7 @@ const isAttr = (x: any) =>
   typeof x === 'object' &&
   !Array.isArray(x) &&
   !(x instanceof NodeList) &&
+  !(x instanceof HTMLCollection) &&
   !(x instanceof Node) &&
   !(x.el instanceof Node);
 
