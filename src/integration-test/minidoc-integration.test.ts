@@ -588,6 +588,20 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
+      it('ctrl and enter', async () => {
+        await loadDoc(`<p>Hello world</p>`);
+        await selectRange('p', 11);
+
+        // Enter should insert a new line
+        await press('Enter');
+        const withNewLine = `<p>Hello world</p><p><br></p>`;
+        expect(await serializeDoc()).toEqual(withNewLine);
+
+        // Ctrl+Enter should not insert anything
+        await pressCtrl('Enter');
+        expect(await serializeDoc()).toEqual(withNewLine);
+      });
+
       it('select and type', async () => {
         const toolbarDoc = `<h1>Hello</h1><h2>There</h2><p><strong>I'm strong</strong><em>I'm emphasized</em></p><p>New P <b>I'm bold</b><i>I'm italic</i></p>`;
         await loadDoc(toolbarDoc);
