@@ -588,7 +588,7 @@ function runTestsForBrowser(browserType: BrowserType) {
         );
       });
 
-      it('ctrl and enter', async () => {
+      it('ctrl and enter does not insert a new line', async () => {
         await loadDoc(`<p>Hello world</p>`);
         await selectRange('p', 11);
 
