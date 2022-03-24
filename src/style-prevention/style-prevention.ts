@@ -107,6 +107,11 @@ function onEnter(e: KeyboardEvent) {
 export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => {
   const result = next(editor);
   Dom.on(result.root, 'keydown', (e) => {
+    // Do not insert a new line when pressing cmd+enter
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      return;
+    }
     if (e.defaultPrevented) {
       return;
     }
