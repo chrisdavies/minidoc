@@ -19,7 +19,14 @@ function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T):
   return middleware;
 }
 
-const defaultMiddleware = getDefaultMiddleware([
+const readOnlyMiddleware = getDefaultMiddleware([
+  scrubbableMiddleware(),
+  disposable,
+  serializable,
+  mountable,
+]);
+
+const baseMiddleware = getDefaultMiddleware([
   scrubbableMiddleware(),
   stylePrevention,
   onSequenceMixin,
@@ -56,11 +63,12 @@ function applyMiddleware(middleware: any[], editor: any, i: number) {
   return result;
 }
 
-export type MinidocCore = MinidocBase & ReturnTypesIntersection<typeof defaultMiddleware>;
+export type MinidocCore = MinidocBase & ReturnTypesIntersection<typeof baseMiddleware>;
+export type ReadonlyMinidocCore = MinidocBase & ReturnTypesIntersection<typeof readOnlyMiddleware>;
 
-export function minidoc<T extends Array<EditorMiddleware>>(
-  opts: MinidocOptions<T>,
-): MinidocCore & ReturnTypesIntersection<T> {
+type ReturnedMinidocCore = MinidocCore | ReadonlyMinidocCore;
+
+export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<T>) {
   const root =
     opts.root ||
     h(
@@ -75,10 +83,12 @@ export function minidoc<T extends Array<EditorMiddleware>>(
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
   const core: MinidocBase = { root, readonly: opts.readonly };
+  const defaultMiddleware = opts.readonly ? readOnlyMiddleware : baseMiddleware;
   const middleware = opts.middleware
     ? [...defaultMiddleware, ...opts.middleware]
     : defaultMiddleware;
-  const editor = applyMiddleware(middleware, core, 0) as MinidocCore & ReturnTypesIntersection<T>;
+  const editor = applyMiddleware(middleware, core, 0) as ReturnedMinidocCore &
+    ReturnTypesIntersection<T>;
 
   // Associate the editor with the root element.
   (root as any).$editor = editor;
