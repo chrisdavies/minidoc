@@ -17,6 +17,7 @@ async function loadDefault({ page }: { page: Page }) {
 <p><strong>I'm strong</strong><a href="http://example.com">Foo</a><em>I'm emphasized</em><b>I'm bold</b><i>I'm italic</i></p>
 `,
   );
+  await page.click('p');
 }
 
 const it = (
@@ -24,6 +25,15 @@ const it = (
   handler: (args: { util: ReturnType<typeof pageUtil>; page: Page }) => any,
 ) =>
   test(desc, ({ page }) => {
+    const util = pageUtil(page);
+    return handler({ page, util });
+  });
+
+export const fit = (
+  desc: string,
+  handler: (args: { util: ReturnType<typeof pageUtil>; page: Page }) => any,
+) =>
+  test.only(desc, ({ page }) => {
     const util = pageUtil(page);
     return handler({ page, util });
   });
@@ -852,12 +862,12 @@ test.describe('cards', () => {
 test.describe('lists', () => {
   it('tab / shift tab', async ({ util }) => {
     await util.loadDoc(`<h1>Hello</h1><ul><li>A</li><li>B</li><li>C</li></ul><p>Ze end!</p>`);
-    await util.page.click('li ~ li');
+    await util.selectRange('li:nth-of-type(2)', 0);
     await util.press('Tab');
     expect(await util.serializeDoc()).toEqual(
       `<h1>Hello</h1><ul><li>A<ul><li>B</li></ul></li><li>C</li></ul><p>Ze end!</p>`,
     );
-    await util.page.click('li ~ li');
+    await util.selectRange('li:nth-of-type(2)', 0);
     await util.press('Tab');
     expect(await util.serializeDoc()).toEqual(
       `<h1>Hello</h1><ul><li>A<ul><li>B</li><li>C</li></ul></li></ul><p>Ze end!</p>`,
