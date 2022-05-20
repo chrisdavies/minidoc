@@ -77,7 +77,10 @@ export function $deleteAndMergeContents(range: Range) {
   }
   const startNode = toNode(range);
   const endNode = toEndNode(range);
-  const startEl = Dom.closestBlock(startNode)!;
+  const startEl = Dom.closestBlock(startNode);
+  if (!startEl) {
+    return;
+  }
   const endEl = Dom.closestBlock(endNode);
   const endLeaf = Dom.findLeaf(endNode)!;
   const clone = range.cloneRange();

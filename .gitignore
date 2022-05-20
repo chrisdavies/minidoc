@@ -31,3 +31,6 @@ todo.md
 
 # Config
 .env
+/test-results/
+/playwright-report/
+/playwright/.cache/
