@@ -258,15 +258,19 @@ function mergeLists(list: Element, range: Range, frag: DocumentFragment) {
  * | list         | list        | merge lists
  * | non-list     | non-list    | split and insert, with intelligent merge of start / end content
  */
-function insertLeafs(content: DocumentFragment, range: Range, editor: Mountable) {
+function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocBase & Mountable) {
   const newLeafs = editor.beforeMount(content);
   const targetLeaf = Dom.findLeaf(Rng.currentNode()!);
   const firstNode = newLeafs.children[0];
 
-  if (!firstNode || !targetLeaf) {
+  if (!firstNode) {
     return range;
   }
-
+  if (!targetLeaf) {
+    editor.root.append(content);
+    const lastElementChild = editor.root.lastElementChild;
+    return lastElementChild ? Rng.fromNodes([lastElementChild]) : range;
+  }
   if (Dom.isImmutable(targetLeaf)) {
     return insertBelow(newLeafs, targetLeaf);
   } else if (Dom.isEmpty(targetLeaf)) {

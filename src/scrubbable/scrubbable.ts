@@ -68,6 +68,9 @@ function scrubContext() {
       if (!me.leaf) {
         me.leaf = h('p');
       }
+      if (!me.current) {
+        stack.push(me.leaf);
+      }
       me.current.append(node);
       if (isElement(node)) {
         stack.push(node);
