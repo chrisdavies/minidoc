@@ -158,11 +158,12 @@ export const cardMiddleware =
         el,
       );
 
-      Dom.on(el, 'focus', () => {
-        activateCard(el, true);
-        // The setTimeout allows drag / drop to work
-        setTimeout(() => Rng.setCaretAtStart(el));
-      });
+      !editor.readonly &&
+        Dom.on(el, 'focus', () => {
+          activateCard(el, true);
+          // The setTimeout allows drag / drop to work
+          setTimeout(() => Rng.setCaretAtStart(el));
+        });
 
       (el as unknown as Serializable).serialize = () => def.serialize(opts);
 
@@ -200,85 +201,88 @@ export const cardMiddleware =
     }, result.scrub);
 
     // If the caret enters a card, display it as active.
-    Dom.on(editor.root, 'mini:caretchange', () => {
-      const card = Dom.closest(cardTagName, Rng.currentNode());
-      if (card) {
-        activateCard(card, true);
-      } else {
-        deactivateCards();
-      }
-    });
-
-    Dom.on(editor.root, 'keydown', (e) => {
-      if (e.defaultPrevented || !result.isActive(cardTagName)) {
-        return;
-      }
-
-      const card = activeCards.values().next().value;
-
-      if (e.code === 'ArrowLeft' || (e.code === 'ArrowUp' && card === editor.root.children[0])) {
-        if (!card.classList.contains(leftCaretClass)) {
-          e.preventDefault();
-          assignCaret(card, leftCaretClass);
-        }
-        return;
-      } else if (
-        e.code === 'ArrowRight' ||
-        (e.code === 'ArrowDown' && card === editor.root.children[editor.root.children.length - 1])
-      ) {
-        if (!card.classList.contains(rightCaretClass)) {
-          e.preventDefault();
-          assignCaret(card, rightCaretClass);
-        }
-        return;
-      }
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const leaf = Dom.findLeaf(Rng.currentNode()!)!;
-        if (card.classList.contains(leftCaretClass)) {
-          editor.root.insertBefore(Dom.newLeaf(), leaf);
+    !editor.readonly &&
+      Dom.on(editor.root, 'mini:caretchange', () => {
+        const card = Dom.closest(cardTagName, Rng.currentNode());
+        if (card) {
+          activateCard(card, true);
         } else {
-          Rng.setCaretAtStart(Dom.insertAfter(Dom.newLeaf(), leaf));
+          deactivateCards();
         }
-        return;
-      }
-
-      if (e.code === 'Backspace' || e.code === 'Delete') {
-        const range = Rng.currentRange();
-        if (range?.collapsed) {
-          e.preventDefault();
-          activeCards.forEach((el) => {
-            const replacement = Dom.newLeaf();
-            el.replaceWith(replacement);
-            Rng.setCaretAtStart(replacement);
-          });
-        } else {
-          activeCards.forEach((el) => el.remove());
-        }
-        activeCards.clear();
-      } else if (!e.code.includes('Arrow') && !e.metaKey && !e.ctrlKey) {
-        // We only allow arrow, delete, backspace within a card.
-        e.preventDefault();
-      }
-    });
-
-    Dom.on(editor.root, 'dragstart', (e) => {
-      if (e.defaultPrevented || !e.target) {
-        return;
-      }
-      const draggingEl = Dom.findLeaf(e.target as Node) as HTMLElement | undefined;
-      if (!draggingEl) {
-        return;
-      }
-      draggingEl.style.opacity = '1';
-      result.beginDragDrop(e, (_, target) => {
-        target.isConnected && target.replaceWith(draggingEl);
-        draggingEl.style.opacity = '1';
-        return draggingEl;
       });
-      draggingEl.style.opacity = '0.2';
-    });
+
+    !editor.readonly &&
+      Dom.on(editor.root, 'keydown', (e) => {
+        if (e.defaultPrevented || !result.isActive(cardTagName)) {
+          return;
+        }
+
+        const card = activeCards.values().next().value;
+
+        if (e.code === 'ArrowLeft' || (e.code === 'ArrowUp' && card === editor.root.children[0])) {
+          if (!card.classList.contains(leftCaretClass)) {
+            e.preventDefault();
+            assignCaret(card, leftCaretClass);
+          }
+          return;
+        } else if (
+          e.code === 'ArrowRight' ||
+          (e.code === 'ArrowDown' && card === editor.root.children[editor.root.children.length - 1])
+        ) {
+          if (!card.classList.contains(rightCaretClass)) {
+            e.preventDefault();
+            assignCaret(card, rightCaretClass);
+          }
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const leaf = Dom.findLeaf(Rng.currentNode()!)!;
+          if (card.classList.contains(leftCaretClass)) {
+            editor.root.insertBefore(Dom.newLeaf(), leaf);
+          } else {
+            Rng.setCaretAtStart(Dom.insertAfter(Dom.newLeaf(), leaf));
+          }
+          return;
+        }
+
+        if (e.code === 'Backspace' || e.code === 'Delete') {
+          const range = Rng.currentRange();
+          if (range?.collapsed) {
+            e.preventDefault();
+            activeCards.forEach((el) => {
+              const replacement = Dom.newLeaf();
+              el.replaceWith(replacement);
+              Rng.setCaretAtStart(replacement);
+            });
+          } else {
+            activeCards.forEach((el) => el.remove());
+          }
+          activeCards.clear();
+        } else if (!e.code.includes('Arrow') && !e.metaKey && !e.ctrlKey) {
+          // We only allow arrow, delete, backspace within a card.
+          e.preventDefault();
+        }
+      });
+
+    !editor.readonly &&
+      Dom.on(editor.root, 'dragstart', (e) => {
+        if (e.defaultPrevented || !e.target) {
+          return;
+        }
+        const draggingEl = Dom.findLeaf(e.target as Node) as HTMLElement | undefined;
+        if (!draggingEl) {
+          return;
+        }
+        draggingEl.style.opacity = '1';
+        result.beginDragDrop(e, (_, target) => {
+          target.isConnected && target.replaceWith(draggingEl);
+          draggingEl.style.opacity = '1';
+          return draggingEl;
+        });
+        draggingEl.style.opacity = '0.2';
+      });
 
     return next(result);
   };
