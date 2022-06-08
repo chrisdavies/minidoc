@@ -2,10 +2,10 @@
  * When the editor's caret position changes, we will fire off a mini:caretchange event.
  */
 import * as Dom from '../dom';
+import { inferMiddleware } from '../mixins';
 import * as Rng from '../range';
-import { EditorMiddleware, MinidocBase } from '../types';
 
-export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) => {
+export const selectionTracker = inferMiddleware((next, editor) => {
   const el = editor.root;
 
   // Disable selection change tracking.
@@ -15,7 +15,9 @@ export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) =>
   // we'll fire off a selection change event.
   Dom.on(el, 'focus', () => {
     if (!off) {
-      off = Dom.on(document, 'selectionchange', (e) => Dom.emit(el, 'mini:caretchange', e));
+      off = Dom.on(document, 'selectionchange', (e) => {
+        el.isConnected && Dom.emit(el, 'mini:caretchange', e);
+      });
     }
   });
 
@@ -44,4 +46,4 @@ export const selectionTracker: EditorMiddleware = (next, editor: MinidocBase) =>
   });
 
   return next(editor);
-};
+});

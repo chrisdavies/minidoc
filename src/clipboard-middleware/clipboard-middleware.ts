@@ -9,11 +9,12 @@
 import * as Dom from '../dom';
 import * as Rng from '../range';
 import { last } from '../util';
-import { EditorMiddleware, MinidocBase } from '../types';
+import { MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { Mountable } from '../mountable';
 import { Scrubbable } from '../scrubbable';
 import { h } from '../dom';
+import { inferMiddleware } from '../mixins';
 
 function stripBrs(el: Node) {
   Dom.isElement(el) && Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
@@ -287,7 +288,7 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocBas
 /**
  * Add support for clipboard to minidoc.
  */
-export const clipbordMiddleware: EditorMiddleware = (next, b: MinidocBase) => {
+export const clipbordMiddleware = inferMiddleware((next, b) => {
   const el = b.root;
   const editor = b as MinidocBase & Changeable & Mountable & Scrubbable;
 
@@ -320,4 +321,4 @@ export const clipbordMiddleware: EditorMiddleware = (next, b: MinidocBase) => {
   });
 
   return next(editor);
-};
+});

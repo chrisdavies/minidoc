@@ -1,6 +1,6 @@
 import { h, toFragment } from '../dom';
 import { disposable } from './disposable-mixin';
-import { EditorMiddleware, MinidocBase, ReturnTypesIntersection, MinidocOptions } from '../types';
+import { MinidocBase, ReturnTypesIntersection, MinidocOptions, EditorMiddleware } from '../types';
 import { serializable } from '../serializable';
 import { mountable } from '../mountable';
 import { undoRedoMiddleware } from '../undo-redo';
@@ -88,7 +88,7 @@ export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<
     ? [...defaultMiddleware, ...opts.middleware]
     : defaultMiddleware;
   const editor = applyMiddleware(middleware, core, 0) as ReturnedMinidocCore &
-    ReturnTypesIntersection<T>;
+    ReturnTypesIntersection<typeof middleware>;
 
   // Associate the editor with the root element.
   (root as any).$editor = editor;

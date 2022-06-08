@@ -13,6 +13,7 @@ import { debounce } from '../src/util';
 import { myfileCard } from './myfile-card';
 import { videoCard } from './video-card';
 import { imgCard } from './img-card';
+import { inferMiddleware } from '../src/mixins';
 
 let readonly = location.search === '?readonly';
 
@@ -51,9 +52,11 @@ const editor = minidoc({
     cardMiddleware([counterCard, myfileCard, imgCard, videoCard]),
     // The fileDrop middleware adds support for dropping files onto the editor via
     // the HTML5 drag / drop API.
-    fileDrop((opts) => {
-      editor.insertCard('myfile', { type: opts.files[0].type, name: opts.files[0].name });
-    }),
+    inferMiddleware(
+      fileDrop((opts) => {
+        editor.insertCard('myfile', { type: opts.files[0].type, name: opts.files[0].name });
+      }),
+    ),
   ],
 });
 

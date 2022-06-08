@@ -6,7 +6,7 @@
 
 import * as Rng from '../range';
 import * as Dom from '../dom';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 
 type SequenceHandler = (node: Node) => unknown;
 
@@ -20,7 +20,7 @@ export interface OnSequenceable {
   onSequence(sequence: string, handler: SequenceHandler): void;
 }
 
-export const onSequenceMixin: EditorMiddlewareMixin<OnSequenceable> = (next, editor) => {
+export const onSequenceMixin: EditorMiddleware<OnSequenceable> = (next, editor) => {
   const result = editor as MinidocBase & OnSequenceable;
   // An index of key -> sequence -> SequenceHandler
   const handlers: Record<string, Record<string, SequenceHandler>> = {};

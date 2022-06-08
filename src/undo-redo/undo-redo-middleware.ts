@@ -16,7 +16,7 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { h } from '../dom';
 import { undoRedo } from './undo-redo';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 import { UndoHistoryState, DetachedRange } from './types';
 import { Serializable } from '../serializable';
 import { Mountable } from '../mountable';
@@ -167,7 +167,7 @@ function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializa
 /**
  * Mixin that converts the editor to a disposable interface.
  */
-export const undoRedoMiddleware: EditorMiddlewareMixin<Undoable & Redoable & Changeable> = (
+export const undoRedoMiddleware: EditorMiddleware<Undoable & Redoable & Changeable> = (
   next,
   editor,
 ) => {

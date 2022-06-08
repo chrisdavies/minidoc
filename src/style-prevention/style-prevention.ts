@@ -3,8 +3,9 @@
  * injecting garbage HTML on normal edit operations.
  */
 import * as Dom from '../dom';
+import { inferMiddleware } from '../mixins';
 import * as Rng from '../range';
-import { EditorMiddleware, MinidocBase } from '../types';
+import { MinidocBase } from '../types';
 
 /**
  * If we're deleting / backspacing into an immutable node (a),
@@ -104,7 +105,7 @@ function onEnter(e: KeyboardEvent) {
   }
 }
 
-export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => {
+export const stylePrevention = inferMiddleware((next, editor: MinidocBase) => {
   const result = next(editor);
   Dom.on(result.root, 'keydown', (e) => {
     // Do not insert a new line when pressing cmd+enter
@@ -128,4 +129,4 @@ export const stylePrevention: EditorMiddleware = (next, editor: MinidocBase) => 
     }
   });
   return result;
-};
+});

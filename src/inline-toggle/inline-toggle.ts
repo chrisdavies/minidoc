@@ -19,7 +19,7 @@ import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { last } from '../util';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 
 export interface InlineTogglable {
   isActive(tagName: string): boolean;
@@ -180,7 +180,7 @@ function toggleInlineSelection(tagName: string, range: Range) {
   return result;
 }
 
-export const inlineTogglable: EditorMiddlewareMixin<InlineTogglable> = (next, editor) => {
+export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor) => {
   const result = editor as MinidocBase & InlineTogglable;
   const el = editor.root;
   // The tags within which the current selection resides

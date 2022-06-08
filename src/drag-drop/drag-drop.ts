@@ -4,7 +4,7 @@
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { Serializable } from '../serializable';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { debounce } from '../util';
 
@@ -23,14 +23,14 @@ dragImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAA
 /**
  * Enable drag / drop reordering for direct, draggable children of the specified element.
  */
-export const dragDropMixin: EditorMiddlewareMixin<DragDroppable> = (next, editor) => {
+export const dragDropMixin: EditorMiddleware<DragDroppable> = (next, editor) => {
   const el = editor.root;
   const result = editor as MinidocBase & DragDroppable & Changeable;
   // The drop target preview, showing where draggingEl will be placed when drag completes
   const dropTarget = h<HTMLElement>('drop-target.minidoc-drop-target');
 
   // Prevent the drop target from being saved / serialized.
-  ((dropTarget as unknown) as Serializable).serialize = () => '';
+  (dropTarget as unknown as Serializable).serialize = () => '';
 
   let onDrop: undefined | MinidocDropHandler;
 

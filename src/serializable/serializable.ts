@@ -1,4 +1,4 @@
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 
 export interface Serializable {
   serialize(forSave?: boolean): string;
@@ -8,7 +8,7 @@ function isSerializable(n: any): n is Serializable {
   return n.serialize;
 }
 
-export const serializable: EditorMiddlewareMixin<Serializable> = (next, editor) => {
+export const serializable: EditorMiddleware<Serializable> = (next, editor) => {
   const result = editor as MinidocBase & Serializable;
   const el = editor.root;
 

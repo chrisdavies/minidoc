@@ -1,9 +1,9 @@
 export interface MinidocBase {
-  root: Element;
+  root: HTMLElement;
   readonly?: boolean;
 }
 
-export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlewareMixin>> {
+export interface MinidocOptions<T extends Array<EditorMiddleware>> {
   /**
    * The raw document as HTML.
    */
@@ -15,7 +15,7 @@ export interface MinidocOptions<T extends Array<EditorMiddleware | EditorMiddlew
   /**
    * If specified, this is the contenteditable used to render the document.
    */
-  root?: Element;
+  root?: HTMLElement;
   /**
    * The set of middleware used in this document.
    */
@@ -29,17 +29,12 @@ export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) ex
   : never;
 
 export type ReturnTypesIntersection<T> = T extends Array<(...args: any[]) => infer U>
-  ? UnionToIntersection<U>
+  ? UnionToIntersection<Exclude<U, void>>
   : any;
 
-export type EditorMiddleware<TEditor extends MinidocBase = any> = (
-  next: <Y extends MinidocBase>(editor: Y) => Y,
-  editor: TEditor,
-) => void;
-
-export type EditorMiddlewareMixin<
+export type EditorMiddleware<
   TExtension extends any = any,
-  TEditor extends MinidocBase = MinidocBase
+  TEditor extends MinidocBase = MinidocBase,
 > = (next: <Y extends MinidocBase>(editor: Y) => Y, editor: TEditor) => TEditor & TExtension;
 
 export type ImmutableLeaf = Element & { $immutable: true };

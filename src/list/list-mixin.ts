@@ -5,7 +5,7 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { toggleList } from './toggle-list';
 import { InlineTogglable } from '../inline-toggle';
@@ -140,7 +140,7 @@ const handlers: {
   },
 };
 
-export const listMixin: EditorMiddlewareMixin<ListTogglable> = (next, editor) => {
+export const listMixin: EditorMiddleware<ListTogglable> = (next, editor) => {
   const result = editor as MinidocBase &
     ListTogglable &
     Changeable &

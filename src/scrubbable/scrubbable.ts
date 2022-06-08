@@ -1,5 +1,5 @@
 import { h, isBlock, isCard, isElement, isList } from '../dom';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 
 export interface Scrubbable {
   scrub(content: DocumentFragment): DocumentFragment;
@@ -179,7 +179,7 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
 };
 
 export const middleware =
-  (scrubber: Scrubber = createScrubber(rules)): EditorMiddlewareMixin<Scrubbable> =>
+  (scrubber: Scrubber = createScrubber(rules)): EditorMiddleware<Scrubbable> =>
   (next, editor) => {
     const result = editor as MinidocBase & Scrubbable;
 

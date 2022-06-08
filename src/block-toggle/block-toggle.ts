@@ -6,7 +6,7 @@
 import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 
 export interface BlockTogglable {
@@ -43,7 +43,7 @@ function toggleBlock(tagName: string, range: Range) {
   return Rng.fromNodes(newLeafs);
 }
 
-export const blockTogglable: EditorMiddlewareMixin<BlockTogglable> = (next, editor) => {
+export const blockTogglable: EditorMiddleware<BlockTogglable> = (next, editor) => {
   const result = editor as MinidocBase & BlockTogglable & Changeable;
   result.toggleBlock = (tagName) => {
     const range = Rng.currentRange();

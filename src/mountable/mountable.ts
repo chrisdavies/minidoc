@@ -1,12 +1,12 @@
 import * as Dom from '../dom';
 import { isElement, newLeaf } from '../dom';
-import { EditorMiddlewareMixin, MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 
 export interface Mountable {
   beforeMount<T extends Node>(node: T): T;
 }
 
-export const mountable: EditorMiddlewareMixin<Mountable> = (next, editor) => {
+export const mountable: EditorMiddleware<Mountable> = (next, editor) => {
   const result = editor as MinidocBase & Mountable;
 
   result.beforeMount = (x) => {

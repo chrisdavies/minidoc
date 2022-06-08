@@ -2,7 +2,7 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { compose } from '../util';
 import { h } from '../dom';
-import { EditorMiddlewareMixin, ImmutableLeaf, MinidocBase } from '../types';
+import { EditorMiddleware, ImmutableLeaf, MinidocBase } from '../types';
 import { Mountable } from '../mountable/mountable';
 import { Serializable } from '../serializable/serializable';
 import { InlineTogglable } from '../inline-toggle';
@@ -59,7 +59,7 @@ function assignCaret(el: Element, caret: string) {
  * Add support for cards to minidoc.
  */
 export const cardMiddleware =
-  (defs: MinidocCardDefinition[]): EditorMiddlewareMixin<Cardable> =>
+  (defs: MinidocCardDefinition[]): EditorMiddleware<Cardable> =>
   (next, editor) => {
     const result = editor as MinidocBase &
       Cardable &
