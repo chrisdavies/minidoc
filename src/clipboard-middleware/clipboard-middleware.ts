@@ -9,12 +9,21 @@
 import * as Dom from '../dom';
 import * as Rng from '../range';
 import { last } from '../util';
-import { MinidocBase } from '../types';
+import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { Mountable } from '../mountable';
 import { Scrubbable } from '../scrubbable';
 import { h } from '../dom';
-import { inferMiddleware } from '../mixins';
+
+type PasteHandler = (e: ClipboardEvent) => void;
+
+export interface Pastable {
+  /**
+   * Add a paste handler that has higher priority than the default. If no
+   * handler calls preventDefault, the default handler will run.
+   */
+  addPasteHandler(fn: PasteHandler): void;
+}
 
 function stripBrs(el: Node) {
   Dom.isElement(el) && Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
@@ -288,11 +297,20 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocBas
 /**
  * Add support for clipboard to minidoc.
  */
-export const clipbordMiddleware = inferMiddleware((next, b) => {
+export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
   const el = b.root;
-  const editor = b as MinidocBase & Changeable & Mountable & Scrubbable;
+  const editor = b as MinidocBase & Pastable & Changeable & Mountable & Scrubbable;
+  const handlers: PasteHandler[] = [];
+
+  editor.addPasteHandler = (fn: PasteHandler) => handlers.push(fn);
 
   Dom.on(el, 'paste', (e) => {
+    for (const handler of handlers) {
+      handler(e);
+      if (e.defaultPrevented) {
+        return;
+      }
+    }
     if (e.defaultPrevented) {
       return;
     }
@@ -321,4 +339,4 @@ export const clipbordMiddleware = inferMiddleware((next, b) => {
   });
 
   return next(editor);
-});
+};

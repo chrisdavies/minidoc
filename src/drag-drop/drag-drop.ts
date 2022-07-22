@@ -52,7 +52,9 @@ export const dragDropMixin: EditorMiddleware<DragDroppable> = (next, editor) => 
     done.push(Dom.on(document, 'dragend', off));
     done.push(Dom.on(document, 'mousemove', off));
 
-    e.dataTransfer!.setData('text', 'minidoc');
+    if (!e.dataTransfer?.files) {
+      e.dataTransfer!.setData('text', 'minidoc');
+    }
     e.dataTransfer!.setDragImage(dragImg, 0, 0);
   };
 

@@ -16,10 +16,14 @@ type FileDropHandler = (opts: { editor: MinidocCore; files: FileList }) => void;
  */
 export const fileDrop = (handler: FileDropHandler) =>
   inferMiddleware((next, editor) => {
+    if (editor.readonly) {
+      return next(editor);
+    }
+
     const core = editor as MinidocCore;
 
     // Paste files
-    Dom.on(editor.root, 'paste', (e) => {
+    core.addPasteHandler((e) => {
       if (!e.defaultPrevented && e.clipboardData?.files.length) {
         e.preventDefault();
         handler({ editor: core, files: e.clipboardData.files });
