@@ -351,13 +351,13 @@ test.describe('toolbar', () => {
     );
     await util.selectRange('p', 0);
     await util.pressCtrl('b');
-    await page.type('p', 'Yall');
+    await page.keyboard.type('Yall');
     expect(await util.serializeDoc()).toEqual(
       `<h1>Hello</h1><h2>There</h2><p><strong>Yall</strong>I'm strong<a href="http://example.com">Foo</a><em>I'm emphasized</em><strong>I'm bold</strong><em>I'm italic</em></p>`,
     );
   });
 
-  it('italic and unitalic', async ({ page, util }) => {
+  fit('italic and unitalic', async ({ page, util }) => {
     await util.selectNodeContent('em');
     await page.click('[aria-label="Italic"]');
     expect(await util.serializeDoc()).toEqual(
@@ -374,7 +374,7 @@ test.describe('toolbar', () => {
     );
     await util.selectRange('p', 0);
     await util.pressCtrl('i');
-    await page.type('p', 'Yall');
+    await page.keyboard.type('Yall');
     expect(await util.serializeDoc()).toEqual(
       `<h1>Hello</h1><h2>There</h2><p><strong><em>Yall</em>I'm strong</strong><a href="http://example.com">Foo</a>I'm emphasized<strong>I'm bold</strong><em>I'm italic</em></p>`,
     );
