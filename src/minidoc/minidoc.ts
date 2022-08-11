@@ -5,6 +5,7 @@ import { serializable } from '../serializable';
 import { mountable } from '../mountable';
 import { undoRedoMiddleware } from '../undo-redo';
 import { inlineTogglable } from '../inline-toggle';
+import { alignMixin } from '../align';
 import { dragDropMixin } from '../drag-drop';
 import { selectionTracker } from '../selection-tracker';
 import { blockTogglable } from '../block-toggle';
@@ -39,6 +40,7 @@ const baseMiddleware = getDefaultMiddleware([
   selectionTracker,
   blockTogglable,
   listMixin,
+  alignMixin,
   horizontalRuleMixin,
   clipbordMiddleware,
 ]);

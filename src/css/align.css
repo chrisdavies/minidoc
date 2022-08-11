@@ -1,0 +1,7 @@
+.minidoc-content [data-align=center] {
+  text-align: center;
+}
+
+.minidoc-content [data-align=right] {
+  text-align: right;
+}

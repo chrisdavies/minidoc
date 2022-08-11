@@ -14,17 +14,16 @@ type Scrubber = (node: DocumentFragment, editor: MinidocBase) => DocumentFragmen
 
 const isSafeUrl = (s?: string) => !s?.startsWith('javascript:');
 
+export const leafRules = { 'data-align': true };
+
 export const rules: ScrubbableRules = {
-  leaf: {
-    P: {},
-    BLOCKQUOTE: {},
-    H1: {},
-    H2: {},
-    H3: {},
-    H4: {},
-    UL: {},
-    OL: {},
-  },
+  leaf: ['P', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL'].reduce(
+    (acc: ScrubbableRules['leaf'], tag) => {
+      acc[tag] = leafRules;
+      return acc;
+    },
+    {},
+  ),
   child: {
     A: { href: isSafeUrl },
     I: {},

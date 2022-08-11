@@ -14,6 +14,7 @@ export { h, on } from './dom';
 export { onMount } from './disposable';
 
 import './css/index.css';
+import { alignCenterToolbarAction, alignLeftToolbarAction, alignRightToolbarAction } from './align';
 
 // I don't like that this is global, but... it's the best way to get
 // paragraphs when the user presses enter.
@@ -59,4 +60,7 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   orderedListToolbarAction,
   unorderedListToolbarAction,
   highlightToolbarAction,
+  alignLeftToolbarAction,
+  alignCenterToolbarAction,
+  alignRightToolbarAction,
 ];

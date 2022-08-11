@@ -357,7 +357,7 @@ test.describe('toolbar', () => {
     );
   });
 
-  fit('italic and unitalic', async ({ page, util }) => {
+  it('italic and unitalic', async ({ page, util }) => {
     await util.selectNodeContent('em');
     await page.click('[aria-label="Italic"]');
     expect(await util.serializeDoc()).toEqual(
