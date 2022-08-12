@@ -16,7 +16,7 @@ export const minidocToolbar =
   (actions: MinidocToolbarAction[]): EditorMiddleware<Toolbarable> =>
   (next, editor) => {
     const result = editor as MinidocToolbarEditor;
-    const root = h('header.minidoc-toolbar');
+    const root = h('header.minidoc-toolbar', { tabIndex: -1 });
     const defaultMenu = h('.minidoc-default-menu', {
       onmousedown() {
         ensureSelectionWithin(editor.root);
@@ -27,6 +27,15 @@ export const minidocToolbar =
       root,
       dispose: Disposable.initialize(root, () => {}).dispose,
       setMenu(el) {
+        // This helps programs that have a dynamically shown / hidden toolbar,
+        // as they generally want to hide the toolbar when neither the
+        // editor or toolbar have focus, but without this, the toolbar loses
+        // focus.
+        el && root.focus();
+
+        // This keeps the alignment from getting weird when the submenu
+        // is significantly narrower than the original toolbar.
+        root.style.minWidth = el ? `${root.getBoundingClientRect().width}px` : '';
         root.firstElementChild?.replaceWith(el || defaultMenu);
       },
     };
