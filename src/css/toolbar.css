@@ -164,3 +164,7 @@
 .minidoc-ico-link {
   height: 0.9rem;
 }
+
+.minidoc-toolbar ico-align {
+  line-height: 0;
+}
