@@ -143,6 +143,9 @@ export function closest(selector: string, node?: Node): any {
   if (arguments.length === 1) {
     return (n: Node) => closest(selector, n);
   }
+  if (!node) {
+    return undefined;
+  }
   const el = isElement(node) ? node : node!.parentElement!;
   return el.closest(selector) || undefined;
 }
