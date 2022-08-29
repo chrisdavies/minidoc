@@ -62,8 +62,8 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
   if (!range) {
     return;
   }
-  const highlighter = highlight(range);
   const behavior = getLinkBehavior(range);
+  const highlighter = highlight(range);
   let href = behavior.getHref();
 
   const hide = () => {
