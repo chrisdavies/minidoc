@@ -1,11 +1,12 @@
 import { Cardable, h, MinidocCardDefinition, MinidocToolbarAction, on, onMount } from '../src';
+import { LinkBehavior } from '../src/link/link-menu';
 
-type State = { count: number };
+type State = { count: number; href?: string };
 const counterButtonText = ({ count }: State) => `Count=${count}`;
 const counterButton = (state: State) =>
   h('button', { 'data-count': state.count }, counterButtonText(state));
 
-export const counterCard: MinidocCardDefinition<{ count: number }> = {
+export const counterCard: MinidocCardDefinition<State> = {
   type: 'counter',
   selector: 'button[data-count]',
   deriveState(el) {
@@ -16,17 +17,38 @@ export const counterCard: MinidocCardDefinition<{ count: number }> = {
   },
   render(opts) {
     const { state } = opts;
-    const el = counterButton(state);
-    on(el, 'click', () => {
+    const btn = counterButton(state);
+    const root = h('div', btn, state.href ? h('a', { href: state.href }, 'LINK') : '');
+
+    const behavior: LinkBehavior = {
+      getHref() {
+        return root.querySelector('a')?.href || '';
+      },
+      setHref(href: string) {
+        if (!href) {
+          root.querySelector('a')?.remove();
+          return;
+        }
+        const a = root.querySelector('a') || h('a');
+        a.href = href;
+        a.textContent = href;
+        root.append(a);
+      },
+    };
+
+    opts.behavior = behavior;
+
+    on(btn, 'click', () => {
       ++state.count;
-      el.dataset.count = state.count.toString();
-      el.textContent = counterButtonText(state);
+      btn.dataset.count = state.count.toString();
+      btn.textContent = counterButtonText(state);
     });
-    onMount(el, () => {
+
+    onMount(root, () => {
       console.log(`counter:init(${state.count})`);
       return () => console.log(`counter:dispose(${state.count})`);
     });
-    return el;
+    return root;
   },
 };
 
@@ -34,5 +56,5 @@ export const toolbarCounter: MinidocToolbarAction = {
   id: 'counter',
   label: 'Counter',
   html: '+/-',
-  run: (t) => ((t as unknown) as Cardable).insertCard<State>('counter', { count: 42 }),
+  run: (t) => (t as unknown as Cardable).insertCard<State>('counter', { count: 42 }),
 };

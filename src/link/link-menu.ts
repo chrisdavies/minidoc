@@ -3,6 +3,12 @@ import * as Dom from '../dom';
 import { h } from '../dom';
 import { onMount } from '../disposable';
 import { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
+import { getBehavior } from '..';
+
+export interface LinkBehavior {
+  getHref(): string;
+  setHref(href: string): void;
+}
 
 function highlight(range: Range) {
   const [inlinable] = Rng.inlinableRanges(range);
@@ -23,14 +29,43 @@ function restoreSelection(range?: Range) {
   return range && Rng.setCurrentSelection(range);
 }
 
+function getLinkBehavior(range: Range): LinkBehavior {
+  const currentNode = Rng.toNode(range);
+  const leaf = Dom.findLeaf(currentNode);
+  const behavior = getBehavior<LinkBehavior>(leaf);
+
+  if (behavior && behavior.getHref && behavior.setHref) {
+    return behavior as LinkBehavior;
+  }
+
+  const a = Dom.closest('a', currentNode);
+  return {
+    getHref() {
+      return Dom.attr('href', a) || '';
+    },
+    setHref(href) {
+      if (!href) {
+        restoreSelection(Dom.replaceSelfWithChildren(a));
+      } else if (a) {
+        Dom.assignAttrs({ href }, a);
+      } else if (Dom.isCard(leaf)) {
+        Dom.insertAfter(h('p', h('a', { href }, href)), leaf);
+      } else {
+        range.insertNode(h('a', { href }, range.collapsed ? href : range.extractContents()));
+      }
+    },
+  };
+}
+
 export function LinkMenu(editor: MinidocToolbarEditor) {
   const range = Rng.currentRange();
   if (!range) {
     return;
   }
-  const a = Dom.closest('a', Rng.toNode(range));
   const highlighter = highlight(range);
-  let href = Dom.attr('href', a) || '';
+  const behavior = getLinkBehavior(range);
+  let href = behavior.getHref();
+
   const hide = () => {
     try {
       const setFocus = !editor.root.contains(document.activeElement);
@@ -40,23 +75,23 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
       editor.toolbar.setMenu(undefined);
     }
   };
+
   const unlink = () => {
-    restoreSelection(Dom.replaceSelfWithChildren(a));
+    behavior.setHref('');
     hide();
   };
+
   const link = () => {
     if (!href) {
       return unlink();
     }
-    const url = /^(https:\/\/)|^(\/)|^(mailto:)/.test(href) ? href : `//${href}`;
-    if (a) {
-      Dom.assignAttrs({ href: url }, a);
-    } else {
-      range?.insertNode(h('a', { href: url }, range.collapsed ? href : range.extractContents()));
-    }
+
+    const url = /^(https?:\/\/)|^(\/)|^(mailto:)/.test(href) ? href : `//${href}`;
+    behavior.setHref(url);
     Rng.setCurrentSelection(range);
     hide();
   };
+
   const txt = h<HTMLInputElement>('input.minidoc-toolbar-txt', {
     placeholder: 'Enter a URL',
     autofocus: 'true',

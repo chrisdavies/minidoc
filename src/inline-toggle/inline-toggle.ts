@@ -22,6 +22,7 @@ import { last } from '../util';
 import { EditorMiddleware, MinidocBase } from '../types';
 
 export interface InlineTogglable {
+  hasLeaf(fn: (leaf: Element) => boolean): boolean;
   isActive(tagName: string): boolean;
   toggleInline(tagName: string): void;
 }
@@ -191,6 +192,7 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
   // which in turn clears the toggled tags. So, we need to ignore that
   // particular selection change. This flag is how we do that.
   let isToggling = false;
+  let leaf: Node | undefined;
 
   function toggleInline(tagName: string) {
     let range = Rng.currentRange();
@@ -224,16 +226,16 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
     if (!range) {
       return;
     }
-    let child = Rng.toNode(range);
+    leaf = Rng.toNode(range);
     activeTags.clear();
     toggledTags.clear();
-    while (true) {
-      const parent = child.parentElement;
+    while (leaf) {
+      const parent: Element | null = leaf.parentElement;
       if (!parent || Dom.isRoot(parent)) {
         break;
       }
       activeTags.add(normalizeTagName(parent.tagName));
-      child = parent;
+      leaf = parent;
     }
   });
 
@@ -276,6 +278,8 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
     const normalized = normalizeTagName(tagName);
     return activeTags.has(normalized) === !toggledTags.has(normalized);
   };
+
+  result.hasLeaf = (fn) => !!leaf && fn(leaf as HTMLElement);
 
   result.toggleInline = toggleInline;
 

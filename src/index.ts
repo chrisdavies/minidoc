@@ -10,6 +10,7 @@ export * from './placeholder';
 export * from './minidoc';
 export * from './mixins';
 export * as scrubbable from './scrubbable';
+export { LinkBehavior } from './link/link-menu';
 export { h, on } from './dom';
 export { onMount } from './disposable';
 

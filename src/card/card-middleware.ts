@@ -12,11 +12,23 @@ import { Scrubbable } from '../scrubbable';
 const rightCaretClass = 'minidoc-card-caret-right';
 const leftCaretClass = 'minidoc-card-caret-left';
 
+export function getBehavior<T>(node?: Node): T | undefined {
+  return node && (node as any).$behavior;
+}
+
 export interface CardRenderOptions<T extends object = any> {
   state: T;
   readonly: boolean;
   editor: MinidocBase;
   stateChanged(state: T): void;
+  /**
+   * The render method can set this to an object or function or whatever it
+   * wants, allowing outside components / logic to communicate with the card,
+   * if desired. For example, an "image" card could set this to be:
+   * { setHref: (href) => { ... } } in order to allow the link toolbar action
+   * to wrap the image in a hyperlink.
+   */
+  behavior?: any;
 }
 
 export interface MinidocCardDefinition<T extends object = any> {
@@ -148,6 +160,12 @@ export const cardMiddleware =
         },
         render(opts),
       );
+
+      // If the render function set the behavior property, we'll add it to the
+      // root element to make it programmatically accessible.
+      if (opts.behavior) {
+        (el as any).$behavior = opts.behavior;
+      }
 
       Dom.appendChildren(
         [
