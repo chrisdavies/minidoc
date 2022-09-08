@@ -17,9 +17,38 @@ export const minidocToolbar =
   (next, editor) => {
     const result = editor as MinidocToolbarEditor;
     const root = h('header.minidoc-toolbar', { tabIndex: -1 });
+
+    // The toolbar buttons / actions.
+    const btns = actions.map((b, i) => {
+      b.init && b.init(result);
+      const btn = ToolbarButton(result, b);
+      btn.tabIndex = i === 0 ? 0 : -1;
+      return btn;
+    });
+
     const defaultMenu = h('.minidoc-default-menu', {
       onmousedown() {
         ensureSelectionWithin(editor.root);
+      },
+      onkeydown(e: KeyboardEvent) {
+        // It's a nuisance to have to tab through all of the buttons in the
+        // toolbar when you're trying to move focus past the toolbar to the
+        // rich content or another form element, so what we do is set tabIndex
+        // to -1 for all toolbar buttons but one. We use left / right to shift
+        // focus to the appropriate buttons, and we change the tabIndex so the
+        // last button we focused will gain focus when we tab back to it.
+        const directions: Record<string, number> = {
+          ArrowLeft: -1,
+          ArrowRight: 1,
+        };
+        const direction = directions[e.code];
+        const btnIndex = btns.indexOf(document.activeElement as HTMLButtonElement);
+        if (direction && btnIndex >= 0) {
+          const nextBtn = btns[Math.min(Math.max(0, btnIndex + direction), btns.length - 1)];
+          btns[btnIndex].tabIndex = -1;
+          nextBtn.tabIndex = 0;
+          nextBtn.focus();
+        }
       },
     });
 
@@ -39,12 +68,6 @@ export const minidocToolbar =
         root.firstElementChild?.replaceWith(el || defaultMenu);
       },
     };
-
-    // The toolbar buttons / actions.
-    const btns = actions.map((b) => {
-      b.init && b.init(result);
-      return ToolbarButton(result, b);
-    });
 
     root.append(defaultMenu);
     defaultMenu.append(...btns);
