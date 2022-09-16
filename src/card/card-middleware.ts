@@ -20,6 +20,7 @@ export interface CardRenderOptions<T extends object = any> {
   state: T;
   readonly: boolean;
   editor: MinidocBase;
+  container: HTMLElement;
   stateChanged(state: T): void;
   /**
    * The render method can set this to an object or function or whatever it
@@ -140,6 +141,7 @@ export const cardMiddleware =
       );
       const opts: CardRenderOptions = {
         editor,
+        container: el as HTMLElement,
         readonly: !!editor.readonly,
         state,
         stateChanged(state) {
