@@ -99,7 +99,7 @@ function onEnter(e: KeyboardEvent) {
     Dom.$makeEditable(head);
   }
   if (tail) {
-    const leaf = Dom.isEmpty(tail) ? Dom.newLeaf() : tail;
+    const leaf = Dom.isEmpty(tail) ? Dom.newLeaf(e.shiftKey ? 'h3' : 'p') : tail;
     tail.replaceWith(leaf);
     Rng.setCaretAtStart(Dom.$makeEditable(leaf));
   }
