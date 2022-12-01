@@ -134,6 +134,13 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
       return;
     }
 
+    if (isElement(node) && node.tagName === 'LI') {
+      if (!isList(ctx.current)) {
+        ctx.addLeaf(h('ul', node));
+        return;
+      }
+    }
+
     if (isList(node)) {
       if (!ctx.current?.matches('li')) {
         promoteToLeaf(node, ctx);

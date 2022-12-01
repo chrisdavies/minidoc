@@ -338,7 +338,7 @@ export function h<T extends HTMLElement>(tag: string, ...args: any): T {
   return el as unknown as T;
 }
 
-export function newLeaf(element: 'p' | 'h3' = 'p') {
+export function newLeaf(element: 'p' | 'h3' | 'ul' = 'p') {
   return h(element, h('br'));
 }
 
