@@ -37,6 +37,13 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     isActive: (t) => t.isActive('h2'),
   },
   {
+    id: 'h3',
+    label: 'Heading 3',
+    html: '<b>h3</b>',
+    run: (t) => t.toggleBlock('h3'),
+    isActive: (t) => t.isActive('h3'),
+  },
+  {
     id: 'blockquote',
     label: 'Quote',
     html: '<b class="minidoc-quote">”</b>',
