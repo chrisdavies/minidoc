@@ -70,6 +70,17 @@ export type ReadonlyMinidocCore = MinidocBase & ReturnTypesIntersection<typeof r
 
 type ReturnedMinidocCore = MinidocCore | ReadonlyMinidocCore;
 
+/**
+ * We need to set the defaultParagraphSeparator whenever minidoc is initialized
+ * in edit mode. This causes the browser to insert a 'p' rather than a 'div' or
+ * some other such thing when the user presses Enter. This only needs to be
+ * done once, so we change this to a noop when it's run.
+ */
+let globalInit = () => {
+  globalInit = () => {};
+  document.execCommand('defaultParagraphSeparator', false, 'p');
+};
+
 export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<T>) {
   const root =
     opts.root ||
@@ -81,6 +92,10 @@ export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<
         contentEditable: !opts.readonly,
       },
     );
+
+  if (!opts.readonly) {
+    globalInit();
+  }
 
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();

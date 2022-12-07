@@ -17,10 +17,6 @@ export { onMount } from './disposable';
 import './css/index.css';
 import { alignToolbarAction } from './align';
 
-// I don't like that this is global, but... it's the best way to get
-// paragraphs when the user presses enter.
-document.execCommand('defaultParagraphSeparator', false, 'p');
-
 export const defaultToolbarActions: MinidocToolbarAction[] = [
   {
     id: 'h1',
