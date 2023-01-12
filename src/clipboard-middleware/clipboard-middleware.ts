@@ -75,7 +75,7 @@ function convertToLeafs(frag?: DocumentFragment) {
       leaf = undefined;
     } else {
       if (!leaf) {
-        leaf = Dom.newLeaf();
+        leaf = h('p');
         frag.insertBefore(leaf, n);
       }
       leaf.appendChild(n);
