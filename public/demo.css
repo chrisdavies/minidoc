@@ -99,11 +99,15 @@ main {
 .minidoc-content h2,
 .minidoc-content h3,
 .minidoc-content h4,
-.minidoc-content h5,
+.minidoc-content h5 {
+  margin-bottom: 1rem;
+}
+
 .minidoc-content p,
+.minidoc-content blockquote,
 .minidoc-content ol,
 .minidoc-content ul {
-  margin-bottom: 1rem;
+  margin: 0;
 }
 
 .minidoc-content blockquote {

@@ -25,11 +25,6 @@ export interface Pastable {
   addPasteHandler(fn: PasteHandler): void;
 }
 
-function stripBrs(el: Node) {
-  Dom.isElement(el) && Array.from(el.querySelectorAll('br')).forEach((n) => n.remove());
-  return el;
-}
-
 /**
  * Convert any URL-like text into hyperlinks.
  */
@@ -75,6 +70,9 @@ function convertToLeafs(frag?: DocumentFragment) {
   Array.from(frag.childNodes).forEach((n) => {
     if (Dom.isBlock(n)) {
       leaf = undefined;
+    } else if (Dom.isElement(n) && n.tagName === 'BR') {
+      frag.replaceChild(Dom.newLeaf(), n);
+      leaf = undefined;
     } else {
       if (!leaf) {
         leaf = Dom.newLeaf();
@@ -86,16 +84,13 @@ function convertToLeafs(frag?: DocumentFragment) {
 
   // Sanitize and remove any empty leafs from the fragment
   Array.from(frag.childNodes).forEach((n) => {
-    Dom.$makeEditable(stripBrs(n));
+    Dom.$makeEditable(n);
   });
 
   return frag;
 }
 
-function readClipboard(
-  e: ClipboardEvent,
-  editor: MinidocBase & Mountable & Scrubbable,
-): DocumentFragment | undefined {
+function readClipboard(e: ClipboardEvent): DocumentFragment | undefined {
   const { clipboardData } = e;
 
   if (!clipboardData) {
@@ -104,7 +99,7 @@ function readClipboard(
 
   const rawHtml = clipboardData.getData('text/html');
   if (rawHtml) {
-    return editor.scrub(Dom.toFragment(h('div', { innerHTML: rawHtml }).childNodes));
+    return Dom.toFragment(h('div', { innerHTML: rawHtml }).childNodes);
   }
 
   const text = clipboardData.getData('text/plain');
@@ -318,13 +313,14 @@ export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
     const range = Rng.currentRange()!;
     !range.collapsed && Rng.$deleteAndMergeContents(range);
 
-    const content = convertToLeafs(readClipboard(e, editor));
+    const content = convertToLeafs(readClipboard(e));
     if (!content) {
       return;
     }
 
+    const scrubbed = editor.scrub(content);
     editor.captureChange(() => {
-      const result = insertLeafs(content, range, editor);
+      const result = insertLeafs(scrubbed, range, editor);
       result.collapse();
       Rng.setCurrentSelection(result);
     });
