@@ -116,6 +116,14 @@ function getInlineTags(until: string, node: Node | undefined) {
   return result;
 }
 
+function removeEmptyChain(n: Node | null) {
+  while (Dom.isElement(n) && !Dom.isBlock(n) && Dom.isEmpty(n)) {
+    const parent = n.parentElement;
+    n.remove();
+    n = parent;
+  }
+}
+
 /**
  * Removes the inline tag from the range.
  */
@@ -153,11 +161,9 @@ export function unapply(tagName: string, r: Range) {
   // Lastly, we'll remove all empty nodes left behind
   const root = Dom.findLeaf(Rng.toNode(r))?.parentElement;
   if (root) {
-    Dom.walk(root, NodeFilter.SHOW_ELEMENT, (n) => {
-      if (Dom.isElement(n) && !Dom.isBlock(n) && Dom.isEmpty(n) && n.tagName !== 'BR') {
-        n.remove();
-      }
-    });
+    for (const n of Array.from(root.querySelectorAll(selector))) {
+      removeEmptyChain(n);
+    }
   }
 }
 
