@@ -208,7 +208,6 @@ export const cardMiddleware =
     // When the editor loads any content, we need to mount all the cards
     // before history and other plugins kick in.
     result.scrub = compose((node) => {
-      console.log('>>>> card scrub');
       const parentNode = node as unknown as ParentNode;
       if (parentNode.querySelectorAll) {
         parentNode.querySelectorAll(selector).forEach((n) => {

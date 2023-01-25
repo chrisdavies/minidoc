@@ -2,6 +2,19 @@ import * as Dom from '../dom';
 import { last } from '../util';
 
 export function toNode(range: Range): Node {
+  const nextSibling = range.startContainer.nextSibling;
+  // If we've got a selection that wraps a single node, we'll return the
+  // wrapped node.
+  if (
+    range.startContainer !== range.endContainer &&
+    Dom.isElement(nextSibling) &&
+    nextSibling === range.endContainer.previousSibling &&
+    Dom.isText(range.startContainer) &&
+    range.startContainer.length === range.startOffset &&
+    range.endOffset === 0
+  ) {
+    return nextSibling;
+  }
   return range.startContainer.childNodes[range.startOffset] || range.startContainer;
 }
 

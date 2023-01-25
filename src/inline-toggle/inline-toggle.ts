@@ -101,12 +101,19 @@ function toRange(ranges: Range[]) {
  */
 function getInlineTags(until: string, node: Node | undefined) {
   const tagNames = new Set<string>();
+  let result: Element | undefined;
   let el: Element | undefined = Dom.isElement(node) ? node : node?.parentElement || undefined;
   while (el && !el.matches(until) && !Dom.isBlock(el)) {
+    const clone = el.cloneNode() as Element;
+    if (clone.tagName !== 'BR') {
+      result && clone.append(result);
+      result = clone;
+    }
+
     tagNames.add(el.tagName);
     el = el.parentElement || undefined;
   }
-  return tagNames;
+  return result;
 }
 
 /**
@@ -114,13 +121,11 @@ function getInlineTags(until: string, node: Node | undefined) {
  */
 export function unapply(tagName: string, r: Range) {
   const selector = normalizeSelector(tagName);
-  // Track all tags between our range and the ancestor we're leaving.
-  // So, if we are attempting to remove b from this: <b><i>foo</i></b>
-  // we'll end up with <i>foo</i> rather than just foo.
-  const tagNames = getInlineTags(selector, Rng.toNode(r));
 
   // Remove the content. We'll sanitize it and re-insert it in a bit.
   let content: Element | DocumentFragment = r.extractContents();
+
+  const wrap = getInlineTags(selector, Rng.toNode(r));
 
   // If we're in a subsection of a larger tag, we'll split that tag
   // so that we can sandwich our final (unstyled) content within two
@@ -130,20 +135,30 @@ export function unapply(tagName: string, r: Range) {
     r.setEndAfter(closest);
     const tailContent = r.extractContents();
     !Dom.isEmpty(tailContent) && r.insertNode(tailContent);
-    Dom.isEmpty(closest) && closest.remove();
+    Dom.isEmpty(closest) && Dom.replaceSelfWithChildren(closest);
   }
 
   // Remove all children that match the inline selector.
   Array.from(content.querySelectorAll(selector)).forEach((n) => Dom.replaceSelfWithChildren(n));
   r.collapse(true);
 
-  // Restore our tag names, if any
-  tagNames.forEach((tag) => {
-    content = h(tag, content);
-  });
-
   // Insert our cleaned up content.
+  if (wrap) {
+    wrap.append(content);
+    content = wrap;
+  }
+
   r.insertNode(content);
+
+  // Lastly, we'll remove all empty nodes left behind
+  const root = Dom.findLeaf(Rng.toNode(r))?.parentElement;
+  if (root) {
+    Dom.walk(root, NodeFilter.SHOW_ELEMENT, (n) => {
+      if (Dom.isElement(n) && !Dom.isBlock(n) && Dom.isEmpty(n) && n.tagName !== 'BR') {
+        n.remove();
+      }
+    });
+  }
 }
 
 function shouldEnable(selector: string, ranges: Range[]) {
@@ -226,16 +241,18 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
     if (!range) {
       return;
     }
-    leaf = Rng.toNode(range);
+    let node: Node | null = Rng.toNode(range);
     activeTags.clear();
     toggledTags.clear();
-    while (leaf) {
-      const parent: Element | null = leaf.parentElement;
+    while (node) {
+      if (Dom.isElement(node)) {
+        activeTags.add(normalizeTagName(node.tagName));
+      }
+      const parent: Element | null = node.parentElement;
       if (!parent || Dom.isRoot(parent)) {
         break;
       }
-      activeTags.add(normalizeTagName(parent.tagName));
-      leaf = parent;
+      node = parent;
     }
   });
 
