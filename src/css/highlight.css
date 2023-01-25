@@ -1,4 +1,7 @@
 /* Highlights */
+mark {
+  color: inherit;
+}
 
 .minidoc-toolbar-color[data-bg='red'],
 mark[data-bg='red'] {

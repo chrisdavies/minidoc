@@ -14,3 +14,12 @@
   opacity: 0.5;
   cursor: text;
 }
+
+/**
+ * We style the selection so that when you highlight or color text, the change
+ * is visible to the user.
+ */
+.minidoc-editor *::selection {
+  color: inherit;
+  background: rgba(14, 165, 233, 0.25);
+}

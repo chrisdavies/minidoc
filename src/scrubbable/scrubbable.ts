@@ -32,6 +32,7 @@ export const rules: ScrubbableRules = {
     STRONG: {},
     EM: {},
     MARK: { 'data-bg': true },
+    'TEXT-COLOR': { 'data-fg': true },
     LI: {},
   },
 };

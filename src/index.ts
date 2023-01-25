@@ -1,7 +1,7 @@
 import { linkToolbarAction } from './link/link-toolbar-action';
 import { orderedListToolbarAction, unorderedListToolbarAction } from './list';
 import { MinidocToolbarAction } from './toolbar';
-import { highlightToolbarAction } from './highlight';
+import { colorToolbarAction, highlightToolbarAction } from './highlight';
 
 export * from './toolbar';
 export * from './card';
@@ -65,4 +65,5 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
   orderedListToolbarAction,
   unorderedListToolbarAction,
   highlightToolbarAction,
+  colorToolbarAction,
 ];
