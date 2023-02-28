@@ -9,6 +9,7 @@ type AttrRules = Record<string, boolean | ((val?: string) => boolean)>;
 interface ScrubbableRules {
   leaf: Record<string, AttrRules>;
   child: Record<string, AttrRules>;
+  allowEmpty: string[];
 }
 type Scrubber = (node: DocumentFragment, editor: MinidocBase) => DocumentFragment;
 
@@ -17,7 +18,8 @@ const isSafeUrl = (s?: string) => !s?.startsWith('javascript:');
 export const leafRules = { 'data-align': true };
 
 export const rules: ScrubbableRules = {
-  leaf: ['P', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL'].reduce(
+  allowEmpty: ['HR'],
+  leaf: ['P', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'HR'].reduce(
     (acc: ScrubbableRules['leaf'], tag) => {
       acc[tag] = leafRules;
       return acc;
@@ -174,7 +176,7 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
     scrubChildren(
       Array.from(frag.childNodes).filter((n) => {
         if (isElement(n)) {
-          return !!n.childNodes.length;
+          return rules.allowEmpty.includes(n.tagName) || !!n.childNodes.length;
         }
         return !!n.textContent?.trim()?.length;
       }),
