@@ -89,9 +89,6 @@ function onInput(e: KeyboardEvent) {
 }
 
 function onEnter(e: KeyboardEvent) {
-  if (e.defaultPrevented) {
-    return;
-  }
   const range = Rng.currentRange();
   if (!range) {
     return;
