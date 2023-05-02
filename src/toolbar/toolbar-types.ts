@@ -19,4 +19,5 @@ export interface MinidocToolbarAction {
   run(editor: MinidocToolbarEditor): any;
   isActive?(editor: MinidocToolbarEditor): boolean;
   init?(editor: MinidocToolbarEditor): void;
+  onMouseDown?: HTMLElement['onmousedown'];
 }
