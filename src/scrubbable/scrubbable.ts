@@ -15,7 +15,7 @@ type Scrubber = (node: DocumentFragment, editor: MinidocBase) => DocumentFragmen
 
 const isSafeUrl = (s?: string) => !s?.startsWith('javascript:');
 
-export const leafRules = { 'data-align': true };
+export const leafRules = { 'class': true };
 
 export const rules: ScrubbableRules = {
   allowEmpty: ['HR'],

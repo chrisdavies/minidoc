@@ -27,10 +27,11 @@ export function align(direction: string, leafs?: Element[]) {
   if (!leafs) {
     return;
   }
-  const attr = 'data-align';
-  leafs.forEach((el) =>
-    direction === 'left' ? el.removeAttribute(attr) : el.setAttribute(attr, direction),
-  );
+  leafs.forEach((el) => {
+    el.classList.remove('text-right', 'text-center');
+    const className = direction === 'right' ? 'text-right' : direction === 'center' ? 'text-center' : '';
+    el.classList.add(className);
+  });
 }
 
 export function AlignMenu(editor: MinidocToolbarEditor) {

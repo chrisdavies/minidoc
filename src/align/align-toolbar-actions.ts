@@ -6,7 +6,15 @@ import { AlignMenu, mkico } from './align-menu';
 function currentDirection() {
   const node = Rng.currentNode();
   const el = node && Dom.findLeaf(node);
-  return (el && el.getAttribute('data-align')) || 'left';
+  if (el) {
+    if (el.classList.contains('text-right')) {
+      return 'right';
+    }
+    if (el.classList.contains('text-center')) {
+      return 'center';
+    }
+  }
+  return 'left';
 }
 
 function toolbarIcon(direction: string) {

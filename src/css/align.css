@@ -1,7 +1,10 @@
-.minidoc-content [data-align=center] {
+/* keeping data-align for legacy support */
+.minidoc-content [data-align=center],
+.text-center {
   text-align: center;
 }
 
-.minidoc-content [data-align=right] {
+.minidoc-content [data-align=right],
+.text-right {
   text-align: right;
 }
