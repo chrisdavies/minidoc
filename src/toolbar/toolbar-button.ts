@@ -3,20 +3,16 @@ import { MinidocToolbarAction, MinidocToolbarEditor } from './toolbar-types';
 
 export function ToolbarButton(
   editor: MinidocToolbarEditor,
-  { label, isActive, html, run }: Pick<MinidocToolbarAction, 'label' | 'isActive' | 'html' | 'run'>,
+  { label, isActive, html, run, onMouseDown }: Pick<MinidocToolbarAction, 'label' | 'isActive' | 'html' | 'run' | 'onMouseDown'>,
 ) {
-  let lastActive: Element | null;
   const btn = h('button.minidoc-toolbar-btn', {
     refreshState:
       isActive &&
       ((editor: MinidocToolbarEditor) =>
         btn.classList.toggle('minidoc-toolbar-btn-active', isActive(editor))),
-    onmousedown: () => {
-      lastActive = document.activeElement;
-    },
+    onmousedown: onMouseDown,
     onclick() {
       run(editor);
-      (lastActive as HTMLElement)?.focus();
     },
     type: 'button',
     'aria-label': label,
