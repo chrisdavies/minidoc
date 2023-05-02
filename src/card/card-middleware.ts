@@ -323,6 +323,8 @@ function ensureLeaf(el: Element) {
   range.selectNodeContents(leaf);
   range.setStartAfter(el);
   const frag = range.extractContents();
-  !Dom.isEmpty(frag) && Dom.insertAfter(h('p', frag), leaf);
+  if (!Dom.isEmpty(frag) || frag.querySelector('img,audio,video')) {
+    Dom.insertAfter(h('p', frag), leaf);
+  }
   Dom.insertAfter(el, leaf);
 }
