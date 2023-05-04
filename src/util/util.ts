@@ -21,7 +21,10 @@ export function debounce(fn: (...args: any) => void, ms = 100) {
 }
 
 export function compose<T extends (arg: any) => any>(a: T, b: T): T {
-  return (((arg: any) => b(a(arg))) as unknown) as T;
+  if (!a || !b) {
+    return a || b;
+  }
+  return ((arg: any) => b(a(arg))) as unknown as T;
 }
 
 export function chain<T extends (...args: any) => any>(a: T, b: T): T {

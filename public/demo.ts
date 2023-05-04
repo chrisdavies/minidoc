@@ -5,6 +5,7 @@ import {
   placeholder,
   cardMiddleware,
   fileDrop,
+  scrubbable,
 } from '../src';
 import * as Dom from '../src/dom';
 import { h } from '../src/dom';
@@ -50,6 +51,7 @@ const editor = minidoc({
     placeholder('Type something fanci here.'),
     minidocToolbar([...defaultToolbarActions, toolbarCounter]),
     cardMiddleware([counterCard, myfileCard, imgCard, videoCard]),
+    scrubbable.middleware(scrubbable.createScrubber(scrubbable.rules)),
     // The fileDrop middleware adds support for dropping files onto the editor via
     // the HTML5 drag / drop API.
     inferMiddleware(

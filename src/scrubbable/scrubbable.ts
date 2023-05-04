@@ -1,5 +1,6 @@
 import { h, isBlock, isCard, isElement, isList } from '../dom';
 import { EditorMiddleware, MinidocBase } from '../types';
+import { compose } from '../util';
 
 export interface Scrubbable {
   scrub(content: DocumentFragment): DocumentFragment;
@@ -192,7 +193,7 @@ export const middleware =
   (next, editor) => {
     const result = editor as MinidocBase & Scrubbable;
 
-    result.scrub = (content) => scrubber(content, result);
+    result.scrub = compose((content) => scrubber(content, result), result.scrub);
 
     return next(result);
   };
