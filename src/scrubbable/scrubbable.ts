@@ -191,9 +191,10 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
 export const middleware =
   (scrubber: Scrubber = createScrubber(rules)): EditorMiddleware<Scrubbable> =>
   (next, editor) => {
-    const result = editor as MinidocBase & Scrubbable;
+    const result = editor as MinidocBase & Scrubbable & { _scrub: Scrubber };
 
-    result.scrub = compose((content) => scrubber(content, result), result.scrub);
+    result._scrub = scrubber;
+    result.scrub = compose((content) => result._scrub(content, result), result.scrub);
 
     return next(result);
   };
