@@ -24,7 +24,11 @@ export const fileDrop = (handler: FileDropHandler) =>
 
     // Paste files
     core.addPasteHandler((e) => {
-      if (!e.defaultPrevented && e.clipboardData?.files.length) {
+      // When you copy from Word, it creates an *image* of the copied content
+      // in addition to HTML and other formats. So, we need to prioritize HTML
+      // over images / files here.
+      const isHtml = e.clipboardData?.types.includes('text/html');
+      if (!e.defaultPrevented && !isHtml && e.clipboardData?.files.length) {
         e.preventDefault();
         handler({ editor: core, files: e.clipboardData.files });
       }
