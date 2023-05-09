@@ -1,6 +1,6 @@
 {
   "name": "minidoc-editor",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "main": "./dist/minidoc.min.js",
   "types": "./dist/types",
   "files": [
@@ -12,7 +12,7 @@
     "test:watch": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
     "start": "npm-run-all --parallel watch:**",
     "testserver": "esbuild --global-name=minidoc --bundle ./src/integration-test/integration-client.ts --outfile=./src/integration-test/dist/minidoctest.js --sourcemap=inline --define:process.env.NODE_ENV='development' && sirv ./src/integration-test/ --port 3003",
-    "watch:es": "esbuild public/demo.ts --global-name=minidoc --bundle --servedir=public --outfile=public/dist/bundle.js --sourcemap --define:process.env.NODE_ENV=\"'development'\"",
+    "watch:es": "esbuild public/demo.ts --global-name=minidoc --bundle --servedir=public --outfile=public/dist/bundle.js --serve=':8000' --sourcemap --define:process.env.NODE_ENV=\"'development'\"",
     "watch:ts": "tsc --noEmit --watch --preserveWatchOutput",
     "prepack": "rm -rf ./dist && npm-run-all --parallel release:** && npm test",
     "release": "rm -rf ./dist && npm-run-all --parallel release:**",

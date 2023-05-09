@@ -50,6 +50,18 @@ function onDelete(e: Event) {
   }
 
   e.preventDefault();
+
+  // When we're at the end of an element, if we're deleting into an HR, we have
+  // to handle this specially, thanks to Chrome doing the wrong thing.
+  if (range.collapsed && range.startOffset === (range.startContainer as Text).length) {
+    const next =
+      range.startContainer.nextSibling || range.startContainer.parentElement?.nextSibling;
+    if (next instanceof HTMLHRElement) {
+      next.remove();
+      return;
+    }
+  }
+
   deleteRange(range, 'right');
 }
 
@@ -61,6 +73,18 @@ function onBackspace(e: Event) {
   }
 
   e.preventDefault();
+
+  // When we're at the end of an element, if we're deleting into an HR, we have
+  // to handle this specially, thanks to Chrome doing the wrong thing.
+  if (range.collapsed && range.startOffset === 0) {
+    const prev =
+      range.startContainer.previousSibling || range.startContainer.parentElement?.previousSibling;
+    if (prev instanceof HTMLHRElement) {
+      prev.remove();
+      return;
+    }
+  }
+
   deleteRange(range, 'left');
 }
 
