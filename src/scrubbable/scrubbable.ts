@@ -138,6 +138,13 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
       return;
     }
 
+    // This prevents us from converting <style> tags into divs and dumping
+    // the content out as textContent. We may need to come up with a more
+    // general approach to solving this problem.
+    if (isElement(node) && node.tagName === 'STYLE') {
+      return;
+    }
+
     if (isElement(node) && node.tagName === 'LI') {
       if (!isList(ctx.current)) {
         ctx.addLeaf(h('ul', node));
