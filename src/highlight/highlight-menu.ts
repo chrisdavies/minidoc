@@ -30,10 +30,6 @@ const namedBg: Record<string, string> = {
 
 function transformTextColorEl(n: HTMLElement) {
   n.style.color = n.dataset.fg || '';
-  return n;
-}
-
-function transformTextBgEl(n: HTMLElement) {
   n.style.background = namedBg[n.dataset.bg || ''] || n.dataset.bg || '';
   return n;
 }
@@ -42,7 +38,7 @@ export function initTextColors(editor: MinidocToolbarEditor) {
   editor.scrub = compose(editor.scrub, (node) => {
     const parentNode = node as unknown as ParentNode;
     if (parentNode.querySelectorAll) {
-      parentNode.querySelectorAll<HTMLElement>('text-color').forEach(transformTextColorEl);
+      parentNode.querySelectorAll<HTMLElement>('text-color, mark').forEach(transformTextColorEl);
     }
     return node;
   });
@@ -148,7 +144,7 @@ export const HighlightMenu = makeMenu({
   clearBg: 'white',
   tag: 'mark',
   prop: 'data-bg',
-  transform: transformTextBgEl,
+  transform: transformTextColorEl,
   renderColorIcon(color: string) {
     return `<span class="minidoc-toolbar-color" data-bg="${color}"></span>`;
   },
