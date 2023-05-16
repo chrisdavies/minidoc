@@ -322,6 +322,22 @@ export function setCaretAtStart(node: Node): Range {
 }
 
 /**
+ * Iterates through nodes in the range looking for a match for the selector.
+ */
+export function querySelector(selector: string, range: Range) {
+  let node: Node | null = toNode(range);
+  while (node && range.intersectsNode(node)) {
+    if (Dom.isElement(node)) {
+      const result = node.matches(selector) ? node : node.querySelector(selector);
+      if (result) {
+        return result;
+      }
+    }
+    node = node.nextSibling;
+  }
+}
+
+/**
  * Creates an array of ranges from the specified range. Each range in the result
  * is capable of being wrapped in an inline tag.
  */

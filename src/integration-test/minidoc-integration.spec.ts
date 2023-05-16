@@ -1077,9 +1077,11 @@ test.describe('highlighting', () => {
     await util.selectRange('p', 0, 'p', 5);
     await util.page.click('[aria-label="Highlight"]');
     await util.page.click('[aria-label="Red"]');
-    expect(await util.serializeDoc()).toEqual(
-      `<h1>Hello</h1><p><mark data-bg="red">World</mark></p>`,
-    );
+    const doc = await util.serializeDoc();
+    expect(
+      doc.startsWith('<h1>Hello</h1><p><mark data-bg="red" style="background: rgb(254, 202, 202)'),
+    ).toBeTruthy();
+    expect(doc.endsWith('>World</mark></p>')).toBeTruthy();
   });
 
   it('clears the highlight', async ({ util }) => {

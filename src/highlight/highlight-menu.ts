@@ -1,5 +1,5 @@
 import * as Rng from '../range';
-import { h } from '../dom';
+import { h, closest } from '../dom';
 import { Submenu, MinidocToolbarEditor, ToolbarButton } from '../toolbar';
 import { unapply } from '../inline-toggle';
 import { compose } from '../util';
@@ -20,8 +20,21 @@ const fgColors: Record<string, string> = {
   Blue: '#2563eb',
 };
 
+const namedBg: Record<string, string> = {
+  red: '#fecaca',
+  yellow: '#fde68a',
+  green: '#a7f3d0',
+  blue: '#bfdbfe',
+  purple: '#ddd6fe',
+};
+
 function transformTextColorEl(n: HTMLElement) {
   n.style.color = n.dataset.fg || '';
+  return n;
+}
+
+function transformTextBgEl(n: HTMLElement) {
+  n.style.background = namedBg[n.dataset.bg || ''] || n.dataset.bg || '';
   return n;
 }
 
@@ -80,6 +93,9 @@ function makeMenu(opts: {
       }
     };
 
+    const existingNode =
+      Rng.querySelector(`[${opts.prop}]`, range) || closest(`[${opts.prop}]`, Rng.toNode(range));
+    let customColor = existingNode?.getAttribute(opts.prop) || '';
     const menu = Submenu({
       children: [
         ...Object.entries(opts.colors).map(([label, color]) =>
@@ -93,6 +109,20 @@ function makeMenu(opts: {
           label: 'Clear',
           html: `<span class="minidoc-clear-highlight" style="background: ${opts.clearBg}"></span>`,
           run: () => clearColor(),
+        }),
+        h('input.minidoc-toolbar-txt', {
+          placeholder: '#333',
+          autofocus: 'true',
+          value: customColor,
+          oninput(e: any) {
+            customColor = e.target.value;
+          },
+          onkeydown(e: KeyboardEvent) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              applyColor(customColor);
+            }
+          },
         }),
       ],
       editor,
@@ -118,6 +148,7 @@ export const HighlightMenu = makeMenu({
   clearBg: 'white',
   tag: 'mark',
   prop: 'data-bg',
+  transform: transformTextBgEl,
   renderColorIcon(color: string) {
     return `<span class="minidoc-toolbar-color" data-bg="${color}"></span>`;
   },
