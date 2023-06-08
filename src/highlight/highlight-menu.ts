@@ -106,20 +106,24 @@ function makeMenu(opts: {
           html: `<span class="minidoc-clear-highlight" style="background: ${opts.clearBg}"></span>`,
           run: () => clearColor(),
         }),
-        h('input.minidoc-toolbar-txt', {
-          placeholder: '#333',
-          autofocus: 'true',
-          value: customColor,
-          oninput(e: any) {
-            customColor = e.target.value;
-          },
-          onkeydown(e: KeyboardEvent) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              applyColor(customColor);
-            }
-          },
-        }),
+        h(
+          'label.minidoc-toolbar-btn.minidoc-toolbar-color-picker',
+          h('input', {
+            type: 'color',
+            placeholder: '#333',
+            autofocus: 'true',
+            value: customColor,
+            oninput(e: any) {
+              customColor = e.target.value;
+            },
+            onkeydown(e: KeyboardEvent) {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                applyColor(customColor);
+              }
+            },
+          }),
+        ),
       ],
       editor,
     });

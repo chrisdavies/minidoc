@@ -40,3 +40,26 @@ mark[data-bg='purple'] {
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: #fff;
 }
+
+.minidoc-toolbar-color-picker {
+  box-sizing: border-box;
+  border: 1px solid rgb(0 0 0 / 0.25);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.minidoc-toolbar-color-picker input {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.minidoc-toolbar-color-picker::after {
+  content: '🢓';
+  font-size: 24px;
+  margin-top: 1rem;
+  line-height: 0;
+}
