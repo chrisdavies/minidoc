@@ -91,7 +91,7 @@ function makeMenu(opts: {
 
     const existingNode =
       Rng.querySelector(`[${opts.prop}]`, range) || closest(`[${opts.prop}]`, Rng.toNode(range));
-    let customColor = existingNode?.getAttribute(opts.prop) || '';
+    const customColor = existingNode?.getAttribute(opts.prop) || '';
     const menu = Submenu({
       children: [
         ...Object.entries(opts.colors).map(([label, color]) =>
@@ -113,14 +113,8 @@ function makeMenu(opts: {
             placeholder: '#333',
             autofocus: 'true',
             value: customColor,
-            oninput(e: any) {
-              customColor = e.target.value;
-            },
-            onkeydown(e: KeyboardEvent) {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                applyColor(customColor);
-              }
+            onchange(e: any) {
+              applyColor(e.target.value);
             },
           }),
         ),

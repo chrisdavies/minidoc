@@ -49,6 +49,7 @@ mark[data-bg='purple'] {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
+  overflow: hidden;
 }
 
 .minidoc-toolbar-color-picker input {
