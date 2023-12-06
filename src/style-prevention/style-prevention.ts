@@ -152,5 +152,14 @@ export const stylePrevention = inferMiddleware((next, editor: MinidocBase) => {
       onInput(e);
     }
   });
+  // Clicking the backspace button is deleting all the HTML elements
+  // on Android Chrome because the keyboard events do not have the keycode information.
+  // This is a workaround to prevent the editor from being empty because the empty
+  // state breaks the editor.
+  Dom.on(result.root, 'keyup', (e) => {
+    if (!result.root.innerHTML) {
+      result.root.innerHTML = '<p><br/></p>'
+    }
+  });
   return result;
 });
