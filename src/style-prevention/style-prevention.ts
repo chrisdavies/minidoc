@@ -156,9 +156,9 @@ export const stylePrevention = inferMiddleware((next, editor: MinidocBase) => {
   // on Android Chrome because the keyboard events do not have the keycode information.
   // This is a workaround to prevent the editor from being empty because the empty
   // state breaks the editor.
-  Dom.on(result.root, 'keyup', (e) => {
-    if (!result.root.innerHTML) {
-      result.root.innerHTML = '<p><br/></p>'
+  Dom.on(result.root, 'keyup', () => {
+    if (!result.root.firstElementChild) {
+      result.root.innerHTML = '<p><br/></p>';
     }
   });
   return result;
