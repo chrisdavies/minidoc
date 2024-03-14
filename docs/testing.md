@@ -53,6 +53,7 @@ dnf install -y alsa-lib \
   pango \
   policycoreutils \
   policycoreutils-python-utils \
+  dbus-glib \
   zlib
 ```
 
