@@ -10,6 +10,54 @@ npm test
 
 ## Linux prereqs
 
+### RHEL / Fedora
+
+On Fedora / RHEL-like systems, the comments here are helpful:
+
+https://github.com/microsoft/playwright/issues/9199
+
+```bash
+dnf install -y alsa-lib \
+  at-spi2-atk \
+  at-spi2-core \
+  atk \
+  bash \
+  cairo \
+  cups-libs \
+  dbus-libs \
+  expat \
+  flac-libs \
+  gdk-pixbuf2 \
+  glib2 \
+  glibc \
+  gtk3 \
+  libX11 \
+  libXcomposite \
+  libXdamage \
+  libXext \
+  libXfixes \
+  libXrandr \
+  libXtst \
+  libcanberra-gtk3 \
+  libdrm \
+  libgcc \
+  libstdc++ \
+  libxcb \
+  libxkbcommon \
+  libxshmfence \
+  libxslt \
+  mesa-libgbm \
+  nspr \
+  nss \
+  nss-util \
+  pango \
+  policycoreutils \
+  policycoreutils-python-utils \
+  zlib
+```
+
+## Debian / Ubuntu
+
 To get webkit tests passing in Linux, you need to follow the instructions for installing [Microsoft playwright](https://github.com/microsoft/playwright).
 
 The following work on Ubuntu 20.x, with libicui18n.so.66 needing to be manually installed using this deb package: http://archive.ubuntu.com/ubuntu/pool/main/i/icu/libicu66_66.1-2ubuntu2_amd64.deb
