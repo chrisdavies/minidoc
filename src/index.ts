@@ -54,6 +54,13 @@ export const defaultToolbarActions: MinidocToolbarAction[] = [
     isActive: (t) => t.isActive('STRONG'),
   },
   {
+    id: 'underline',
+    label: 'Underline',
+    html: '<u>u</u>',
+    run: (t) => t.toggleInline('U'),
+    isActive: (t) => t.isActive('U'),
+  },
+  {
     id: 'italic',
     label: 'Italic',
     html: '<i>i</i>',

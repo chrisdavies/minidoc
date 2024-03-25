@@ -284,16 +284,18 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
     toggledTags.clear();
   });
 
-  Dom.on(el, 'keydown', (e) => {
-    if (!e.ctrlKey && !e.metaKey) {
-      return;
-    }
-    if (e.code === 'KeyB') {
+  const formatTags: Record<string, string> = {
+    formatBold: 'strong',
+    formatItalic: 'em',
+    formatUnderline: 'u',
+    formatStrikeThrough: 's',
+  };
+
+  Dom.on(el, 'beforeinput', (e) => {
+    const tag = formatTags[e.inputType];
+    if (tag) {
       e.preventDefault();
-      toggleInline('strong');
-    } else if (e.code === 'KeyI') {
-      e.preventDefault();
-      toggleInline('em');
+      toggleInline(tag);
     }
   });
 
