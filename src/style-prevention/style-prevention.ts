@@ -3,6 +3,7 @@
  * injecting garbage HTML on normal edit operations.
  */
 import * as Dom from '../dom';
+import { h } from '../dom';
 import { inferMiddleware } from '../mixins';
 import * as Rng from '../range';
 import { MinidocBase } from '../types';
@@ -119,21 +120,58 @@ function onEnter(e: InputEvent) {
     Dom.$makeEditable(head);
   }
   if (tail) {
-    const leaf = Dom.isEmpty(tail)
-      ? Dom.newLeaf(e.inputType === 'insertLineBreak' ? 'h3' : 'p')
-      : tail;
+    const leaf = Dom.isEmpty(tail) ? Dom.newLeaf('p') : tail;
     tail.replaceWith(leaf);
     Rng.setCaretAtStart(Dom.$makeEditable(leaf));
   }
+}
+
+function onLineBreak(e: InputEvent) {
+  const range = Rng.currentRange();
+  if (!range) {
+    return;
+  }
+  e.preventDefault();
+  if (!range.collapsed) {
+    onDelete(e);
+  }
+  const br = h('br');
+  range.insertNode(br);
+  range.collapse();
+
+  // Analyze the block (e.g. li, td, p, etc) we're in to see if we're essentially at the end
+  // (e.g. if we're followed only by blank space or another block. If so, we need to insert
+  // a trailing br in order for our line break to take effect.
+  const block = Dom.closestBlock(br);
+  if (!block?.lastChild) {
+    return;
+  }
+  const isBr = (node: Node) =>
+    Dom.isElement(node) && (node.matches('br') || node.querySelector('br'));
+  const isBlank = (node: Node) =>
+    !Dom.isEmpty(node) && (!Dom.isText(node) || /\S/.test(node.textContent || ''));
+  for (const node of Rng.walk(Rng.setEndAfter(block.lastChild, range))) {
+    if (Dom.isBlock(node)) {
+      break;
+    }
+    if (isBr(node) || isBlank(node)) {
+      range.setStartBefore(node);
+      return;
+    }
+  }
+  br.parentElement?.insertBefore(h('br'), br);
 }
 
 export const stylePrevention = inferMiddleware((next, editor: MinidocBase) => {
   const result = next(editor);
 
   Dom.on(result.root, 'beforeinput', (e) => {
-    if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') {
+    if (e.inputType === 'insertParagraph') {
       e.preventDefault();
       onEnter(e);
+    } else if (e.inputType === 'insertLineBreak') {
+      e.preventDefault();
+      onLineBreak(e);
     } else if (e.inputType === 'deleteContentForward') {
       onDelete(e);
     } else if (e.inputType.startsWith('delete')) {

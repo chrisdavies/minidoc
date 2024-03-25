@@ -76,6 +76,9 @@ const handlers: {
   [key: string]: (e: KeyboardEvent, ctx: MinidocBase & InlineTogglable) => void;
 } = {
   Enter(e, ctx) {
+    if (e.shiftKey) {
+      return;
+    }
     if (!ctx.isActive('LI')) {
       return;
     }

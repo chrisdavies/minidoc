@@ -338,6 +338,32 @@ export function querySelector(selector: string, range: Range) {
 }
 
 /**
+ * Walk the nodes in the range from start to end, inclusive of each.
+ */
+export function* walk(range: Range) {
+  const startNode = toNode(range);
+  const endNode = toEndNode(range);
+  let started = false;
+
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+  );
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    started ||= node === startNode;
+    if (!started) {
+      continue;
+    }
+    yield node;
+    if (node === endNode) {
+      return;
+    }
+  }
+}
+
+/**
  * Creates an array of ranges from the specified range. Each range in the result
  * is capable of being wrapped in an inline tag.
  */

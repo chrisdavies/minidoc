@@ -368,7 +368,7 @@ export function $makeEditable(node: Node): Node {
 }
 
 const blockSelector =
-  'div,p,li,ul,ol,h1,h2,h3,h4,h5,hr,section,footer,header,nav,blockquote,table,hr,mini-card';
+  'div,p,li,ul,ol,h1,h2,h3,h4,h5,hr,section,footer,header,nav,blockquote,table,td,th,hr,mini-card';
 
 export function isBlock(node: Node) {
   return isElement(node) && node.matches(blockSelector);

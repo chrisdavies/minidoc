@@ -58,11 +58,6 @@ main {
   line-height: 2.25rem;
 }
 
-.minidoc-content ul,
-.minidoc-content ol {
-  list-style: inside;
-}
-
 .minidoc-content ul ul,
 .minidoc-content ol ul,
 .minidoc-content ul ol,
@@ -108,6 +103,7 @@ main {
 .minidoc-content ol,
 .minidoc-content ul {
   margin: 0;
+  margin-bottom: 2rem;
 }
 
 .minidoc-content blockquote {
