@@ -1,6 +1,10 @@
 # IDE
 .idea/
 
+# Podman dev folder
+.podman/
+.envrc
+
 # Logs
 *.log*
 yarn.lock

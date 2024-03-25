@@ -88,13 +88,9 @@ function onBackspace(e: Event) {
   deleteRange(range, 'left');
 }
 
-function onInput(e: KeyboardEvent) {
+function onInput() {
   const sel = document.getSelection();
   if (!sel) {
-    return;
-  }
-  const isTyping = !e.ctrlKey && !e.metaKey && e.key.length === 1;
-  if (!isTyping) {
     return;
   }
   const range = sel.getRangeAt(0);
@@ -112,7 +108,7 @@ function onInput(e: KeyboardEvent) {
   }
 }
 
-function onEnter(e: KeyboardEvent) {
+function onEnter(e: InputEvent) {
   const range = Rng.currentRange();
   if (!range) {
     return;
@@ -123,7 +119,9 @@ function onEnter(e: KeyboardEvent) {
     Dom.$makeEditable(head);
   }
   if (tail) {
-    const leaf = Dom.isEmpty(tail) ? Dom.newLeaf(e.shiftKey ? 'h3' : 'p') : tail;
+    const leaf = Dom.isEmpty(tail)
+      ? Dom.newLeaf(e.inputType === 'insertLineBreak' ? 'h3' : 'p')
+      : tail;
     tail.replaceWith(leaf);
     Rng.setCaretAtStart(Dom.$makeEditable(leaf));
   }
@@ -131,35 +129,19 @@ function onEnter(e: KeyboardEvent) {
 
 export const stylePrevention = inferMiddleware((next, editor: MinidocBase) => {
   const result = next(editor);
-  Dom.on(result.root, 'keydown', (e) => {
-    // Do not insert a new line when pressing cmd+enter
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+
+  Dom.on(result.root, 'beforeinput', (e) => {
+    if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') {
       e.preventDefault();
-      return;
-    }
-    if (e.defaultPrevented) {
-      return;
-    }
-    if (e.code === 'Delete') {
-      onDelete(e);
-    } else if (e.code === 'Backspace') {
-      onBackspace(e);
-    } else if (e.key === 'Enter') {
       onEnter(e);
-    } else {
-      // The user is typing, and we need to make sure we delete any
-      // selection cleanly, or the editor will bork up the markup.
-      onInput(e);
+    } else if (e.inputType === 'deleteContentForward') {
+      onDelete(e);
+    } else if (e.inputType.startsWith('delete')) {
+      onBackspace(e);
+    } else if (e.inputType === 'insertText' || e.inputType === 'inertReplacementText') {
+      onInput();
     }
   });
-  // Clicking the backspace button is deleting all the HTML elements
-  // on Android Chrome because the keyboard events do not have the keycode information.
-  // This is a workaround to prevent the editor from being empty because the empty
-  // state breaks the editor.
-  Dom.on(result.root, 'keyup', () => {
-    if (!result.root.firstElementChild) {
-      result.root.innerHTML = '<p><br/></p>';
-    }
-  });
+
   return result;
 });
