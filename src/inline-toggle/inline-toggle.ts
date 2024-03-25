@@ -285,14 +285,20 @@ export const inlineTogglable: EditorMiddleware<InlineTogglable> = (next, editor)
   });
 
   const formatTags: Record<string, string> = {
-    formatBold: 'strong',
-    formatItalic: 'em',
-    formatUnderline: 'u',
-    formatStrikeThrough: 's',
+    KeyB: 'strong',
+    KeyI: 'em',
+    KeyU: 'u',
+    KeyX: 's',
   };
 
-  Dom.on(el, 'beforeinput', (e) => {
-    const tag = formatTags[e.inputType];
+  Dom.on(el, 'keydown', (e) => {
+    if (!e.metaKey && !e.ctrlKey) {
+      return;
+    }
+    if (e.code === 'KeyX' && !e.shiftKey) {
+      return;
+    }
+    const tag = formatTags[e.code];
     if (tag) {
       e.preventDefault();
       toggleInline(tag);
