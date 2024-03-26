@@ -13,11 +13,12 @@ export const selectionTracker = inferMiddleware((next, editor) => {
 
   // When the selection changes within the element,
   // we'll fire off a selection change event.
-  Dom.on(el, 'focus', () => {
+  Dom.on(el, 'focus', (e) => {
     if (!off) {
       off = Dom.on(document, 'selectionchange', (e) => {
         el.isConnected && Dom.emit(el, 'mini:caretchange', e);
       });
+      Dom.emit(el, 'mini:caretchange', e);
     }
   });
 

@@ -55,6 +55,13 @@ export function isElement(node: any): node is Element {
 }
 
 /**
+ * Attempt to convert the node to the closest element (inclusive)
+ */
+export function toElement(node: Node) {
+  return isElement(node) ? node : node.parentElement;
+}
+
+/**
  * Determine if the specified node is in the editable content of a
  * minidoc editor.
  */

@@ -42,6 +42,20 @@ function convertListItemToLeaf(li: Element, range: Range) {
   Rng.setCaretAtStart(newLeaf);
 }
 
+function mergeAdjacentLists(el: Element) {
+  const next = el.nextElementSibling;
+  if (next?.tagName === el.tagName) {
+    Dom.appendChildren(next.childNodes, el);
+    next.remove();
+  }
+  const prev = el.previousElementSibling;
+  if (prev?.tagName === el.tagName) {
+    el.prepend(Dom.toFragment(prev.childNodes));
+    prev.remove();
+  }
+  Array.from(el.querySelectorAll('ol,ul')).forEach(mergeAdjacentLists);
+}
+
 function indent(li: Element) {
   const previousLi = li.previousElementSibling;
   // Can't indent the first li...
@@ -49,9 +63,22 @@ function indent(li: Element) {
     return;
   }
   const parent = Dom.closest('ol,ul', li)!;
-  const newList = previousLi.querySelector('ol,ul') || h(parent.tagName);
-  previousLi.appendChild(newList);
-  newList.appendChild(li);
+  let sublist = li.querySelector('ol,ul');
+  if (sublist) {
+    const headRange = Rng.fromNodes([li]);
+    headRange.setEndBefore(sublist);
+    const newLi = h('li', headRange.extractContents());
+    sublist.prepend(newLi);
+    previousLi.append(sublist);
+    li.remove();
+    li = newLi;
+  } else {
+    const newList = previousLi.querySelector('ol,ul') || h(parent.tagName);
+    previousLi.appendChild(newList);
+    newList.appendChild(li);
+  }
+
+  mergeAdjacentLists(parent);
   Rng.setCaretAtStart(li);
 }
 
@@ -65,11 +92,20 @@ function outdent(li: Element) {
     return;
   }
 
+  const tailRange = Rng.createRange();
+  tailRange.setStartAfter(li);
+  tailRange.setEndAfter(parent);
+  const tail = tailRange.extractContents();
+
   grandparent.insertBefore(li, parent.parentElement?.nextElementSibling!);
-  Rng.setCaretAtStart(li);
+  if (!Dom.isEmpty(tail)) {
+    li.append(tail);
+  }
   if (Dom.isEmpty(parent)) {
     Dom.remove(parent);
   }
+  mergeAdjacentLists(grandparent);
+  Rng.setCaretAtStart(li);
 }
 
 const handlers: {

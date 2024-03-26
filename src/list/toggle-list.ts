@@ -2,22 +2,6 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { h } from '../dom';
 
-function convertToParagraphs(leafs: Element[]) {
-  const frag = document.createDocumentFragment();
-  leafs.forEach((leaf) => {
-    leaf.remove();
-    if (Dom.isImmutable(leaf)) {
-      frag.appendChild(leaf);
-    } else {
-      leaf.querySelectorAll('li').forEach((li) => {
-        Array.from(li.querySelectorAll('ol,ul')).forEach((l) => l.remove());
-        frag.appendChild(h('p', li.childNodes));
-      });
-    }
-  });
-  return frag;
-}
-
 function convertToList(tagName: string, leafs: Element[]) {
   const frag = document.createDocumentFragment();
   let list = h(tagName);
@@ -44,12 +28,48 @@ function convertToList(tagName: string, leafs: Element[]) {
 }
 
 export function toggleList(tagName: string, range: Range) {
-  const leafs = Rng.findLeafs(range);
-  const allMatch = leafs.every((l) => Dom.isImmutable(l) || l.matches(tagName));
-  // If all leafs match the tag (e.g. ol / ul), then we are
-  // removing the list. We convert all lis into ps and flatten them.
-  const frag = allMatch ? convertToParagraphs(leafs) : convertToList(tagName, leafs);
-  const children = allMatch ? Array.from(frag.childNodes) : Array.from(frag.querySelectorAll('li'));
+  const list = Dom.toElement(range.commonAncestorContainer)?.closest('ol,ul');
+  const parentLi = Dom.toElement(range.commonAncestorContainer)?.closest('li');
+  const leaf = list && Dom.findLeaf(list);
+
+  // Our selection is already the specified list type. We'll convert the entire
+  // list (not just our selection) to paragraphs.
+  if (leaf && list?.matches(tagName)) {
+    const nodes: Node[] = [];
+    list.querySelectorAll('li').forEach((li) => {
+      const extract = Rng.fromNodes([li]);
+      const sublist = li.querySelector('ol,ul');
+      sublist && extract.setEndBefore(sublist);
+      nodes.push(h('p', extract.extractContents()));
+    });
+
+    const tail = Rng.createRange();
+    tail.setStartAfter(parentLi || list);
+    tail.setEndAfter(leaf);
+    const tailContent = tail.extractContents();
+    const frag = Dom.toFragment(nodes);
+    if (!Dom.isEmpty(tailContent)) {
+      frag.append(tailContent);
+    }
+    leaf.parentElement?.insertBefore(frag, leaf.nextSibling);
+    list.remove();
+    return Rng.fromNodes(nodes);
+  }
+
+  // Our selection is a list, but not of the specified type. We'll convert the
+  // entire list to the specified type.
+  if (list) {
+    const newList = h(tagName, list.childNodes);
+    list.replaceWith(newList);
+    const result = Rng.createRange();
+    result.selectNodeContents(newList.lastElementChild || newList);
+    result.setStart(newList.firstElementChild || newList, 0);
+    return result;
+  }
+
+  // Our selection is not a list, so we'll convert it to one
+  const frag = convertToList(tagName, Rng.findLeafs(range));
+  const children = Array.from(frag.querySelectorAll('li'));
   range.insertNode(frag);
   return Rng.fromNodes(children);
 }
