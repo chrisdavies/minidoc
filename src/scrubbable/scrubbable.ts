@@ -20,7 +20,7 @@ export const leafRules = { 'data-align': true };
 
 export const rules: ScrubbableRules = {
   allowEmpty: ['HR'],
-  leaf: ['P', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'HR'].reduce(
+  leaf: ['P', 'BLOCKQUOTE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'HR', 'TABLE'].reduce(
     (acc: ScrubbableRules['leaf'], tag) => {
       acc[tag] = leafRules;
       return acc;
@@ -39,6 +39,12 @@ export const rules: ScrubbableRules = {
     MARK: { 'data-bg': true },
     'TEXT-COLOR': { 'data-fg': true },
     LI: {},
+    TBODY: {},
+    THEAD: {},
+    TFOOT: {},
+    TR: {},
+    TD: {},
+    TH: { width: true },
   },
 };
 

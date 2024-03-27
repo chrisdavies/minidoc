@@ -160,3 +160,23 @@ main {
   border-radius: 0.25rem;
   text-decoration: none;
 }
+
+table,
+td,
+th {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+}
+
+table {
+  width: 100%;
+}
+
+td,
+th {
+  padding: 0.5rem;
+}
+
+th {
+  background: #eee;
+}

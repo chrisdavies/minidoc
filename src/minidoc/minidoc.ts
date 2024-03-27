@@ -15,6 +15,7 @@ import { stylePrevention } from '../style-prevention';
 import { onSequenceMixin } from '../on-sequence';
 import { horizontalRuleMixin } from '../horizontal-rule';
 import { middleware as scrubbableMiddleware } from '../scrubbable';
+import { tableMixin } from '../table/table-mixin';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;
@@ -40,6 +41,7 @@ const baseMiddleware = getDefaultMiddleware([
   selectionTracker,
   blockTogglable,
   listMixin,
+  tableMixin,
   alignMixin,
   horizontalRuleMixin,
   clipbordMiddleware,
