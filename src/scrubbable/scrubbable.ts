@@ -43,8 +43,8 @@ export const rules: ScrubbableRules = {
     THEAD: {},
     TFOOT: {},
     TR: {},
-    TD: {},
-    TH: { width: true },
+    TD: { style: true },
+    TH: { style: true },
   },
 };
 

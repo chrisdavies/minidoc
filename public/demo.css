@@ -169,7 +169,8 @@ th {
 }
 
 table {
-  width: 100%;
+  width: fit-content;
+  table-layout: fixed;
 }
 
 td,

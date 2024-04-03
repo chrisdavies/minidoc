@@ -1,0 +1,124 @@
+mini-table {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  overflow-x: auto;
+  padding: 2rem;
+}
+
+.mini-col-resizer {
+  position: absolute;
+  background: transparent;
+  top: 0;
+  right: -0.3rem;
+  width: 0.6rem;
+  cursor: col-resize;
+  transition: background 0.1s;
+  z-index: 1;
+  height: var(--wrapperHeight);
+}
+
+.mini-col-resizer.is-resizing,
+.mini-col-resizer:hover {
+  background: rgba(0 0 255 / 0.2);
+}
+
+.mini-table-edit-header {
+  display: flex;
+  position: relative;
+  width: fit-content;
+  --wrapperHeight: 200px;
+}
+
+/**
+ * Column heading chrome for selecting the entire column.
+ */
+.mini-table-edit-cell {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+}
+
+.mini-table-col-selector {
+  position: relative;
+  box-sizing: border-box;
+  background: #eee;
+  border: 0;
+  display: inline-block;
+  cursor: pointer;
+  width: 100%;
+  height: 1rem;
+}
+
+.mini-table-edit-cell ~ .mini-table-edit-cell {
+  border-left: 1px solid #ddd;
+}
+
+.mini-table-col-selector:hover {
+  background: #ddd;
+}
+
+.mini-table-col-selector:focus {
+  z-index: 1;
+}
+
+/**
+ * Little UI elements for inserting columns.
+ */
+.mini-table-col-inserter {
+  position: absolute;
+  top: 0;
+  color: transparent;
+  background: transparent;
+  border: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.mini-table-col-appender {
+  right: -0.5rem;
+}
+
+.mini-table-col-inserter:before {
+  position: absolute;
+  content: '';
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: -1.25rem;
+  left: -0.625rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 0.5;
+  font-size: 1rem;
+  border-radius: 100%;
+}
+
+.mini-table-col-inserter:hover:before {
+  content: '+';
+  color: white;
+  background: blue;
+}
+
+.mini-table-col-inserter:not(:hover):after {
+  content: '';
+  background: #ddd;
+  position: absolute;
+  top: -0.625rem;
+  height: 4px;
+  width: 4px;
+  left: -2px;
+  border-radius: 100%;
+}
+
+.mini-table-col-inserter:hover:after {
+  content: '';
+  background: blue;
+  position: absolute;
+  top: 0;
+  width: 4px;
+  left: -2px;
+  height: var(--wrapperHeight);
+}

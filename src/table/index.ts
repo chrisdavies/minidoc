@@ -1,1 +1,1 @@
-export * from './table-mixin.ts';
+export * from './table-mixin';
