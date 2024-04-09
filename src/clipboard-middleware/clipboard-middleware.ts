@@ -99,7 +99,10 @@ function readClipboard(e: ClipboardEvent): DocumentFragment | undefined {
 
   const rawHtml = clipboardData.getData('text/html');
   if (rawHtml) {
-    return Dom.toFragment(h('div', { innerHTML: rawHtml }).childNodes);
+    // Microsoft Word is copying weird header tags into the clipboard.
+    // So we'll pick out the body and use that.
+    const body = new DOMParser().parseFromString(rawHtml, 'text/html').body;
+    return Dom.toFragment(body.childNodes);
   }
 
   const text = clipboardData.getData('text/plain');
