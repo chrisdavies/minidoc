@@ -101,8 +101,17 @@ function onInput() {
   // Detect if we're attempting to type into an invalid leaf (a
   // text node at the root of the editor), and if so, convert it
   // to a paragraph.
-  if (Dom.isRoot(range.startContainer)) {
-    // Rng.setCaretAtStart(Rng.toNode(range));
+  const node = range.startContainer;
+  if (Dom.isText(node) && Dom.isRoot(node.parentNode)) {
+    const startOffset = range.startOffset;
+    const leaf = Dom.newLeaf();
+    node.replaceWith(leaf);
+    leaf.prepend(node);
+    range.setStart(node, startOffset);
+    Rng.setCurrentSelection(range);
+    return;
+  }
+  if (Dom.isRoot(node)) {
     const leaf = Dom.newLeaf();
     range.insertNode(leaf);
     Rng.setCaretAtStart(leaf);
