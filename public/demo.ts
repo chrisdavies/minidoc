@@ -40,7 +40,7 @@ function Sticky(child: Node) {
   return el;
 }
 
-const el = document.querySelector('.example-doc');
+const el = document.querySelector('.example-doc')!;
 
 el.remove();
 
@@ -74,7 +74,7 @@ const editor = minidoc({
 
 Dom.appendChildren(
   [!readonly && Sticky(editor.toolbar.root), editor.root],
-  document.querySelector('main'),
+  document.querySelector('main')!,
 );
 
 document.addEventListener('keydown', (e) => {

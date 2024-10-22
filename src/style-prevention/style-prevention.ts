@@ -35,6 +35,19 @@ function deleteRange(originalRange: Range, direction: 'left' | 'right') {
     }
   }
 
+  if (range.collapsed) {
+    // If we're still collapsed, it means we ran into a situation where extending
+    // the selection failed. In this case, we can remove the previous / next leaf
+    // since we are at a boundary.
+    const [leaf] = Rng.findLeafs(range);
+    if (direction === 'left') {
+      leaf.previousSibling?.remove();
+    } else {
+      leaf.nextSibling?.remove();
+    }
+    return;
+  }
+
   Rng.$deleteAndMergeContents(range);
   Rng.setCurrentSelection(range);
 }
