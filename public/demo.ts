@@ -15,7 +15,6 @@ import { myfileCard } from './myfile-card';
 import { videoCard } from './video-card';
 import { imgCard } from './img-card';
 import { inferMiddleware } from '../src/mixins';
-import { makeUndoRedoMiddleware } from '../src/undo-redo';
 
 let readonly = location.search === '?readonly';
 
@@ -52,7 +51,6 @@ const editor = minidoc({
     placeholder('Type something fanci here.'),
     minidocToolbar([...defaultToolbarActions, toolbarCounter]),
     cardMiddleware([counterCard, myfileCard, imgCard, videoCard]),
-    makeUndoRedoMiddleware(),
     scrubbable.middleware(
       scrubbable.createScrubber({
         ...scrubbable.rules,

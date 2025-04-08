@@ -127,7 +127,8 @@ function init(
 }
 
 /**
- * Mixin that converts the editor to a disposable interface.
+ * Mixin that adds undo / redo to the editor. This can be overridden by adding
+ * it more than once in the mixins list. The last one wins.
  */
 export const makeUndoRedoMiddleware =
   (undoRedo?: UndoRedo): EditorMiddleware<Undoable & Redoable & Changeable> =>
@@ -136,10 +137,13 @@ export const makeUndoRedoMiddleware =
       editor as MinidocBase & Undoable & Redoable & Changeable & Mountable & Serializable,
     );
 
+    const undoRedoEditor = result as { $undoRedoInit?: number };
+    clearTimeout(undoRedoEditor.$undoRedoInit);
+
     // We have to initialize undo / redo only after the doc has been mounted. Prior to this,
     // the doc may be in an intermadiate / initializing state. The setTimeout is to put our
     // initialization after any DOM change events have propagated.
-    setTimeout(() => init(result, undoRedo));
+    undoRedoEditor.$undoRedoInit = setTimeout(() => init(result, undoRedo));
 
     return result;
   };
