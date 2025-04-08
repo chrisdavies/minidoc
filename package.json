@@ -34,7 +34,7 @@
     "printWidth": 100
   },
   "devDependencies": {
-    "@playwright/test": "1.25.0",
+    "@playwright/test": "1.51.1",
     "@types/jasmine": "3.9.0",
     "esbuild": "0.25.2",
     "jasmine": "4.0.1",
