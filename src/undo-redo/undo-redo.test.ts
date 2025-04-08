@@ -1,122 +1,140 @@
-import FakeTimers from '@sinonjs/fake-timers';
-import { undoRedo } from './undo-redo';
+import { makeUndoRedo, UndoRedoOptions } from './undo-redo';
 
-export function fakeClock() {
-  let clock: FakeTimers.Clock;
-
-  beforeEach(() => {
-    clock = FakeTimers.install();
-  });
-
-  afterEach(() => {
-    clock.uninstall();
-  });
-
-  return {
-    get clock() {
-      return clock;
-    },
-    runAll: () => clock.runAll(),
-    tick(n: number) {
-      return clock.tick(n);
+const createProvider = (id: string, currentState: string | null = null) => {
+  const result = {
+    id,
+    $setStateValue: currentState,
+    currentState,
+    setState: (state: string | null) => {
+      result.$setStateValue = state;
     },
   };
-}
+  return result;
+};
 
-describe('undoHistory', () => {
-  const timers = fakeClock();
+const createUndoRedo = (options: UndoRedoOptions = { delay: 0 }) => {
+  const undoRedo = makeUndoRedo(options);
+  const provider = createProvider('test-provider');
+  undoRedo.registerProvider(provider);
+  return { undoRedo, provider };
+};
 
-  it('Undo and redo goes back and forth through history', () => {
-    let doc = 'hello world';
-    const ur = undoRedo(
-      { doc, ctx: 0 },
-      () => ({ doc, ctx: 0 }),
-      () => {},
-    );
+describe('undo-redo', () => {
+  describe('basic operations', () => {
+    it('should track state changes', () => {
+      const { undoRedo, provider } = createUndoRedo();
 
-    doc = 'hello world and folks';
-    ur.commit();
-    doc = 'hello world or folks';
-    ur.commit();
+      // Initial state
+      expect(undoRedo.canUndo).toBe(false);
+      expect(undoRedo.canRedo).toBe(false);
 
-    expect(ur.undo().doc).toEqual('hello world and folks');
-    expect(ur.undo().doc).toEqual('hello world');
-    // Check we don't go past the start!
-    expect(ur.undo().doc).toEqual('hello world');
+      // Push first state
+      undoRedo.push({ id: provider.id, state: 'state1' });
+      expect(undoRedo.canUndo).toBe(true);
+      expect(undoRedo.canRedo).toBe(false);
 
-    expect(ur.redo().doc).toEqual('hello world and folks');
-    expect(ur.redo().doc).toEqual('hello world or folks');
-    // Check we don't go past the end!
-    expect(ur.redo().doc).toEqual('hello world or folks');
+      // Push second state
+      undoRedo.push({ id: provider.id, state: 'state2' });
+      expect(undoRedo.canUndo).toBe(true);
+      expect(undoRedo.canRedo).toBe(false);
+    });
+
+    it('should undo and redo state changes', () => {
+      const { undoRedo } = createUndoRedo();
+      const a = createProvider('pa');
+      const b = createProvider('pb');
+      undoRedo.registerProvider(a);
+      undoRedo.registerProvider(b);
+      undoRedo.push({ id: a.id, state: '1' });
+      undoRedo.push({ id: b.id, state: '2' });
+      undoRedo.push({ id: a.id, state: '3' });
+
+      expect(undoRedo.canRedo).toBeFalse();
+      expect(undoRedo.canUndo).toBeTrue();
+      expect(undoRedo.undo()).toBe(true);
+      expect(undoRedo.canRedo).toBeTrue();
+      expect(a.$setStateValue).toBe('1');
+      expect(b.currentState).toBe('2');
+      expect(undoRedo.undo()).toBe(true);
+      expect(a.currentState).toBe('1');
+      expect(b.$setStateValue).toBe(null);
+      expect(undoRedo.undo()).toBe(true);
+      expect(a.$setStateValue).toBe(null);
+      expect(b.currentState).toBe(null);
+      expect(undoRedo.canRedo).toBeTrue();
+      expect(undoRedo.canUndo).toBeFalse();
+    });
   });
 
-  it('Buffers changes', () => {
-    let doc = 'a';
-    const ur = undoRedo(
-      { doc, ctx: 0 },
-      () => ({ doc, ctx: 0 }),
-      () => {},
-    );
+  describe('state pushing and committing', () => {
+    it('should handle getValue function', () => {
+      const { undoRedo } = createUndoRedo();
+      const a = createProvider('pa');
+      const b = createProvider('pb');
+      undoRedo.registerProvider(a);
+      undoRedo.registerProvider(b);
 
-    ur.onChange();
-    doc = 'abc';
-    timers.runAll();
+      undoRedo.push({ id: a.id, getValue: () => 'a-1' });
+      undoRedo.push({ id: b.id, state: 'b-1' });
+      undoRedo.push({ id: a.id, getValue: () => 'a-2' });
+      undoRedo.push({ id: b.id, state: 'b-2' });
 
-    doc = 'abcde';
-    ur.onChange();
-    timers.runAll();
+      expect(a.currentState).toBe('a-2');
+      expect(undoRedo.undo()).toBe(true);
+      expect(b.$setStateValue).toBe('b-1');
+      expect(undoRedo.undo()).toBe(true);
+      expect(a.$setStateValue).toBe('a-1');
+    });
 
-    expect(ur.undo().doc).toEqual('abc');
-    expect(ur.undo().doc).toEqual('a');
-
-    expect(ur.redo().doc).toEqual('abc');
-    expect(ur.redo().doc).toEqual('abcde');
+    it('should not push duplicate states', () => {
+      const { undoRedo, provider } = createUndoRedo();
+      undoRedo.push({ id: provider.id, state: 'state1' });
+      undoRedo.push({ id: provider.id, state: 'state1' });
+      expect(undoRedo.canUndo).toBe(true);
+      expect(undoRedo.undo()).toBe(true);
+      expect(provider.$setStateValue).toBe(null);
+    });
   });
 
-  it('Changes clear redo history', () => {
-    let doc = 'a';
-    const ur = undoRedo(
-      { doc, ctx: 0 },
-      () => ({ doc, ctx: 0 }),
-      () => {},
-    );
+  describe('history limits', () => {
+    it('should respect maxHistory limit', () => {
+      const { undoRedo } = createUndoRedo({ maxHistory: 3 });
+      const a = createProvider('pa');
+      const b = createProvider('pb');
+      undoRedo.registerProvider(a);
+      undoRedo.registerProvider(b);
 
-    doc = 'ab';
-    ur.commit();
-    doc = 'abc';
-    ur.commit();
-    doc = 'abcd';
-    ur.commit();
+      undoRedo.push({ id: a.id, state: 'state1' });
+      undoRedo.push({ id: b.id, state: 'state2' });
+      undoRedo.push({ id: a.id, state: 'state3' });
+      undoRedo.push({ id: b.id, state: 'state4' });
 
-    expect(ur.undo().doc).toEqual('abc');
-    expect(ur.undo().doc).toEqual('ab');
-
-    doc = 'abz';
-    ur.commit();
-
-    expect(ur.undo().doc).toEqual('ab');
-    expect(ur.undo().doc).toEqual('a');
-    expect(ur.redo().doc).toEqual('ab');
-    expect(ur.redo().doc).toEqual('abz');
-    expect(ur.redo().doc).toEqual('abz');
+      expect(undoRedo.undo()).toBe(true);
+      expect(a.currentState).toBe('state3');
+      expect(b.currentState).toBe('state2');
+      expect(undoRedo.undo()).toBe(true);
+      expect(a.currentState).toBe('state1');
+      expect(b.currentState).toBe('state2');
+      expect(undoRedo.undo()).toBe(true);
+      expect(undoRedo.undo()).toBe(false);
+    });
   });
 
-  it('Undo and redo commit the buffer before running', () => {
-    let doc = 'a';
-    const ur = undoRedo(
-      { doc, ctx: 0 },
-      () => ({ doc, ctx: 0 }),
-      () => {},
-    );
+  describe('edge cases', () => {
+    it('should handle undo when no history exists', () => {
+      const { undoRedo } = createUndoRedo();
+      expect(undoRedo.undo()).toBe(false);
+    });
 
-    doc = 'a quazar';
-    ur.commit();
-    doc = 'a quazar is amazing';
-    ur.onChange();
-    expect(ur.undo().doc).toEqual('a quazar');
-    expect(ur.redo().doc).toEqual('a quazar is amazing');
+    it('should handle redo when no future states exist', () => {
+      const { undoRedo } = createUndoRedo();
+      expect(undoRedo.redo()).toBe(false);
+    });
 
-    expect(ur.undo().doc).toEqual('a quazar');
-    expect(ur.undo().doc).toEqual('a');
+    it('should handle unknown provider IDs', () => {
+      const { undoRedo } = createUndoRedo();
+      undoRedo.push({ id: 'unknown-provider', state: 'state1' });
+      expect(undoRedo.canUndo).toBe(false);
+    });
   });
 });

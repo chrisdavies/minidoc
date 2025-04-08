@@ -7,11 +7,12 @@
     "/dist"
   ],
   "scripts": {
-    "e2e": "playwright test",
-    "test": "jasmine && playwright test",
+    "test:e2e": "playwright test",
+    "test:unit": "jasmine",
+    "test": "npm run test:unit && npm run test:e2e",
     "test:watch": "onchange -i -k \"src/**/*.{js,jsx,ts,tsx}\" --exclude \"**/dist/**\" -- npm run test",
     "start": "npm-run-all --parallel watch:**",
-    "testserver": "esbuild --global-name=minidoc --bundle ./src/integration-test/integration-client.ts --outfile=./src/integration-test/dist/minidoctest.js --sourcemap=inline --define:process.env.NODE_ENV='development' && sirv ./src/integration-test/ --port 3003",
+    "testserver": "esbuild --global-name=minidoc --bundle ./src/integration-test/integration-client.ts --outfile=./src/integration-test/dist/minidoctest.js --sourcemap=inline --define:process.env.NODE_ENV=\"'development'\" && sirv ./src/integration-test/ --port 3003",
     "watch:es": "esbuild public/demo.ts --global-name=minidoc --bundle --servedir=public --outfile=public/dist/bundle.js --serve=':8000' --sourcemap --define:process.env.NODE_ENV=\"'development'\"",
     "watch:ts": "tsc --noEmit --watch --preserveWatchOutput",
     "prepack": "rm -rf ./dist && npm-run-all --parallel release:** && npm test",
@@ -34,14 +35,12 @@
   },
   "devDependencies": {
     "@playwright/test": "1.25.0",
-    "@sinonjs/fake-timers": "7.1.2",
     "@types/jasmine": "3.9.0",
-    "@types/sinonjs__fake-timers": "6.0.3",
-    "esbuild": "0.14.49",
+    "esbuild": "0.25.2",
     "jasmine": "4.0.1",
     "npm-run-all": "4.1.5",
     "sirv-cli": "2.0.2",
     "ts-node": "10.4.0",
-    "typescript": "4.5.4"
+    "typescript": "5.8.3"
   }
 }

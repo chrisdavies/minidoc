@@ -34,7 +34,7 @@ function linkify(node: Node) {
 
   Dom.walk(node, NodeFilter.SHOW_TEXT, (n) => {
     const t = n as Text;
-    if (urls.test(t.textContent || '') && !n.parentElement?.closest('a') && t.replaceWith) {
+    if (urls.test(t.textContent || '') && !n.parentElement?.closest('a') && !!t.replaceWith) {
       textNodes.push(t);
     }
   });

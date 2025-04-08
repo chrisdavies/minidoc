@@ -48,7 +48,7 @@ export function AlignMenu(editor: MinidocToolbarEditor) {
       label: `Text ${direction}`,
       html: mkico(direction),
       run() {
-        editor.captureChange(() => align(direction, leafs));
+        align(direction, leafs);
         editor.toolbar.setMenu();
         range && Rng.setCurrentSelection(range);
       },

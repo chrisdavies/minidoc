@@ -83,10 +83,13 @@ export const cardMiddleware =
     const activeCards = new Set<Element>();
     const selector = [cardTagName, ...defs.map((d) => d.selector).filter((s) => !!s)].join(',');
 
-    const definitions = defs.reduce((acc, c) => {
-      acc[c.type] = c;
-      return acc;
-    }, {} as CardPluginContext['definitions']);
+    const definitions = defs.reduce(
+      (acc, c) => {
+        acc[c.type] = c;
+        return acc;
+      },
+      {} as CardPluginContext['definitions'],
+    );
 
     function deactivateCards() {
       activeCards.forEach((el) => toggleActive(el, false));
@@ -112,7 +115,7 @@ export const cardMiddleware =
 
       const def =
         el.tagName !== cardTagName
-          ? defs.find((d) => d.selector && d.deriveState && el.matches(d.selector))!
+          ? defs.find((d) => d.selector && !!d.deriveState && el.matches(d.selector))!
           : definitions[Dom.attr('type', el)!];
 
       (el as ImmutableLeaf).$immutable = true;
@@ -238,6 +241,9 @@ export const cardMiddleware =
         }
 
         const card = activeCards.values().next().value;
+        if (!card) {
+          return;
+        }
 
         if (e.code === 'ArrowLeft' || (e.code === 'ArrowUp' && card === editor.root.children[0])) {
           if (!card.classList.contains(leftCaretClass)) {

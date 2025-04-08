@@ -176,6 +176,7 @@ const pageUtil = (page: Page) => ({
           doc,
           readonly,
           middleware: [
+            tests.makeUndoRedoMiddleware(),
             tests.minidocToolbar(tests.defaultToolbarActions),
             tests.cardMiddleware([tests.counterCard]),
           ],

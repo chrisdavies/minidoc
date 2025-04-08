@@ -1,9 +1,15 @@
 export interface MinidocBase {
   root: HTMLElement;
   readonly?: boolean;
+  id?: string;
+  initialValue: string;
 }
 
 export interface MinidocOptions<T extends Array<EditorMiddleware>> {
+  /**
+   * If specified, the id of this editor.
+   */
+  id?: string;
   /**
    * The raw document as HTML.
    */
@@ -28,9 +34,8 @@ export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) ex
   ? I
   : never;
 
-export type ReturnTypesIntersection<T> = T extends Array<(...args: any[]) => infer U>
-  ? UnionToIntersection<Exclude<U, void>>
-  : any;
+export type ReturnTypesIntersection<T> =
+  T extends Array<(...args: any[]) => infer U> ? UnionToIntersection<Exclude<U, void>> : any;
 
 export type EditorMiddleware<
   TExtension extends any = any,
