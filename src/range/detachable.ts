@@ -1,4 +1,15 @@
-import { DetachedPosition, DetachedRange } from '../undo-redo';
+/**
+ * A selection representation that be restored on a different DOM tree than the
+ * one from on which it was created.
+ */
+export type DetachedRange = {
+  /**
+   * The path of offsets that, if followed, will take you from the editor root
+   * to a descendant node which will be selected.
+   */
+  start: number[];
+  end?: number[];
+};
 
 /**
  * Find the normalized previous node used for computing the
@@ -62,7 +73,7 @@ function normalizedOffset(node: Node, offset: number) {
   return offset;
 }
 
-function getNodePath(node: Node, offset: number, rootEl: Element): DetachedPosition {
+function getNodePath(node: Node, offset: number, rootEl: Element): number[] {
   // Ideally, here, we'd call node.normalize(), which would give us a safe
   // path, but unfortunately, Safari loses the selection when you normalize,
   // so we have to compute the path as if normalized. What that means is, if the
@@ -78,17 +89,20 @@ function getNodePath(node: Node, offset: number, rootEl: Element): DetachedPosit
     iter = iter.parentElement;
   }
 
-  return { path: path.reverse(), offset: normalizedOffset(node, offset) };
+  path.reverse();
+  path.push(normalizedOffset(node, offset));
+  return path;
 }
 
 /**
  * Find the descendent of node which is referred to by the nodePath.
  */
-function resolveNodePath(pos: DetachedPosition | undefined, node: Node) {
+function resolveNodePath(pos: number[] | undefined, node: Node) {
   if (!pos || !node) {
     return;
   }
-  const { offset, path } = pos;
+  const path = [...pos];
+  const offset = path.pop() ?? -1;
   node.normalize();
   for (let i of path) {
     node = node && node.childNodes[i];
@@ -97,7 +111,7 @@ function resolveNodePath(pos: DetachedPosition | undefined, node: Node) {
 }
 
 export function emptyDetachedRange(): DetachedRange {
-  return { start: { offset: -1, path: [] } };
+  return { start: [] };
 }
 
 /**
@@ -122,7 +136,7 @@ export function detachFrom(range: Range | undefined, rootEl: Element): DetachedR
  * Attach the specified detached range to the specified root element.
  */
 export function attachTo(detachedRange: DetachedRange | undefined, rootEl: Element) {
-  if (!detachedRange || detachedRange.start.offset < 0) {
+  if (!detachedRange || !detachedRange.start.length) {
     return;
   }
   const start = resolveNodePath(detachedRange.start, rootEl);

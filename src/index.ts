@@ -9,6 +9,7 @@ export * from './file-drop';
 export * from './placeholder';
 export * from './minidoc';
 export * from './mixins';
+export * from './undo-redo';
 export * as scrubbable from './scrubbable';
 export { LinkBehavior } from './link/link-menu';
 export { h, on } from './dom';

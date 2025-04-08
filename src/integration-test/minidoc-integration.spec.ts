@@ -176,6 +176,7 @@ const pageUtil = (page: Page) => ({
           doc,
           readonly,
           middleware: [
+            tests.makeUndoRedoMiddleware(),
             tests.minidocToolbar(tests.defaultToolbarActions),
             tests.cardMiddleware([tests.counterCard]),
           ],
@@ -405,9 +406,8 @@ test.describe('toolbar', () => {
     await util.press('Backspace');
     await util.press('Backspace');
     await util.press('Backspace');
-    await util.press('Backspace');
-    expect(await util.serializeDoc()).toEqual(`<h1>Hello</h1><p>Stuff  here</p>`);
-    await page.type('[contenteditable]', 'goes');
+    expect(await util.serializeDoc()).toEqual(`<h1>Hello</h1><p>Stuff <strong>g</strong> here</p>`);
+    await page.type('[contenteditable]', 'oes');
     expect(await util.serializeDoc()).toEqual(
       `<h1>Hello</h1><p>Stuff <strong>goes</strong> here</p>`,
     );

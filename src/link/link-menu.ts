@@ -34,7 +34,7 @@ function getLinkBehavior(range: Range): LinkBehavior {
   const leaf = Dom.findLeaf(currentNode);
   const behavior = getBehavior<LinkBehavior>(leaf);
 
-  if (behavior && behavior.getHref && behavior.setHref) {
+  if (behavior && !!behavior.getHref && !!behavior.setHref) {
     return behavior as LinkBehavior;
   }
 

@@ -3,7 +3,6 @@ import { disposable } from './disposable-mixin';
 import { MinidocBase, ReturnTypesIntersection, MinidocOptions, EditorMiddleware } from '../types';
 import { serializable } from '../serializable';
 import { mountable } from '../mountable';
-import { undoRedoMiddleware } from '../undo-redo';
 import { inlineTogglable } from '../inline-toggle';
 import { alignMixin } from '../align';
 import { dragDropMixin } from '../drag-drop';
@@ -34,7 +33,6 @@ const baseMiddleware = getDefaultMiddleware([
   disposable,
   serializable,
   mountable,
-  undoRedoMiddleware,
   inlineTogglable,
   dragDropMixin,
   selectionTracker,
@@ -78,7 +76,6 @@ type ReturnedMinidocCore = MinidocCore | ReadonlyMinidocCore;
  */
 let globalInit = () => {
   globalInit = () => {};
-  document.execCommand('defaultParagraphSeparator', false, 'p');
 };
 
 export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<T>) {
@@ -99,7 +96,7 @@ export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<
 
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
-  const core: MinidocBase = { root, readonly: opts.readonly };
+  const core: MinidocBase = { id: opts.id, root, readonly: opts.readonly, initialValue: opts.doc };
   const defaultMiddleware = opts.readonly ? readOnlyMiddleware : baseMiddleware;
   const middleware = opts.middleware
     ? [...defaultMiddleware, ...opts.middleware]
