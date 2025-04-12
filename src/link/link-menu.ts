@@ -2,7 +2,7 @@ import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { onMount } from '../disposable';
-import type { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
+import { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
 import { getBehavior } from '..';
 import type { MinidocBase } from '../types';
 

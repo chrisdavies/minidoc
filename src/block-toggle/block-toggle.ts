@@ -47,7 +47,7 @@ export const blockTogglable: EditorMiddleware<BlockTogglable> = (next, editor) =
   const result = editor as MinidocBase & BlockTogglable & Changeable;
   result.toggleBlock = (tagName) => {
     const range = Rng.currentRange();
-    range && result.captureChange(() => Rng.setCurrentSelection(toggleBlock(tagName, range)));
+    range && Rng.setCurrentSelection(toggleBlock(tagName, range));
   };
   return next(result);
 };

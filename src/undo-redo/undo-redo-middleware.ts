@@ -32,35 +32,19 @@ export interface Changeable {
    * is buffered and won't be captured until a timeout has passed.
    */
   onChange(): void;
-  /**
-   * Capture an atomic change in the undo / redo system. The callback
-   * fn is responsible for making the change.
-   */
-  captureChange(fn: () => void): void;
 }
 
 function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializable) {
   const el = editor.root;
-  let isApplying = false;
 
   // If the caret changes as a result of an undo / redo, we ignore it.
   const undoRedo = makeUndoRedo({ initialState: editor.state, setState: editor.setState });
 
   const onChange = () => undoRedo.push(editor.state);
 
-  editor.undo = () => {
-    isApplying = true;
-    undoRedo.undo();
-  };
-  editor.redo = () => {
-    isApplying = true;
-    undoRedo.redo();
-  };
+  editor.undo = undoRedo.undo;
 
-  editor.captureChange = (fn) => {
-    fn();
-    onChange();
-  };
+  editor.redo = undoRedo.redo;
 
   editor.onChange = onChange;
 
@@ -78,13 +62,7 @@ function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializa
     }
   });
 
-  Dom.on(el, 'mini:change', () => {
-    if (isApplying) {
-      isApplying = false;
-      return;
-    }
-    onChange();
-  });
+  Dom.on(el, 'mini:change', onChange);
 }
 
 /**
@@ -110,7 +88,6 @@ export const makeUndoRedoMiddleware =
       // Set up the undo / redo functions as noops / pass-throughs
       result.undo = () => {};
       result.redo = () => {};
-      result.captureChange = (f) => f();
       result.onChange = () => {};
     } else {
       // We have to initialize undo / redo only after the doc has been mounted. Prior to this,

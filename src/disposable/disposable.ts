@@ -14,14 +14,7 @@ export type Disposable = {
 };
 
 export type Observable = {
-  /**
-   * Pause watching the document for DOM changes.
-   */
-  pause(): void;
-  /**
-   * Resume watching the document for DOM changes.
-   */
-  resume(): void;
+  pauseChanges(fn: () => void): void;
 };
 
 type DisposeFn = () => void;
@@ -113,8 +106,13 @@ export function initialize<T extends Element>(
   el: T,
   onChange: () => void,
 ): T & Disposable & Observable {
+  let paused = 0;
   const observer = new MutationObserver((mutationsList) => {
-    onChange();
+    if (paused > 0) {
+      --paused;
+    } else {
+      onChange();
+    }
 
     for (let mutation of mutationsList) {
       mutation.addedNodes.forEach((addedNode) => {
@@ -137,15 +135,12 @@ export function initialize<T extends Element>(
     observer.disconnect();
   };
 
-  result.pause = () => {
-    observer.disconnect();
+  result.pauseChanges = (fn) => {
+    ++paused;
+    fn();
   };
 
-  result.resume = () => {
-    observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
-  };
-
-  result.resume();
+  observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
   elementMounted(onMount(el, () => {}));
   return result;
 }

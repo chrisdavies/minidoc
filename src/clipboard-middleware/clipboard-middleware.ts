@@ -322,11 +322,9 @@ export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
     }
 
     const scrubbed = editor.scrub(content);
-    editor.captureChange(() => {
-      const result = insertLeafs(scrubbed, range, editor);
-      result.collapse();
-      Rng.setCurrentSelection(result);
-    });
+    const result = insertLeafs(scrubbed, range, editor);
+    result.collapse();
+    Rng.setCurrentSelection(result);
   });
 
   Dom.on(el, 'copy', (e) => {
@@ -334,7 +332,7 @@ export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
   });
 
   Dom.on(el, 'cut', (e) => {
-    editor.captureChange(() => moveToClipboard(e, true));
+    moveToClipboard(e, true);
   });
 
   return next(editor);

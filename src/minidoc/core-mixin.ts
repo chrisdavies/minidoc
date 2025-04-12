@@ -9,7 +9,7 @@ import { Mountable } from '../mountable';
 export interface Serializable {
   serialize(): string;
   state: EditorState;
-  setState(state: EditorState, opts?: { focus: boolean }): void;
+  setState(state: EditorState, opts?: { focus?: boolean }): void;
 }
 
 function isSerializable(n: any): n is Serializable {
@@ -37,7 +37,6 @@ export const coreMixin: EditorMiddleware<Disposable & Serializable> = (next, edi
     Cardable &
     Disposable;
   let prevState: EditorState | undefined;
-  let changed = false;
 
   // Add the dispose behavior, and handle core changes.
   const el = initialize(result.root, () => {
@@ -46,8 +45,7 @@ export const coreMixin: EditorMiddleware<Disposable & Serializable> = (next, edi
       doc: result.serialize(),
       selection: (range && Rng.detachFrom(range, editor.root)) || Rng.emptyDetachedRange(),
     };
-    if (changed || (prevState && prevState.doc !== result.state.doc)) {
-      changed = true;
+    if (prevState?.doc !== result.state.doc) {
       Dom.emit(el, 'mini:change');
     }
     prevState = result.state;
@@ -76,9 +74,7 @@ export const coreMixin: EditorMiddleware<Disposable & Serializable> = (next, edi
     if (result.state && result.state.doc === state.doc) {
       return;
     }
-    try {
-      el.pause();
-
+    el.pauseChanges(() => {
       result.state = state;
 
       // Put old cards into a map so we can reuse them
@@ -118,9 +114,7 @@ export const coreMixin: EditorMiddleware<Disposable & Serializable> = (next, edi
       if (opts?.focus !== false) {
         editor.root.focus();
       }
-    } finally {
-      el.resume();
-    }
+    });
   };
 
   return next(result);

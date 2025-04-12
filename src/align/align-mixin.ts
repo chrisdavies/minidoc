@@ -14,7 +14,7 @@ export interface Alignable {
 export const alignMixin: EditorMiddleware<Alignable> = (next, editor) => {
   const result = editor as MinidocBase & Alignable & Changeable;
   result.align = (direction) => {
-    result.captureChange(() => align(direction));
+    align(direction);
     result.root.isConnected && Dom.emit(result.root, 'mini:caretchange');
   };
   return next(result);
