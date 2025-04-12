@@ -6,6 +6,7 @@ import { inferMiddleware } from '../mixins';
  */
 export const placeholder = (placeholder: string) =>
   inferMiddleware((next, editor) => {
+    const result = next(editor);
     const el: HTMLElement = editor.root;
     const updatePlaceholder = () => {
       const placeholderText =
@@ -26,5 +27,5 @@ export const placeholder = (placeholder: string) =>
     // Add / remove the placeholder initially, as necessary.
     updatePlaceholder();
 
-    return next(editor);
+    return result;
   });

@@ -1,4 +1,5 @@
 import * as Dom from '../dom';
+import { MinidocBase } from '../types';
 import { last } from '../util';
 
 export function toNode(range: Range): Node {
@@ -261,6 +262,7 @@ export function $splitAndInsert(
   findContainer: (node: Node) => Element | undefined,
   range: Range,
   content: DocumentFragment,
+  editor: MinidocBase,
 ): Range {
   const firstNode = content.firstChild;
   const lastNode = content.lastChild;
@@ -286,7 +288,7 @@ export function $splitAndInsert(
 
   // Possibly merge the first element into the first slice of the sandwich
   const mergeA =
-    a?.isConnected && !Dom.isCard(firstNode) && !Dom.isList(firstNode) && !Dom.isList(a);
+    a?.isConnected && !Dom.isCard(firstNode, editor) && !Dom.isList(firstNode) && !Dom.isList(a);
   if (mergeA && Dom.isElement(firstNode)) {
     firstNode.remove();
     a!.append(Dom.toFragment(firstNode.childNodes));
@@ -297,12 +299,12 @@ export function $splitAndInsert(
     b?.isConnected &&
     Dom.isElement(lastNode) &&
     (lastNode !== firstNode || !mergeA) &&
-    !Dom.isCard(lastNode) &&
+    !Dom.isCard(lastNode, editor) &&
     !Dom.isList(lastNode) &&
     !Dom.isList(b)
   ) {
     b.remove();
-    lastNode.append(Dom.toFragment(b.childNodes));
+    (lastNode as HTMLElement).append(Dom.toFragment(b.childNodes));
   }
 
   return result;

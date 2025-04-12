@@ -1,15 +1,16 @@
+import { DetachedRange } from './range';
+
+export type EditorState = {
+  doc: string;
+  selection?: DetachedRange;
+};
+
 export interface MinidocBase {
   root: HTMLElement;
   readonly?: boolean;
-  id?: string;
-  initialValue: string;
 }
 
 export interface MinidocOptions<T extends Array<EditorMiddleware>> {
-  /**
-   * If specified, the id of this editor.
-   */
-  id?: string;
   /**
    * The raw document as HTML.
    */
@@ -42,4 +43,4 @@ export type EditorMiddleware<
   TEditor extends MinidocBase = MinidocBase,
 > = (next: <Y extends MinidocBase>(editor: Y) => Y, editor: TEditor) => TEditor & TExtension;
 
-export type ImmutableLeaf = Element & { $immutable: true };
+export type ImmutableLeaf = HTMLElement & { $immutable: true };

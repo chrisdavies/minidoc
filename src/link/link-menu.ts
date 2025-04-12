@@ -2,8 +2,9 @@ import * as Rng from '../range';
 import * as Dom from '../dom';
 import { h } from '../dom';
 import { onMount } from '../disposable';
-import { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
+import type { ToolbarButton, Submenu, MinidocToolbarEditor } from '../toolbar';
 import { getBehavior } from '..';
+import type { MinidocBase } from '../types';
 
 export interface LinkBehavior {
   getHref(): string;
@@ -29,7 +30,7 @@ function restoreSelection(range?: Range) {
   return range && Rng.setCurrentSelection(range);
 }
 
-function getLinkBehavior(range: Range): LinkBehavior {
+function getLinkBehavior(range: Range, editor: MinidocBase): LinkBehavior {
   const currentNode = Rng.toNode(range);
   const leaf = Dom.findLeaf(currentNode);
   const behavior = getBehavior<LinkBehavior>(leaf);
@@ -48,7 +49,7 @@ function getLinkBehavior(range: Range): LinkBehavior {
         restoreSelection(Dom.replaceSelfWithChildren(a));
       } else if (a) {
         Dom.assignAttrs({ href }, a);
-      } else if (Dom.isCard(leaf)) {
+      } else if (Dom.isCard(leaf, editor)) {
         Dom.insertAfter(h('p', h('a', { href }, href)), leaf);
       } else {
         range.insertNode(h('a', { href }, range.collapsed ? href : range.extractContents()));
@@ -62,7 +63,7 @@ export function LinkMenu(editor: MinidocToolbarEditor) {
   if (!range) {
     return;
   }
-  const behavior = getLinkBehavior(range);
+  const behavior = getLinkBehavior(range, editor);
   const highlighter = highlight(range);
   let href = behavior.getHref();
 

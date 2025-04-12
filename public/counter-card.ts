@@ -29,7 +29,7 @@ export const counterCard: MinidocCardDefinition<State> = {
           root.querySelector('a')?.remove();
           return;
         }
-        const a = root.querySelector('a') || h('a');
+        const a = root.querySelector('a') || h<HTMLAnchorElement>('a');
         a.href = href;
         a.textContent = href;
         root.append(a);

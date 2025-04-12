@@ -42,13 +42,14 @@ export const rules: ScrubbableRules = {
   },
 };
 
-function scrubContext() {
+function scrubContext(editor: MinidocBase) {
   const frag = document.createDocumentFragment();
   let stack: Element[] = [];
   let leaf: Element | undefined;
 
   const me = {
     frag,
+    editor,
     get leaf() {
       return leaf;
     },
@@ -134,7 +135,7 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
   }
 
   function scrub(node: Node, ctx: Ctx) {
-    if (isCard(node)) {
+    if (isCard(node, ctx.editor)) {
       ctx.addLeaf(node);
       ctx.closeLeaf();
       return;
@@ -181,8 +182,8 @@ export const createScrubber = (rules: ScrubbableRules): Scrubber => {
     scrubChildren(Array.from(node.childNodes), ctx);
   }
 
-  return (frag) => {
-    const ctx = scrubContext();
+  return (frag, editor) => {
+    const ctx = scrubContext(editor);
     scrubChildren(
       Array.from(frag.childNodes).filter((n) => {
         if (isElement(n)) {
