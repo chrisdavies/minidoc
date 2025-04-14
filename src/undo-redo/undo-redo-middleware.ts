@@ -69,7 +69,7 @@ function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializa
  * Mixin that adds undo / redo to the editor. This can be overridden by adding
  * it more than once in the mixins list. The last one wins.
  */
-export const makeUndoRedoMiddleware =
+export const undoRedoMiddleware =
   (opts?: { disabled?: boolean }): EditorMiddleware<Undoable & Redoable & Changeable> =>
   (next, editor) => {
     const result = next(

@@ -13,7 +13,7 @@ import { stylePrevention } from '../style-prevention';
 import { onSequenceMixin } from '../on-sequence';
 import { horizontalRuleMixin } from '../horizontal-rule';
 import { middleware as scrubbableMiddleware } from '../scrubbable';
-import { makeUndoRedoMiddleware } from '../undo-redo';
+import { undoRedoMiddleware } from '../undo-redo';
 
 function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T): T {
   return middleware;
@@ -27,7 +27,7 @@ const baseMiddleware = getDefaultMiddleware([
   onSequenceMixin,
   coreMixin,
   mountable,
-  makeUndoRedoMiddleware(),
+  undoRedoMiddleware(),
   inlineTogglable,
   dragDropMixin,
   selectionTracker,
