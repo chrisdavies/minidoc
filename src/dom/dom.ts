@@ -1,5 +1,6 @@
-import { Serializable } from '../serializable';
-import { ImmutableLeaf } from '../types';
+import type { Cardable } from '../card';
+import type { Serializable } from '../minidoc/core-mixin';
+import type { ImmutableLeaf, MinidocBase } from '../types';
 import { last } from '../util';
 
 type Eachable = { forEach: (...args: any) => void };
@@ -50,8 +51,8 @@ export function isText(node: any): node is Text {
 /**
  * Determine if the node is an Element.
  */
-export function isElement(node: any): node is Element {
-  return node instanceof Element;
+export function isElement(node: any): node is HTMLElement {
+  return node instanceof HTMLElement;
 }
 
 /**
@@ -80,8 +81,12 @@ export function isRoot(node: any): boolean {
 /**
  * Determine if the specified item is a minidoc card.
  */
-export function isCard(n: any): n is HTMLDivElement {
-  return isElement(n) && n.tagName === 'MINI-CARD';
+export function isCard(n: any, editor: MinidocBase): n is HTMLElement {
+  const cardable = editor as unknown as Cardable;
+  return (
+    isElement(n) &&
+    (n.tagName === 'MINI-CARD' || (!!cardable.$cardSelector && n.matches(cardable.$cardSelector)))
+  );
 }
 
 /**

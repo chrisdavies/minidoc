@@ -186,17 +186,17 @@ function insertBelow(content: DocumentFragment, ref: Node) {
  * element in content, and the last slice of the sandwich with the last element
  * in content.
  */
-function splitAndInsert(content: DocumentFragment, range: Range) {
+function splitAndInsert(content: DocumentFragment, range: Range, editor: MinidocBase) {
   const firstEl = content.firstElementChild!;
 
   // If we only have one node in our content, and it's not a list or card, we'll
   // inline it into the current selection.
-  if (content.children.length === 1 && !Dom.isCard(firstEl) && !Dom.isList(firstEl)) {
+  if (content.children.length === 1 && !Dom.isCard(firstEl, editor) && !Dom.isList(firstEl)) {
     range.insertNode(Dom.toFragment(firstEl.childNodes));
     return range;
   }
 
-  return Rng.$splitAndInsert(Dom.findLeaf, range, content);
+  return Rng.$splitAndInsert(Dom.findLeaf, range, content, editor);
 }
 
 /**
@@ -288,7 +288,7 @@ function insertLeafs(content: DocumentFragment, range: Range, editor: MinidocBas
   } else if (Dom.isList(targetLeaf) && Dom.isList(firstNode)) {
     return mergeLists(firstNode, range, newLeafs);
   } else {
-    return splitAndInsert(newLeafs, range);
+    return splitAndInsert(newLeafs, range, editor);
   }
 }
 
@@ -322,11 +322,9 @@ export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
     }
 
     const scrubbed = editor.scrub(content);
-    editor.captureChange(() => {
-      const result = insertLeafs(scrubbed, range, editor);
-      result.collapse();
-      Rng.setCurrentSelection(result);
-    });
+    const result = insertLeafs(scrubbed, range, editor);
+    result.collapse();
+    Rng.setCurrentSelection(result);
   });
 
   Dom.on(el, 'copy', (e) => {
@@ -334,7 +332,7 @@ export const clipbordMiddleware: EditorMiddleware<Pastable> = (next, b) => {
   });
 
   Dom.on(el, 'cut', (e) => {
-    editor.captureChange(() => moveToClipboard(e, true));
+    moveToClipboard(e, true);
   });
 
   return next(editor);

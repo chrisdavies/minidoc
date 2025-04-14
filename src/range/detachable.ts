@@ -107,7 +107,7 @@ function resolveNodePath(pos: number[] | undefined, node: Node) {
   for (let i of path) {
     node = node && node.childNodes[i];
   }
-  return { node, offset };
+  return node && { node, offset };
 }
 
 export function emptyDetachedRange(): DetachedRange {
@@ -140,6 +140,9 @@ export function attachTo(detachedRange: DetachedRange | undefined, rootEl: Eleme
     return;
   }
   const start = resolveNodePath(detachedRange.start, rootEl);
+  if (!start) {
+    return;
+  }
   const end = resolveNodePath(detachedRange.end, rootEl);
   const range = document.createRange();
   start && range.setStart(start.node, start.offset);

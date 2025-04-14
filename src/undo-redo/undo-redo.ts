@@ -5,27 +5,15 @@
  */
 
 /**
- * The id of the provider that owns the state and the new state.
- */
-type StateChange = { id: string; state?: unknown; getValue?(): unknown };
-
-/**
  * The id of a provider and the prev / next state. When you redo into
  * an item, the next state is used, and when you undo, the previous
  * is used.
  */
-type UndoRedoItem = { id: string; prev: unknown; next: unknown };
+type UndoRedoItem<T> = { prev: T; next: T };
 
-/**
- * A provider such as a Preact state provider, a Lexical state provider, etc.
- */
-type UndoRedoProvider = {
-  id: string;
-  currentState: unknown;
-  setState(state: unknown): void;
-};
-
-export type UndoRedoOptions = {
+export type UndoRedoOptions<T> = {
+  initialState: T;
+  setState(state: T): void;
   /**
    * The delay, in milliseconds, between a change and the time we capture
    * an undo snapshot.
@@ -37,37 +25,33 @@ export type UndoRedoOptions = {
   maxHistory?: number;
 };
 
-export type UndoRedo = ReturnType<typeof makeUndoRedo>;
+export type UndoRedo<T> = ReturnType<typeof makeUndoRedo<T>>;
 
 /**
  * Create an undo / redo manager.
  */
-export function makeUndoRedo({ delay = 500, maxHistory = 1024 }: UndoRedoOptions = {}) {
-  const stack: UndoRedoItem[] = [];
+export function makeUndoRedo<T>({
+  delay = 500,
+  maxHistory = 1024,
+  initialState,
+  setState,
+}: UndoRedoOptions<T>) {
+  const stack: UndoRedoItem<T>[] = [];
   // The index of the current undo / redo history item in the stack
   let index = -1;
   let timeout: any;
-  let pendingState: StateChange | undefined;
-  const providers: Record<string, UndoRedoProvider> = {};
-
-  const registerProvider = (provider: UndoRedoProvider) => {
-    providers[provider.id] = provider;
-  };
+  let currentState = initialState;
+  let pendingState: T | undefined;
 
   const commitState = () => {
-    const provider = pendingState && providers[pendingState.id];
-    if (!pendingState || !provider) {
+    if (!pendingState) {
       return;
     }
-    // Get the state snapshot
-    const state = pendingState.getValue?.() ?? pendingState.state;
-    // Insert it at the current index.
     stack.splice(index + 1, stack.length - index + 1, {
-      id: pendingState.id,
-      prev: provider.currentState,
-      next: state,
+      prev: currentState,
+      next: pendingState,
     });
-    provider.currentState = state;
+    currentState = pendingState;
     if (stack.length > maxHistory) {
       stack.splice(0, stack.length - maxHistory);
     }
@@ -77,13 +61,9 @@ export function makeUndoRedo({ delay = 500, maxHistory = 1024 }: UndoRedoOptions
     timeout = undefined;
   };
 
-  const push = (item: StateChange) => {
-    const provider = providers[item.id];
-    if (!provider || provider.currentState === item.state) {
+  const push = (item: T) => {
+    if (currentState === item) {
       return;
-    }
-    if (pendingState && pendingState.id !== item.id) {
-      commitState();
     }
     pendingState = item;
     if (!timeout) {
@@ -95,13 +75,12 @@ export function makeUndoRedo({ delay = 500, maxHistory = 1024 }: UndoRedoOptions
     commitState();
     const nextIndex = index + direction;
     const item = stack[direction < 0 ? index : nextIndex];
-    const provider = item && providers[item.id];
-    if (!provider) {
+    if (!item) {
       return false;
     }
     const state = direction < 0 ? item.prev : item.next;
-    provider.currentState = state;
-    provider.setState(state);
+    currentState = state;
+    setState(state);
     index = nextIndex;
     return true;
   };
@@ -112,13 +91,12 @@ export function makeUndoRedo({ delay = 500, maxHistory = 1024 }: UndoRedoOptions
 
   return {
     get canUndo() {
-      return index > 0 || !!pendingState;
+      return index >= 0 || !!pendingState;
     },
     get canRedo() {
       return index < stack.length - 1;
     },
     commitState,
-    registerProvider,
     push,
     undo,
     redo,

@@ -187,15 +187,14 @@ export const listMixin: EditorMiddleware<ListTogglable> = (next, editor) => {
     OnSequenceable;
   result.toggleList = (tagName) => {
     const range = Rng.currentRange();
-    range &&
-      result.captureChange(() => {
-        const isCollapsed = range.collapsed;
-        const newRange = toggleList(tagName, range);
-        if (isCollapsed) {
-          newRange.collapse(true);
-        }
-        Rng.setCurrentSelection(newRange);
-      });
+    if (range) {
+      const isCollapsed = range.collapsed;
+      const newRange = toggleList(tagName, range);
+      if (isCollapsed) {
+        newRange.collapse(true);
+      }
+      Rng.setCurrentSelection(newRange);
+    }
   };
 
   result.onSequence('* ', convertNodeTo('ul'));

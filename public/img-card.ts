@@ -4,6 +4,10 @@ export const imgCard: MinidocCardDefinition<{ src: string; caption?: string }> =
   type: 'img',
   selector: 'img,figure',
   deriveState(el) {
+    const stateJSONStr = el.dataset.state;
+    if (stateJSONStr) {
+      return JSON.parse(stateJSONStr);
+    }
     switch (el.tagName) {
       case 'IMG': {
         const img = el as HTMLImageElement;
@@ -23,10 +27,8 @@ export const imgCard: MinidocCardDefinition<{ src: string; caption?: string }> =
     return imgCard.render(opts).outerHTML;
   },
   render({ state }) {
-    return h(
-      'figure',
-      h('img', { src: state.src, alt: state.caption }),
-      state.caption && h('figcaption', state.caption),
-    );
+    const img = h<HTMLImageElement>('img', { src: state.src, alt: state.caption });
+    const fig = h('figure', img, state.caption && h('figcaption', state.caption));
+    return fig;
   },
 };

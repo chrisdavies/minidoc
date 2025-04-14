@@ -1,7 +1,6 @@
-import { h, toFragment } from '../dom';
-import { disposable } from './disposable-mixin';
+import { h } from '../dom';
+import { coreMixin } from './core-mixin';
 import { MinidocBase, ReturnTypesIntersection, MinidocOptions, EditorMiddleware } from '../types';
-import { serializable } from '../serializable';
 import { mountable } from '../mountable';
 import { inlineTogglable } from '../inline-toggle';
 import { alignMixin } from '../align';
@@ -20,19 +19,13 @@ function getDefaultMiddleware<T extends Array<EditorMiddleware>>(middleware: T):
   return middleware;
 }
 
-const readOnlyMiddleware = getDefaultMiddleware([
-  scrubbableMiddleware(),
-  disposable,
-  serializable,
-  mountable,
-]);
+const readOnlyMiddleware = getDefaultMiddleware([scrubbableMiddleware(), coreMixin, mountable]);
 
 const baseMiddleware = getDefaultMiddleware([
   scrubbableMiddleware(),
   stylePrevention,
   onSequenceMixin,
-  disposable,
-  serializable,
+  coreMixin,
   mountable,
   makeUndoRedoMiddleware(),
   inlineTogglable,
@@ -45,12 +38,23 @@ const baseMiddleware = getDefaultMiddleware([
   clipbordMiddleware,
 ]);
 
-function applyMiddleware(middleware: any[], editor: any, i: number) {
+function applyMiddleware(middleware: any[], editor: any, opts: MinidocOptions<any>, i: number) {
   if (i >= middleware.length) {
+    // We're at the end of our mixin run. We set the initial state here since all of the plugins
+    // should have done their initial attachment, but they can save their analysis of the
+    // content until the unwinding phase of mixin initialization.
+    editor.setState(
+      {
+        doc: opts.doc,
+        selection: { start: [] },
+      },
+      { focus: false },
+    );
+
     return editor;
   }
   const result = middleware[i](
-    (nextEditor: any) => applyMiddleware(middleware, nextEditor, i + 1),
+    (nextEditor: any) => applyMiddleware(middleware, nextEditor, opts, i + 1),
     editor,
   );
   if (!result) {
@@ -98,18 +102,19 @@ export function minidoc<T extends Array<EditorMiddleware>>(opts: MinidocOptions<
 
   // If the root already has an editor associated with it, dispose it.
   (root as any).$editor?.dispose();
-  const core: MinidocBase = { id: opts.id, root, readonly: opts.readonly, initialValue: opts.doc };
+  const core: MinidocBase = {
+    root,
+    readonly: opts.readonly,
+  };
   const defaultMiddleware = opts.readonly ? readOnlyMiddleware : baseMiddleware;
   const middleware = opts.middleware
     ? [...defaultMiddleware, ...opts.middleware]
     : defaultMiddleware;
-  const editor = applyMiddleware(middleware, core, 0) as ReturnedMinidocCore &
+  const editor = applyMiddleware(middleware, core, opts, 0) as ReturnedMinidocCore &
     ReturnTypesIntersection<typeof middleware>;
 
   // Associate the editor with the root element.
   (root as any).$editor = editor;
 
-  root.append(editor.scrub(toFragment(h('div', { innerHTML: opts.doc }).childNodes)));
-  editor.beforeMount(editor.root);
   return editor;
 }

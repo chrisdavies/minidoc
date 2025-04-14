@@ -13,12 +13,10 @@
  */
 
 import * as Dom from '../dom';
-import * as Rng from '../range';
-import { makeUndoRedo, UndoRedo } from './undo-redo';
+import { makeUndoRedo } from './undo-redo';
 import { EditorMiddleware, MinidocBase } from '../types';
-import { UndoHistoryState } from './types';
-import { Serializable } from '../serializable';
 import { Mountable } from '../mountable';
+import type { Serializable } from '../minidoc/core-mixin';
 
 export interface Undoable {
   undo(): void;
@@ -34,66 +32,19 @@ export interface Changeable {
    * is buffered and won't be captured until a timeout has passed.
    */
   onChange(): void;
-  /**
-   * Capture an atomic change in the undo / redo system. The callback
-   * fn is responsible for making the change.
-   */
-  captureChange(fn: () => void): void;
 }
 
-function init(
-  editor: MinidocBase & Undoable & Redoable & Changeable & Serializable,
-  externalUndoRedo?: UndoRedo,
-) {
+function init(editor: MinidocBase & Undoable & Redoable & Changeable & Serializable) {
   const el = editor.root;
 
   // If the caret changes as a result of an undo / redo, we ignore it.
-  let isApplyingHistory = false;
-  const undoRedo = externalUndoRedo || makeUndoRedo();
-  const id = editor.id || 'minidoc';
-  const initialState: UndoHistoryState = {
-    doc: editor.serialize(false),
-    range: el.children.length ? { start: [0, 0] } : Rng.emptyDetachedRange(),
-  };
+  const undoRedo = makeUndoRedo({ initialState: editor.state, setState: editor.setState });
 
-  undoRedo.registerProvider({
-    id,
-    currentState: initialState,
-    setState(state: UndoHistoryState) {
-      isApplyingHistory = true;
-      // TODO: Videos flicker in Safari given a totally naive (replace the entire doc)
-      // undo / redo mechanism. So instead, we need to attempt to keep the existing cards in the DOM.
-      editor.root.innerHTML = state.doc;
-      const range = Rng.attachTo(state.range, editor.root);
-      range && Rng.setCurrentSelection(range);
-
-      el.focus();
-    },
-  });
-
-  const onChange = () => {
-    if (isApplyingHistory) {
-      return;
-    }
-    undoRedo.push({
-      id,
-      getValue(): UndoHistoryState {
-        const range = Rng.currentRange();
-        return {
-          doc: editor.serialize(false),
-          range: (range && Rng.detachFrom(range, el)) || Rng.emptyDetachedRange(),
-        };
-      },
-    });
-  };
+  const onChange = () => undoRedo.push(editor.state);
 
   editor.undo = undoRedo.undo;
-  editor.redo = undoRedo.redo;
 
-  editor.captureChange = (fn) => {
-    fn();
-    onChange();
-  };
+  editor.redo = undoRedo.redo;
 
   editor.onChange = onChange;
 
@@ -111,19 +62,7 @@ function init(
     }
   });
 
-  Dom.on(el, 'mini:change', () => {
-    // When the editor's content changes, assuming it's not
-    // an undo / redo, we need to stop tracking the caret
-    // until the undo / redo system captures the history state.
-    // If we kept tracking the caret, we'd log invalid caret
-    // positions in history.
-    if (isApplyingHistory) {
-      isApplyingHistory = false;
-      return;
-    }
-
-    onChange();
-  });
+  Dom.on(el, 'mini:change', onChange);
 }
 
 /**
@@ -131,19 +70,31 @@ function init(
  * it more than once in the mixins list. The last one wins.
  */
 export const makeUndoRedoMiddleware =
-  (undoRedo?: UndoRedo): EditorMiddleware<Undoable & Redoable & Changeable> =>
+  (opts?: { disabled?: boolean }): EditorMiddleware<Undoable & Redoable & Changeable> =>
   (next, editor) => {
     const result = next(
       editor as MinidocBase & Undoable & Redoable & Changeable & Mountable & Serializable,
     );
 
-    const undoRedoEditor = result as { $undoRedoInit?: number };
-    clearTimeout(undoRedoEditor.$undoRedoInit);
+    // This is a hack that allows us to disable the base / default plugin
+    // instance with a subsequent undo / redo plugin.
+    const initialized = result as unknown as { $hasUndo: boolean };
+    if (initialized.$hasUndo) {
+      return result;
+    }
+    initialized.$hasUndo = true;
 
-    // We have to initialize undo / redo only after the doc has been mounted. Prior to this,
-    // the doc may be in an intermadiate / initializing state. The setTimeout is to put our
-    // initialization after any DOM change events have propagated.
-    undoRedoEditor.$undoRedoInit = setTimeout(() => init(result, undoRedo));
+    if (opts?.disabled) {
+      // Set up the undo / redo functions as noops / pass-throughs
+      result.undo = () => {};
+      result.redo = () => {};
+      result.onChange = () => {};
+    } else {
+      // We have to initialize undo / redo only after the doc has been mounted. Prior to this,
+      // the doc may be in an intermadiate / initializing state. The setTimeout is to put our
+      // initialization after any DOM change events have propagated.
+      setTimeout(() => init(result));
+    }
 
     return result;
   };

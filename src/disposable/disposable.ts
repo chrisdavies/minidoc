@@ -6,9 +6,16 @@
  * and we can use the DOM as our tree.
  */
 
-export interface Disposable {
+export type Disposable = {
+  /**
+   * Clean up any global effects / events.
+   */
   dispose(): void;
-}
+};
+
+export type Observable = {
+  pauseChanges(fn: () => void): void;
+};
 
 type DisposeFn = () => void;
 type DisposableInit = () => void | DisposeFn | DisposeFn[];
@@ -95,9 +102,17 @@ export function onMount(el: Element, fn: DisposableInit) {
  * If el itself is removed from the DOM, this will not handle that. The return
  * function must be called manually in that case.
  */
-export function initialize(el: Element, onChange: () => void): Element & { dispose(): void } {
+export function initialize<T extends Element>(
+  el: T,
+  onChange: () => void,
+): T & Disposable & Observable {
+  let paused = 0;
   const observer = new MutationObserver((mutationsList) => {
-    onChange();
+    if (paused > 0) {
+      --paused;
+    } else {
+      onChange();
+    }
 
     for (let mutation of mutationsList) {
       mutation.addedNodes.forEach((addedNode) => {
@@ -112,13 +127,20 @@ export function initialize(el: Element, onChange: () => void): Element & { dispo
       });
     }
   });
-  observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
-  const result: any = el;
+  const result = el as T & Disposable & Observable;
+
   result.dispose = () => {
     elementUnmounted(el);
     el.remove();
     observer.disconnect();
   };
+
+  result.pauseChanges = (fn) => {
+    ++paused;
+    fn();
+  };
+
+  observer.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
   elementMounted(onMount(el, () => {}));
   return result;
 }

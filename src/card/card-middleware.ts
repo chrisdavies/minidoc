@@ -2,12 +2,12 @@ import * as Dom from '../dom';
 import * as Rng from '../range';
 import { compose } from '../util';
 import { h } from '../dom';
-import { EditorMiddleware, ImmutableLeaf, MinidocBase } from '../types';
-import { Mountable } from '../mountable/mountable';
-import { Serializable } from '../serializable/serializable';
-import { InlineTogglable } from '../inline-toggle';
-import { DragDroppable } from '../drag-drop';
-import { Scrubbable } from '../scrubbable';
+import type { EditorMiddleware, ImmutableLeaf, MinidocBase } from '../types';
+import type { Mountable } from '../mountable/mountable';
+import type { InlineTogglable } from '../inline-toggle';
+import type { DragDroppable } from '../drag-drop';
+import type { Scrubbable } from '../scrubbable';
+import type { Serializable } from '../minidoc/core-mixin';
 
 const rightCaretClass = 'minidoc-card-caret-right';
 const leftCaretClass = 'minidoc-card-caret-left';
@@ -41,6 +41,7 @@ export interface MinidocCardDefinition<T extends object = any> {
 }
 
 export interface Cardable {
+  $cardSelector?: string;
   insertCard<T = any>(type: string, initialState: T): void;
   defineCard(def: MinidocCardDefinition): void;
 }
@@ -68,6 +69,28 @@ function assignCaret(el: Element, caret: string) {
   el.classList.add(caret);
 }
 
+function ensureLeaf(el: Element) {
+  // Cards are expected to be leaf nodes. This detects the scenario
+  // where a card is not a leaf, and promotes it to a leaf node.
+  if (!el.parentNode || Dom.isRoot(el.parentNode)) {
+    return;
+  }
+
+  const leaf = Dom.findLeaf(el);
+  if (!leaf?.parentNode) {
+    return;
+  }
+
+  const range = Rng.createRange();
+  range.selectNodeContents(leaf);
+  range.setStartAfter(el);
+  const frag = range.extractContents();
+  if (!Dom.isEmpty(frag) || frag.querySelector('img,audio,video')) {
+    Dom.insertAfter(h('p', frag), leaf);
+  }
+  Dom.insertAfter(el, leaf);
+}
+
 /**
  * Add support for cards to minidoc.
  */
@@ -82,7 +105,7 @@ export const cardMiddleware =
       Scrubbable;
     const activeCards = new Set<Element>();
     const selector = [cardTagName, ...defs.map((d) => d.selector).filter((s) => !!s)].join(',');
-
+    result.$cardSelector = selector;
     const definitions = defs.reduce(
       (acc, c) => {
         acc[c.type] = c;
@@ -202,7 +225,7 @@ export const cardMiddleware =
         state: JSON.stringify(initialState),
         tabindex: -1,
       });
-      Rng.$splitAndInsert(Dom.findLeaf, Rng.currentRange()!, Dom.toFragment(card));
+      Rng.$splitAndInsert(Dom.findLeaf, Rng.currentRange()!, Dom.toFragment(card), editor);
       mountCard(card, result, initialState);
       Rng.setCaretAtStart(card);
       return card;
@@ -312,25 +335,3 @@ export const cardMiddleware =
 
     return next(result);
   };
-
-function ensureLeaf(el: Element) {
-  // Cards are expected to be leaf nodes. This detects the scenario
-  // where a card is not a leaf, and promotes it to a leaf node.
-  if (!el.parentNode || Dom.isRoot(el.parentNode)) {
-    return;
-  }
-
-  const leaf = Dom.findLeaf(el);
-  if (!leaf?.parentNode) {
-    return;
-  }
-
-  const range = Rng.createRange();
-  range.selectNodeContents(leaf);
-  range.setStartAfter(el);
-  const frag = range.extractContents();
-  if (!Dom.isEmpty(frag) || frag.querySelector('img,audio,video')) {
-    Dom.insertAfter(h('p', frag), leaf);
-  }
-  Dom.insertAfter(el, leaf);
-}

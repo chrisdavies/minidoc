@@ -3,7 +3,7 @@
  */
 import * as Dom from '../dom';
 import { h } from '../dom';
-import { Serializable } from '../serializable';
+import type { Serializable } from '../minidoc/core-mixin';
 import { EditorMiddleware, MinidocBase } from '../types';
 import { Changeable } from '../undo-redo';
 import { debounce } from '../util';

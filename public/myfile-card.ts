@@ -16,7 +16,7 @@ export const myfileCard: MinidocCardDefinition<State> = {
     return {
       src: el.href,
       name: el.download,
-      type: el.dataset.type,
+      type: el.dataset.type!,
     };
   },
   serialize({ state }) {
