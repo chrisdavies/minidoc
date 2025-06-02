@@ -52,7 +52,9 @@ function getLinkBehavior(range: Range, editor: MinidocBase): LinkBehavior {
       } else if (Dom.isCard(leaf, editor)) {
         Dom.insertAfter(h('p', h('a', { href }, href)), leaf);
       } else {
-        range.insertNode(h('a', { href }, range.collapsed ? href : range.extractContents()));
+        const newA = h('a', { href }, range.collapsed ? href : range.extractContents());
+        Array.from(newA.querySelectorAll('a')).forEach(Dom.replaceSelfWithChildren);
+        range.insertNode(newA);
       }
     },
   };
